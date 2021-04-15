@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { classToClass, plainToClass } from 'class-transformer';
+import { EntityMapperService } from 'src/shared/entity-mapper/entity-mapper.service';
 import { getRepository, Brackets } from 'typeorm';
 import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectShowDto } from './dtos/project.show.dto';
@@ -7,6 +8,8 @@ import { Project } from './project.entity';
 
 @Injectable()
 export class ProjectService {
+  constructor(private entityMapper: EntityMapperService) {}
+
   private sortBy = new Map([
     ['name', 'project.name'],
     ['department', 'department.name'],
@@ -16,8 +19,8 @@ export class ProjectService {
   ]);
 
   async findProjects(findOptions: ProjectFindDto): Promise<ProjectShowDto[]> {
-    const projects = await this.getMatchingProjects(findOptions);
-    const projectsMappedString = projects
+    const selectedProjects = await this.getMatchingProjects(findOptions);
+    const projectsMappedString = selectedProjects
       .map((project) => project.id)
       .join(', ');
 
@@ -42,11 +45,9 @@ export class ProjectService {
       }
     }
 
-    return query
-      .getMany()
-      .then((projects) =>
-        projects.map((project) => plainToClass(ProjectShowDto, project)),
-      );
+    const projects = await query.getMany();
+
+    return this.entityMapper.mapArray(ProjectShowDto, projects);
   }
 
   private getMatchingProjects(findOptions: ProjectFindDto): Promise<Project[]> {
@@ -57,8 +58,6 @@ export class ProjectService {
       .leftJoinAndSelect('user.university', 'userUniversity')
       .leftJoinAndSelect('project.department', 'department')
       .leftJoinAndSelect('department.university', 'departmentUniversity');
-
-    console.log(findOptions);
 
     if (findOptions.generalSearch !== undefined) {
       query.where(
