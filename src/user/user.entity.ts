@@ -4,8 +4,6 @@ import {
   Column,
   ManyToOne,
   Entity,
-  OneToOne,
-  JoinColumn,
   OneToMany,
 } from 'typeorm';
 import { University } from '../university/university.entity';
@@ -39,12 +37,12 @@ export class User {
   @Column({ default: false })
   requestPosition: boolean;
 
-  @ManyToOne((type) => University, (university) => university.users, {
+  @ManyToOne(() => University, (university) => university.users, {
     nullable: false,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
   university: University;
-  @OneToMany((type) => Enrolment, (enrolment) => enrolment.user)
+  @OneToMany(() => Enrolment, (enrolment) => enrolment.user)
   enrolments: Enrolment[];
 }
