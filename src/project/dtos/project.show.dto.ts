@@ -4,10 +4,10 @@ import {
   plainToClass,
   Transform,
   Type,
-} from "class-transformer";
-import { DepartmentShowDto } from "src/department/dtos/department.show.dto";
-import { UserShowDto } from "src/user/dtos/user.show.dto";
-import { ProjectType } from "../project.entity";
+} from 'class-transformer';
+import { DepartmentShowDto } from 'src/department/dtos/department.show.dto';
+import { UserShowDto } from 'src/user/dtos/user.show.dto';
+import { ProjectType } from '../project.entity';
 
 @Exclude()
 export class ProjectShowDto {
@@ -25,7 +25,7 @@ export class ProjectShowDto {
   @Expose()
   @Type(() => DepartmentShowDto)
   department: DepartmentShowDto;
-  @Expose({ name: "userToProjects" })
+  @Expose({ name: 'enrolments' })
   @Transform(({ value }) =>
     value.map((e: any) => plainToClass(UserShowDto, e.user)),
   )

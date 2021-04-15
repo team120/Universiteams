@@ -31,10 +31,10 @@ export class Project {
     onUpdate: 'CASCADE',
   })
   department: Department;
-  @OneToMany(
-    (type) => Enrolment,
-    (userToProject) => userToProject.project,
-    { nullable: false, cascade: ['insert', 'update'], onUpdate: 'CASCADE' },
-  )
+  @OneToMany((type) => Enrolment, (userToProject) => userToProject.project, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
   enrolments: Enrolment[];
 }

@@ -1,5 +1,6 @@
-import { Exclude, Expose, Transform, Type } from "class-transformer";
-import { ProjectType } from "../project.entity";
+import { Exclude, Expose, Transform, Type } from 'class-transformer';
+import { ParseOptionalBoolean } from 'src/parse-optional-boolean.decorator';
+import { ProjectType } from '../project.entity';
 
 @Exclude()
 export class ProjectFindDto {
@@ -8,7 +9,7 @@ export class ProjectFindDto {
   @Expose()
   type: ProjectType;
   @Expose()
-  @Transform(({ value }) => value === "true")
+  @ParseOptionalBoolean()
   isDown: boolean;
   @Expose()
   departmentId: number;
@@ -22,6 +23,6 @@ export class ProjectFindDto {
   @Expose()
   sortBy: string;
   @Expose()
-  @Transform(({ value }) => value === "true")
+  @ParseOptionalBoolean()
   inAscendingOrder: boolean;
 }
