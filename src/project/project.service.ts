@@ -64,7 +64,7 @@ export class ProjectService {
         throw new DbException(err.message, err.stack);
       });
 
-    this.logger.debug(`Project ${project.id} found`);
+    this.logger.debug(`Project ${project?.id} found`);
     if (!project) throw new NotFoundException();
 
     this.logger.debug('Map project to dto');
