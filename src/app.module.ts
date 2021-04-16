@@ -7,9 +7,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
 import { SharedModule } from './shared/shared.module';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(), ProjectModule, UserModule, SharedModule],
+  imports: [
+    TypeOrmModule.forRoot(),
+    ProjectModule,
+    UserModule,
+    SharedModule,
+    LoggerModule,
+  ],
   controllers: [AppController, AuthController, UniversityController],
   providers: [AppService],
 })

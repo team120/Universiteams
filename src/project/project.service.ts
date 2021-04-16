@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { classToClass, plainToClass } from 'class-transformer';
+import { AppLogger } from 'src/logger/app-logger';
 import { EntityMapperService } from 'src/shared/entity-mapper/entity-mapper.service';
 import { getRepository, Brackets } from 'typeorm';
 import { ProjectFindDto } from './dtos/project.find.dto';
@@ -8,7 +9,12 @@ import { Project } from './project.entity';
 
 @Injectable()
 export class ProjectService {
-  constructor(private entityMapper: EntityMapperService) {}
+  constructor(
+    private entityMapper: EntityMapperService,
+    private logger: AppLogger,
+  ) {
+    this.logger.setContext(ProjectService.name);
+  }
 
   private sortBy = new Map([
     ['name', 'project.name'],
@@ -19,6 +25,7 @@ export class ProjectService {
   ]);
 
   async findProjects(findOptions: ProjectFindDto): Promise<ProjectShowDto[]> {
+    this.logger.debug('Find matching project ids');
     const selectedProjects = await this.getMatchingProjects(findOptions);
     const projectsMappedString = selectedProjects
       .map((project) => project.id)
