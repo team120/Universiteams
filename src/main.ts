@@ -17,9 +17,6 @@ async function bootstrap() {
       'University-projects-manager: Pro Scientific Dissemination ',
     )
     .setVersion('1.0')
-    .addTag('universities')
-    .addTag('teams')
-    .addTag('research')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
