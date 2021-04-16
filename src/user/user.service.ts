@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { EntityMapperService } from 'src/shared/entity-mapper/entity-mapper.service';
+import { EntityMapperService } from 'src/serialization/entity-mapper/entity-mapper.service';
 import { Repository } from 'typeorm';
 import { UserShowDto } from './dtos/user.show.dto';
 import { User } from './user.entity';

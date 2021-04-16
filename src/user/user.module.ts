@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoggerModule } from 'nestjs-pino';
-import { SharedModule } from 'src/shared/shared.module';
+import { SerializationModule } from 'src/serialization/serialization.module';
 import { UserController } from './user.controller';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), SharedModule],
+  imports: [TypeOrmModule.forFeature([User]), SerializationModule],
   controllers: [UserController],
   providers: [UserService],
 })
