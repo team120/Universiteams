@@ -28,7 +28,7 @@ export class UserService {
 
   async findOne(id: number): Promise<UserShowDto> {
     const user = await this.userRepository
-      .findOne(id, { relations: ['university'] })
+      .findOneOrFail(id, { relations: ['university'] })
       .catch(() => {
         throw new DbException();
       });

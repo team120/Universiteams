@@ -8,6 +8,7 @@ import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
 import { SharedModule } from './shared/shared.module';
 import { LoggerModule } from './logger/logger.module';
+import { ExceptionsModule } from './exceptions/exceptions.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { LoggerModule } from './logger/logger.module';
     UserModule,
     SharedModule,
     LoggerModule,
+    ExceptionsModule,
   ],
   controllers: [AppController, AuthController, UniversityController],
   providers: [AppService],
