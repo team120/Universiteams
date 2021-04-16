@@ -6,10 +6,10 @@ import { UniversityController } from './university/university.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
-import { SharedModule } from './shared/shared.module';
 import { ExceptionsModule } from './exceptions/exceptions.module';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
+import { SerializationModule } from './serialization/serialization.module';
 
 @Module({
   imports: [
@@ -33,8 +33,8 @@ import { ConfigModule } from '@nestjs/config';
     }),
     ProjectModule,
     UserModule,
-    SharedModule,
     ExceptionsModule,
+    SerializationModule,
   ],
   controllers: [AppController, AuthController, UniversityController],
   providers: [AppService],
