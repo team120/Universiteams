@@ -9,7 +9,7 @@ export class AppExceptionsFilter extends BaseExceptionFilter {
   }
 
   catch(exception: HttpException, host: ArgumentsHost) {
-    this.logger.error(exception.stack, exception.message);
+    this.logger.error(exception, exception.message);
     super.catch(exception, host);
   }
 }
