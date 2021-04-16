@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DbException } from 'src/exceptions/database.exception';
 import { AppLogger } from 'src/logger/app-logger';
 import { EntityMapperService } from 'src/shared/entity-mapper/entity-mapper.service';
 import { Repository } from 'typeorm';
@@ -23,5 +24,17 @@ export class UserService {
     return this.entityMapper.mapArray(UserShowDto, users, {
       groups: ['admin'],
     });
+  }
+
+  async findOne(id: number): Promise<UserShowDto> {
+    const user = await this.userRepository
+      .findOne(id, { relations: ['university'] })
+      .catch(() => {
+        throw new DbException();
+      });
+
+    if (!user) throw new NotFoundException();
+
+    return this.entityMapper.mapValue(UserShowDto, user);
   }
 }
