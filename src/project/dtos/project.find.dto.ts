@@ -5,24 +5,24 @@ import { ProjectType } from '../project.entity';
 @Exclude()
 export class ProjectFindDto {
   @Expose()
-  generalSearch: string;
+  generalSearch?: string;
   @Expose()
-  type: ProjectType;
+  type?: ProjectType;
   @Expose()
   @ParseOptionalBoolean()
-  isDown: boolean;
+  isDown?: boolean;
   @Expose()
-  departmentId: number;
+  departmentId?: number;
   @Expose()
-  universityId: number;
+  universityId?: number;
   @Expose()
-  userId: number;
+  userId?: number;
   @Expose()
   @Type(() => Date)
-  dateFrom: Date;
+  dateFrom?: Date;
   @Expose()
-  sortBy: string;
+  sortBy?: string;
   @Expose()
   @ParseOptionalBoolean()
-  inAscendingOrder: boolean;
+  inAscendingOrder?: boolean;
 }
