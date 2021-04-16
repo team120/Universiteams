@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { classToClass, plainToClass } from 'class-transformer';
-import { AppLogger } from 'src/logger/app-logger';
+import { PinoLogger } from 'nestjs-pino';
 import { EntityMapperService } from 'src/shared/entity-mapper/entity-mapper.service';
 import { getRepository, Brackets } from 'typeorm';
 import { ProjectFindDto } from './dtos/project.find.dto';
@@ -10,8 +9,8 @@ import { Project } from './project.entity';
 @Injectable()
 export class ProjectService {
   constructor(
-    private entityMapper: EntityMapperService,
-    private logger: AppLogger,
+    private readonly entityMapper: EntityMapperService,
+    private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(ProjectService.name);
   }

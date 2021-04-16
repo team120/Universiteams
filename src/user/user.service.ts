@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PinoLogger } from 'nestjs-pino';
 import { DbException } from 'src/exceptions/database.exception';
-import { AppLogger } from 'src/logger/app-logger';
 import { EntityMapperService } from 'src/shared/entity-mapper/entity-mapper.service';
 import { Repository } from 'typeorm';
 import { UserShowDto } from './dtos/user.show.dto';
@@ -11,8 +11,8 @@ import { User } from './user.entity';
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private entityMapper: EntityMapperService,
-    private logger: AppLogger,
+    private readonly entityMapper: EntityMapperService,
+    private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(UserService.name);
   }

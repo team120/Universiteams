@@ -1,24 +1,15 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, HttpException } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
-import { AppLogger } from 'src/logger/app-logger';
+import { PinoLogger } from 'nestjs-pino';
 
 @Catch()
 export class AppExceptionsFilter extends BaseExceptionFilter {
-  constructor(private logger: AppLogger) {
+  constructor(private logger: PinoLogger) {
     super();
   }
 
   catch(exception: HttpException, host: ArgumentsHost) {
-    const context = host.switchToHttp();
-    const request = context.getResponse();
-
-    this.logger.error(exception.message, exception.stack, request.path);
-
+    this.logger.error(exception.stack, exception.message);
     super.catch(exception, host);
   }
 }
