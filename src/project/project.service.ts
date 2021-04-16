@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
+import { DbException } from 'src/exceptions/database.exception';
 import { EntityMapperService } from 'src/shared/entity-mapper/entity-mapper.service';
-import { getRepository, Brackets } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectShowDto } from './dtos/project.show.dto';
 import { Project } from './project.entity';
@@ -9,6 +11,8 @@ import { Project } from './project.entity';
 @Injectable()
 export class ProjectService {
   constructor(
+    @InjectRepository(Project)
+    private readonly projectRepository: Repository<Project>,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
   ) {
@@ -25,19 +29,14 @@ export class ProjectService {
 
   async findProjects(findOptions: ProjectFindDto): Promise<ProjectShowDto[]> {
     this.logger.debug('Find matching project ids');
-    const selectedProjects = await this.getMatchingProjects(findOptions);
-    const projectsMappedString = selectedProjects
+    const selectedProjectIds = await this.getMatchingProjects(findOptions);
+    const projectIdsMappedString = selectedProjectIds
       .map((project) => project.id)
       .join(', ');
 
-    const query = getRepository(Project)
-      .createQueryBuilder('project')
-      .innerJoinAndSelect('project.enrolments', 'enrolment')
-      .innerJoinAndSelect('enrolment.user', 'user')
-      .leftJoinAndSelect('user.university', 'university')
-      .leftJoinAndSelect('project.department', 'department')
-      .leftJoinAndSelect('department.university', 'departmentUniversity')
-      .where(`project.id IN (${projectsMappedString})`);
+    const query = this.getProjectWithRelationsQuery().where(
+      `project.id IN (${projectIdsMappedString})`,
+    );
 
     if (findOptions.sortBy !== undefined) {
       const sortByProperty = this.sortBy.get(findOptions.sortBy);
@@ -56,14 +55,24 @@ export class ProjectService {
     return this.entityMapper.mapArray(ProjectShowDto, projects);
   }
 
+  async findOne(id: number): Promise<ProjectShowDto> {
+    this.logger.debug('Find project with matching');
+    const project = await this.getProjectWithRelationsQuery()
+      .where('project.id = :projectId', { projectId: id })
+      .getOne()
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
+
+    this.logger.debug(`Project ${project.id} found`);
+    if (!project) throw new NotFoundException();
+
+    this.logger.debug('Map project to dto');
+    return this.entityMapper.mapValue(ProjectShowDto, project);
+  }
+
   private getMatchingProjects(findOptions: ProjectFindDto): Promise<Project[]> {
-    const query = getRepository(Project)
-      .createQueryBuilder('project')
-      .innerJoinAndSelect('project.enrolments', 'enrolment')
-      .innerJoinAndSelect('enrolment.user', 'user')
-      .leftJoinAndSelect('user.university', 'userUniversity')
-      .leftJoinAndSelect('project.department', 'department')
-      .leftJoinAndSelect('department.university', 'departmentUniversity');
+    const query = this.getProjectWithRelationsQuery();
 
     if (findOptions.generalSearch !== undefined) {
       query.where(
@@ -105,5 +114,15 @@ export class ProjectService {
     }
 
     return query.select('project.id').getMany();
+  }
+
+  private getProjectWithRelationsQuery() {
+    return this.projectRepository
+      .createQueryBuilder('project')
+      .innerJoinAndSelect('project.enrolments', 'enrolment')
+      .innerJoinAndSelect('enrolment.user', 'user')
+      .leftJoinAndSelect('user.university', 'university')
+      .leftJoinAndSelect('project.department', 'department')
+      .leftJoinAndSelect('department.university', 'departmentUniversity');
   }
 }

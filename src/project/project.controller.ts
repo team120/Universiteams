@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Query,
   UseInterceptors,
   UsePipes,
@@ -21,6 +22,11 @@ export class ProjectController {
   async getProjects(
     @Query() findOptions: ProjectFindDto,
   ): Promise<ProjectShowDto[]> {
-    return await this.projectService.findProjects(findOptions);
+    return this.projectService.findProjects(findOptions);
+  }
+
+  @Get(':id')
+  async getOneProject(@Param('id', ParseIntPipe) projectId: number) {
+    return this.projectService.findOne(projectId);
   }
 }

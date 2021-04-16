@@ -9,9 +9,4 @@ export class UserController {
   async getUsers() {
     return this.userService.findAll();
   }
-
-  @Get(':id')
-  getUser(@Param('id', ParseIntPipe) userId: number) {
-    return this.userService.findOne(userId);
-  }
 }
