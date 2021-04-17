@@ -121,7 +121,7 @@ export class ProjectService {
       .createQueryBuilder('project')
       .innerJoinAndSelect('project.enrolments', 'enrolment')
       .innerJoinAndSelect('enrolment.user', 'user')
-      .leftJoinAndSelect('user.university', 'university')
+      .leftJoinAndSelect('user.university', 'userUniversity')
       .leftJoinAndSelect('project.department', 'department')
       .leftJoinAndSelect('department.university', 'departmentUniversity');
   }
