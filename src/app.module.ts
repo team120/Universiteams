@@ -8,12 +8,10 @@ import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
 import { ExceptionsModule } from './exceptions/exceptions.module';
 import { LoggerModule } from 'nestjs-pino';
-import { ConfigModule } from '@nestjs/config';
 import { SerializationModule } from './serialization/serialization.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ cache: true }),
     TypeOrmModule.forRoot(),
     LoggerModule.forRoot({
       pinoHttp: {
