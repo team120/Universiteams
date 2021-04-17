@@ -9,10 +9,12 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectShowDto } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 
+@ApiTags('projects')
 @Controller('projects')
 export class ProjectController {
   constructor(private projectService: ProjectService) {}

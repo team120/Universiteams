@@ -1,3 +1,4 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
 import { UniversityShowDto } from 'src/university/dtos/university.show.dto';
 
@@ -14,6 +15,8 @@ export class UserShowDto {
   @Expose()
   @Type(() => UniversityShowDto)
   university: UniversityShowDto;
+  // TODO: Should display metadata of this one just for users route
+  @ApiHideProperty()
   @Expose({ groups: ['admin'] })
   requestPosition: boolean;
 }
