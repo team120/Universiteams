@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
+import { Type } from '../utils/generic-type';
 
 export interface MapperConfig {
   groups: string[];
@@ -8,18 +9,14 @@ export interface MapperConfig {
 @Injectable()
 export class EntityMapperService {
   mapArray<T, R>(
-    typeToMap: { new (...args: any[]): R },
+    typeToMap: Type<R>,
     elements: Array<T>,
     configs?: MapperConfig,
   ): Array<R> {
     return elements.map((user) => plainToClass(typeToMap, user, configs));
   }
 
-  mapValue<T, R>(
-    typeToMap: { new (...args: any[]): R },
-    element: T,
-    configs?: MapperConfig,
-  ) {
+  mapValue<T, R>(typeToMap: Type<R>, element: T, configs?: MapperConfig): R {
     return plainToClass(typeToMap, element, configs);
   }
 }
