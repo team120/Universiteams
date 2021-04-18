@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { DepartmentShowDto } from 'src/department/dtos/department.show.dto';
+import { DepartmentShowDto } from '../../department/dtos/department.show.dto';
 
 @Exclude()
 export class UniversityShowDto {
