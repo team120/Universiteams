@@ -16,6 +16,7 @@ export const projects = [
     },
     users: [
       {
+        id: 1,
         name: 'John',
         lastName: 'Doe',
         mail: 'user1@example.com',
@@ -25,6 +26,7 @@ export const projects = [
         },
       },
       {
+        id: 2,
         name: 'Afak',
         lastName: 'Ename',
         mail: 'user2@example.com',
@@ -51,6 +53,7 @@ export const projects = [
     },
     users: [
       {
+        id: 2,
         name: 'Afak',
         lastName: 'Ename',
         mail: 'user2@example.com',
@@ -60,6 +63,7 @@ export const projects = [
         },
       },
       {
+        id: 3,
         name: 'Nom',
         lastName: 'Eaning',
         mail: 'user3@example.com',
