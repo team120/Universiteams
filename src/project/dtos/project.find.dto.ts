@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { ParseOptionalBoolean } from 'src/utils/decorators/parse-optional-boolean.decorator';
+import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
 
 @Exclude()

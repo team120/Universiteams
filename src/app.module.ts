@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthController } from './auth/auth.controller';
 import { UniversityController } from './university/university.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,10 +8,17 @@ import { UserModule } from './user/user.module';
 import { ExceptionsModule } from './exceptions/exceptions.module';
 import { LoggerModule } from 'nestjs-pino';
 import { SerializationModule } from './serialization/serialization.module';
+import { getConnectionOptions } from 'typeorm';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(),
+    TypeOrmModule.forRootAsync({
+      useFactory: async () =>
+        await getConnectionOptions('development').then((conn) => ({
+          ...conn,
+          name: 'default',
+        })),
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -35,6 +41,5 @@ import { SerializationModule } from './serialization/serialization.module';
     SerializationModule,
   ],
   controllers: [AppController, AuthController, UniversityController],
-  providers: [AppService],
 })
 export class AppModule {}

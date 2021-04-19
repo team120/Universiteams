@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { DbException } from 'src/exceptions/database.exception';
-import { EntityMapperService } from 'src/serialization/entity-mapper.service';
+import { DbException } from '../exceptions/database.exception';
+import { EntityMapperService } from '../serialization/entity-mapper.service';
 import { Brackets, Repository } from 'typeorm';
 import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectShowDto } from './dtos/project.show.dto';

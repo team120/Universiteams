@@ -1,4 +1,4 @@
-import { Enrolment } from 'src/enrollment/enrolment.entity';
+import { Enrolment } from '../enrollment/enrolment.entity';
 import {
   PrimaryGeneratedColumn,
   Column,

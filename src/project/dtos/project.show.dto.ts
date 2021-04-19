@@ -5,8 +5,8 @@ import {
   Transform,
   Type,
 } from 'class-transformer';
-import { DepartmentShowDto } from 'src/department/dtos/department.show.dto';
-import { UserShowDto } from 'src/user/dtos/user.show.dto';
+import { DepartmentShowDto } from '../../department/dtos/department.show.dto';
+import { UserShowDto } from '../../user/dtos/user.show.dto';
 import { ProjectType } from '../project.entity';
 
 @Exclude()
