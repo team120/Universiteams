@@ -4,6 +4,8 @@ import { UniversityShowDto } from '../../university/dtos/university.show.dto';
 @Exclude()
 export class UserShowDto {
   @Expose()
+  id: number;
+  @Expose()
   name: string;
   @Expose()
   lastName: string;
