@@ -12,7 +12,7 @@ export class SeedTestDb1590967789743 implements MigrationInterface {
     const usersRepo = getRepository(User);
     const universityRepo = getRepository(University);
     const projectRepo = getRepository(Project);
-    const userToProjectsRepo = getRepository(Enrollment);
+    const enrollmentsRepo = getRepository(Enrollment);
     const departmentRepo = getRepository(Department);
 
     const universities: University[] = [
@@ -104,26 +104,26 @@ export class SeedTestDb1590967789743 implements MigrationInterface {
 
     await usersRepo.save(users);
 
-    const usersToProjects: Enrollment[] = [
-      userToProjectsRepo.create({
+    const enrollments: Enrollment[] = [
+      enrollmentsRepo.create({
         user: users[0],
         project: projects[0],
       }),
-      userToProjectsRepo.create({
+      enrollmentsRepo.create({
         user: users[1],
         project: projects[0],
       }),
-      userToProjectsRepo.create({
+      enrollmentsRepo.create({
         user: users[1],
         project: projects[1],
       }),
-      userToProjectsRepo.create({
+      enrollmentsRepo.create({
         user: users[2],
         project: projects[1],
       }),
     ];
 
-    await userToProjectsRepo.save(usersToProjects);
+    await enrollmentsRepo.save(enrollments);
   }
 
   public async down(): Promise<void> {
