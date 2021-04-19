@@ -1,4 +1,4 @@
-import { Enrolment } from '../enrollment/enrolment.entity';
+import { Enrollment } from '../enrollment/enrolment.entity';
 import {
   Column,
   CreateDateColumn,
@@ -31,10 +31,10 @@ export class Project {
     onUpdate: 'CASCADE',
   })
   department: Department;
-  @OneToMany((type) => Enrolment, (userToProject) => userToProject.project, {
+  @OneToMany(() => Enrollment, (userToProject) => userToProject.project, {
     nullable: false,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
-  enrolments: Enrolment[];
+  enrollments: Enrollment[];
 }

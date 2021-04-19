@@ -119,8 +119,8 @@ export class ProjectService {
   private getProjectWithRelationsQuery() {
     return this.projectRepository
       .createQueryBuilder('project')
-      .innerJoinAndSelect('project.enrolments', 'enrolment')
-      .innerJoinAndSelect('enrolment.user', 'user')
+      .innerJoinAndSelect('project.enrollments', 'enrollment')
+      .innerJoinAndSelect('enrollment.user', 'user')
       .leftJoinAndSelect('user.university', 'userUniversity')
       .leftJoinAndSelect('project.department', 'department')
       .leftJoinAndSelect('department.university', 'departmentUniversity');

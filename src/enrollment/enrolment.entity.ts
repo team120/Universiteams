@@ -3,11 +3,11 @@ import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
 
 @Entity()
-export class Enrolment {
+export class Enrollment {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne((type) => User, (user) => user.enrolments)
+  @ManyToOne(() => User, (user) => user.enrollments)
   user: User;
-  @ManyToOne((type) => Project, (project) => project.enrolments)
+  @ManyToOne(() => Project, (project) => project.enrollments)
   project: Project;
 }

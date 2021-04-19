@@ -1,4 +1,4 @@
-import { Enrolment } from '../enrollment/enrolment.entity';
+import { Enrollment } from '../enrollment/enrolment.entity';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -43,6 +43,6 @@ export class User {
     onUpdate: 'CASCADE',
   })
   university: University;
-  @OneToMany(() => Enrolment, (enrolment) => enrolment.user)
-  enrolments: Enrolment[];
+  @OneToMany(() => Enrollment, (enrolment) => enrolment.user)
+  enrollments: Enrollment[];
 }

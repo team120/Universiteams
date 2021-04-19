@@ -25,7 +25,7 @@ export class ProjectShowDto {
   @Expose()
   @Type(() => DepartmentShowDto)
   department: DepartmentShowDto;
-  @Expose({ name: 'enrolments' })
+  @Expose({ name: 'enrollments' })
   @Transform(({ value }) =>
     value.map((e: any) => plainToClass(UserShowDto, e.user)),
   )
