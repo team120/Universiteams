@@ -1,17 +1,18 @@
 import { Department } from 'src/department/department.entity';
-import { Enrolment } from 'src/enrollment/enrolment.entity';
+import { Enrollment } from 'src/enrollment/enrolment.entity';
 import { Project, ProjectType } from 'src/project/project.entity';
 import { University } from 'src/university/university.entity';
 import { User } from 'src/user/user.entity';
-import { MigrationInterface, QueryRunner, getRepository } from 'typeorm';
+import { MigrationInterface, getRepository } from 'typeorm';
 import * as argon2 from 'argon2';
+import { NotImplementedException } from '@nestjs/common';
 
 export class SeedDb1590967789743 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<any> {
+  public async up(): Promise<void> {
     const usersRepo = getRepository(User);
     const universityRepo = getRepository(University);
     const projectRepo = getRepository(Project);
-    const userToProjectsRepo = getRepository(Enrolment);
+    const userToProjectsRepo = getRepository(Enrollment);
     const departmentRepo = getRepository(Department);
 
     const universities: University[] = [
@@ -103,7 +104,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
 
     await usersRepo.save(users);
 
-    const usersToProjects: Enrolment[] = [
+    const usersToProjects: Enrollment[] = [
       userToProjectsRepo.create({
         user: users[0],
         project: projects[0],
@@ -125,48 +126,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
     await userToProjectsRepo.save(usersToProjects);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<any> {
-    const usersRepo = getRepository(User);
-    const universityRepo = getRepository(University);
-    const projectRepo = getRepository(Project);
-    const userToProjectsRepo = getRepository(Enrolment);
-    const departmentRepo = getRepository(Department);
-
-    const usersToRemove = await usersRepo.find({
-      where: [
-        { mail: 'user1@example.com' },
-        { mail: 'user2@example.com' },
-        { mail: 'user3@example.com' },
-      ],
-    });
-
-    await usersRepo.remove(usersToRemove);
-
-    const universitiesToRemove = await universityRepo.find({
-      where: [{ name: 'UTN' }, { name: 'UNR' }],
-    });
-
-    await universityRepo.remove(universitiesToRemove);
-
-    const projectsToRemove = await projectRepo.find({
-      where: [
-        {
-          name:
-            'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
-        },
-        { name: 'University Project Manager' },
-      ],
-    });
-
-    await projectRepo.remove(projectsToRemove);
-
-    const departmentsToRemove = await departmentRepo.find({
-      where: [
-        { university: universitiesToRemove[0] },
-        { university: universitiesToRemove[1] },
-      ],
-    });
-
-    await departmentRepo.remove(departmentsToRemove);
+  public async down(): Promise<void> {
+    throw new NotImplementedException();
   }
 }
