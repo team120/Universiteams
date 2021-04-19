@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { TestingModule, Test } from '@nestjs/testing';
 import * as request from 'supertest';
+import { projects } from './project.snapshot.e2e';
 import { ProjectE2EModule } from './project.e2e.module';
 
 describe('Get one project (e2e)', () => {
@@ -19,16 +20,6 @@ describe('Get one project (e2e)', () => {
     await app.close();
   });
 
-  it('should return the project with the specified id', async () => {
-    const id = 2;
-    await request(app.getHttpServer())
-      .get(`/projects/${id}`)
-      .then((res) => {
-        expect(res.status).toBe(200);
-        expect(res.body.id).toBe(id);
-        expect(res.body.name).toEqual('University Projects Manager');
-      });
-  });
   it('should return ID not found if it does not match any id on DB', async () => {
     const id = 100;
     await request(app.getHttpServer())
@@ -38,49 +29,16 @@ describe('Get one project (e2e)', () => {
         expect(res.body.message).toEqual(`Not Found`);
       });
   });
-  it('should get the specified project with their associated users', async () => {
-    const id = 1;
-    await request(app.getHttpServer())
-      .get(`/projects/${id}`)
-      .then((res) => {
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual({
-          id: 1,
-          name:
-            'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
-          type: 'Formal',
-          isDown: false,
-          creationDate: '2020-03-16T17:13:02.000Z',
-          department: {
-            id: 1,
-            name: 'Ingeniería en Sistemas',
-            university: {
-              id: 1,
-              name: 'UTN',
-            },
-          },
-          users: [
-            {
-              mail: 'user1@example.com',
-              lastName: 'Doe',
-              name: 'John',
-              university: {
-                id: 1,
-                name: 'UTN',
-              },
-            },
-            {
-              mail: 'user2@example.com',
-              name: 'Afak',
-              lastName: 'Ename',
-              university: {
-                id: 1,
-                name: 'UTN',
-              },
-            },
-          ],
+  test.each([1, 2])(
+    'should get the specified project (id: %s) with their associated users',
+    async (id) => {
+      await request(app.getHttpServer())
+        .get(`/projects/${id}`)
+        .then((res) => {
+          expect(res.status).toBe(200);
+          expect(res.body).toEqual(projects.filter((e) => e.id === id).pop());
+          expect(res.body.users[0].password).not.toBeDefined();
         });
-        expect(res.body.users[0].password).not.toBeDefined();
-      });
-  });
+    },
+  );
 });
