@@ -9,6 +9,8 @@ import { ExceptionsModule } from './exceptions/exceptions.module';
 import { LoggerModule } from 'nestjs-pino';
 import { SerializationModule } from './serialization/serialization.module';
 import { getConnectionOptions } from 'typeorm';
+import { UniversityService } from './university/university.service';
+import { UniversityModule } from './university/university.module';
 
 @Module({
   imports: [
@@ -39,7 +41,8 @@ import { getConnectionOptions } from 'typeorm';
     UserModule,
     ExceptionsModule,
     SerializationModule,
+    UniversityModule,
   ],
-  controllers: [AppController, AuthController, UniversityController],
+  controllers: [AppController, AuthController],
 })
 export class AppModule {}

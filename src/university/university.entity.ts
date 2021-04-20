@@ -9,14 +9,14 @@ export class University {
   @Column()
   name: string;
 
-  @OneToMany((type) => User, (user) => user.university, {
+  @OneToMany(() => User, (user) => user.university, {
     nullable: true,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
   users: User[];
 
-  @OneToMany((type) => Department, (department) => department.university, {
+  @OneToMany(() => Department, (department) => department.university, {
     nullable: true,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',

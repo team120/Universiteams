@@ -1,25 +1,13 @@
-import { Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { UniversityService } from './university.service';
 
 @ApiTags('universities')
 @Controller('universities')
 export class UniversityController {
+  constructor(private universityService: UniversityService) {}
   @Get()
   getUniversities() {
-    return 'universities';
+    return this.universityService.findAll();
   }
-
-  @Get(':id')
-  getUniversity(@Param('id') universityId: number) {
-    return universityId;
-  }
-
-  @Post()
-  createUniversity() {}
-
-  @Put(':id')
-  updateUniversity(@Param('id') universityId: number) {}
-
-  @Delete(':id')
-  deleteUniversity(@Param('id') universityId: number) {}
 }
