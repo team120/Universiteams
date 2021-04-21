@@ -1,3 +1,4 @@
+import { OmitType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
@@ -26,3 +27,12 @@ export class ProjectFindDto {
   @ParseOptionalBoolean()
   inAscendingOrder?: boolean;
 }
+
+const sortAttributes = ['sortBy', 'inAscendingOrder'] as const;
+
+export class ProjectFilters extends OmitType(ProjectFindDto, sortAttributes) {}
+
+export class ProjectSortAttributes extends PickType(
+  ProjectFindDto,
+  sortAttributes,
+) {}

@@ -1,57 +1,36 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { DbException } from '../exceptions/database.exception';
 import { EntityMapperService } from '../serialization/entity-mapper.service';
-import { Brackets, Repository } from 'typeorm';
 import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectShowDto } from './dtos/project.show.dto';
-import { Project } from './project.entity';
+import { ProjectCustomRepository } from './project.repository';
 
 @Injectable()
 export class ProjectService {
   constructor(
-    @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project>,
+    private readonly projectRepository: ProjectCustomRepository,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(ProjectService.name);
   }
 
-  private sortBy = new Map([
-    ['name', 'project.name'],
-    ['department', 'department.name'],
-    ['university', 'departmentUniversity.name'],
-    ['creationDate', 'project.creationDate'],
-    ['type', 'project.type'],
-  ]);
-
   async findProjects(findOptions: ProjectFindDto): Promise<ProjectShowDto[]> {
     this.logger.debug('Find matching project ids');
-    const selectedProjectIds = await this.getMatchingProjects(findOptions);
-    const projectIdsMappedString = selectedProjectIds
-      .map((project) => project.id)
-      .join(', ');
-
-    const query = this.getProjectWithRelationsQuery().where(
-      `project.id IN (${projectIdsMappedString})`,
+    const selectedProjectIds = await this.projectRepository.getMatchingProjectIds(
+      findOptions,
     );
-
-    if (findOptions.sortBy !== undefined) {
-      const sortByProperty = this.sortBy.get(findOptions.sortBy);
-      console.log(sortByProperty);
-      console.log(findOptions.inAscendingOrder);
-      if (sortByProperty !== undefined) {
-        query.orderBy(
-          sortByProperty,
-          findOptions.inAscendingOrder === true ? 'ASC' : 'DESC',
-        );
-      }
-    }
-
-    const projects = await query.getMany();
-
+    this.logger.debug(
+      'Find projects with those ids and their related users, department, user departments and university departments',
+    );
+    const projects = await this.projectRepository.findProjectsById(
+      selectedProjectIds,
+      {
+        sortBy: findOptions.sortBy,
+        inAscendingOrder: findOptions.inAscendingOrder,
+      },
+    );
+    this.logger.debug('Map projects to dto');
     return this.entityMapper.mapArray(ProjectShowDto, projects);
   }
 
@@ -59,72 +38,12 @@ export class ProjectService {
     this.logger.debug(
       'Find project with matching ids and their related department, users, user universities and department university',
     );
-    const project = await this.getProjectWithRelationsQuery()
-      .where('project.id = :projectId', { projectId: id })
-      .getOne()
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
+    const project = await this.projectRepository.findOne(id);
 
     this.logger.debug(`Project ${project?.id} found`);
     if (!project) throw new NotFoundException();
 
     this.logger.debug('Map project to dto');
     return this.entityMapper.mapValue(ProjectShowDto, project);
-  }
-
-  private getMatchingProjects(findOptions: ProjectFindDto): Promise<Project[]> {
-    const query = this.getProjectWithRelationsQuery();
-
-    if (findOptions.generalSearch !== undefined) {
-      query.where(
-        new Brackets((qb) => {
-          qb.where('project.name like :name', {
-            name: `%${findOptions.generalSearch}%`,
-          }).orWhere('user.name like :username', {
-            username: `%${findOptions.generalSearch}%`,
-          });
-        }),
-      );
-    }
-
-    if (findOptions.universityId !== undefined) {
-      query.andWhere(`userUniversity.id = :userUniversityId`, {
-        userUniversityId: findOptions.universityId,
-      });
-    }
-    if (findOptions.departmentId !== undefined) {
-      query.andWhere('department.id = :departmentId', {
-        departmentId: findOptions.departmentId,
-      });
-    }
-    if (findOptions.type !== undefined) {
-      query.andWhere('project.type = :type', { type: findOptions.type });
-    }
-    if (findOptions.isDown !== undefined) {
-      query.andWhere('project.isDown = :isDown', {
-        isDown: findOptions.isDown,
-      });
-    }
-    if (findOptions.userId !== undefined) {
-      query.andWhere('user.id = :userId', { userId: findOptions.userId });
-    }
-    if (findOptions.dateFrom !== undefined) {
-      query.andWhere('project.creationDate >= :dateFrom', {
-        dateFrom: findOptions.dateFrom.toISOString().split('T')[0],
-      });
-    }
-
-    return query.select('project.id').getMany();
-  }
-
-  private getProjectWithRelationsQuery() {
-    return this.projectRepository
-      .createQueryBuilder('project')
-      .innerJoinAndSelect('project.enrollments', 'enrollment')
-      .innerJoinAndSelect('enrollment.user', 'user')
-      .leftJoinAndSelect('user.university', 'userUniversity')
-      .leftJoinAndSelect('project.department', 'department')
-      .leftJoinAndSelect('department.university', 'departmentUniversity');
   }
 }
