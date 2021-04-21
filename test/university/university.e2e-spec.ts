@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UniversityE2EModule } from './university.e2e-module';
+import { UniversityE2EModule } from './university.e2e.module';
 import * as request from 'supertest';
 import { universities } from './university.snapshot';
 

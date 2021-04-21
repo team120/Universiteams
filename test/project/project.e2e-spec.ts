@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { TestingModule, Test } from '@nestjs/testing';
 import * as request from 'supertest';
-import { projects } from './project.snapshot.e2e';
+import { projects } from './project.snapshot';
 import { ProjectE2EModule } from './project.e2e.module';
 
 describe('Project Actions (e2e)', () => {
