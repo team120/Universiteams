@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { UniversityShowDto } from '../../university/dtos/university.show.dto';
+import { DepartmentShowDto } from '../../department/dtos/department.show.dto';
 
 @Exclude()
 export class UserShowDto {
@@ -14,8 +14,8 @@ export class UserShowDto {
   //  @Expose()
   //  professorId: number;
   @Expose()
-  @Type(() => UniversityShowDto)
-  university: UniversityShowDto;
+  @Type(() => DepartmentShowDto)
+  department: DepartmentShowDto;
 }
 
 @Exclude()

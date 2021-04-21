@@ -18,7 +18,9 @@ export class UserService {
 
   async findAll(): Promise<UserAdminViewDto[]> {
     this.logger.debug('Find users and their related university');
-    const users = await this.userRepository.find({ relations: ['university'] });
+    const users = await this.userRepository.find({
+      relations: ['department', 'department.university'],
+    });
     this.logger.debug('Map users to dto');
     return this.entityMapper.mapArray(UserAdminViewDto, users);
   }

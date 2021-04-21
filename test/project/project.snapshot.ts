@@ -20,9 +20,13 @@ export const projects = [
         name: 'John',
         lastName: 'Doe',
         mail: 'user1@example.com',
-        university: {
+        department: {
           id: 1,
-          name: 'UTN',
+          name: 'Ingeniería en Sistemas',
+          university: {
+            id: 1,
+            name: 'UTN',
+          },
         },
       },
       {
@@ -30,9 +34,13 @@ export const projects = [
         name: 'Afak',
         lastName: 'Ename',
         mail: 'user2@example.com',
-        university: {
-          id: 1,
-          name: 'UTN',
+        department: {
+          id: 2,
+          name: 'Ingeniería Civil',
+          university: {
+            id: 1,
+            name: 'UTN',
+          },
         },
       },
     ],
@@ -44,8 +52,8 @@ export const projects = [
     isDown: false,
     creationDate: '2021-03-16T17:13:02.000Z',
     department: {
-      id: 4,
-      name: 'UTN',
+      id: 1,
+      name: 'Ingeniería en Sistemas',
       university: {
         id: 1,
         name: 'UTN',
@@ -57,9 +65,13 @@ export const projects = [
         name: 'Afak',
         lastName: 'Ename',
         mail: 'user2@example.com',
-        university: {
-          id: 1,
-          name: 'UTN',
+        department: {
+          id: 2,
+          name: 'Ingeniería Civil',
+          university: {
+            id: 1,
+            name: 'UTN',
+          },
         },
       },
       {
@@ -67,9 +79,13 @@ export const projects = [
         name: 'Nom',
         lastName: 'Eaning',
         mail: 'user3@example.com',
-        university: {
-          id: 1,
-          name: 'UTN',
+        department: {
+          id: 3,
+          name: 'Ingeniería Química',
+          university: {
+            id: 1,
+            name: 'UTN',
+          },
         },
       },
     ],

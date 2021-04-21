@@ -4,9 +4,13 @@ export const users = [
     name: 'John',
     lastName: 'Doe',
     mail: 'user1@example.com',
-    university: {
+    department: {
       id: 1,
-      name: 'UTN',
+      name: 'Ingeniería en Sistemas',
+      university: {
+        id: 1,
+        name: 'UTN',
+      },
     },
     requestPosition: false,
   },
@@ -15,9 +19,13 @@ export const users = [
     name: 'Afak',
     lastName: 'Ename',
     mail: 'user2@example.com',
-    university: {
-      id: 1,
-      name: 'UTN',
+    department: {
+      id: 2,
+      name: 'Ingeniería Civil',
+      university: {
+        id: 1,
+        name: 'UTN',
+      },
     },
     requestPosition: false,
   },
@@ -26,9 +34,13 @@ export const users = [
     name: 'Nom',
     lastName: 'Eaning',
     mail: 'user3@example.com',
-    university: {
-      id: 1,
-      name: 'UTN',
+    department: {
+      id: 3,
+      name: 'Ingeniería Química',
+      university: {
+        id: 1,
+        name: 'UTN',
+      },
     },
     requestPosition: true,
   },

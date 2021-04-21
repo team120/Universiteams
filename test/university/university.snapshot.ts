@@ -4,6 +4,10 @@ export const universities = [
     name: 'UTN',
     departments: [
       {
+        id: 4,
+        name: 'Independiente',
+      },
+      {
         id: 2,
         name: 'Ingeniería Civil',
       },
@@ -14,10 +18,6 @@ export const universities = [
       {
         id: 1,
         name: 'Ingeniería en Sistemas',
-      },
-      {
-        id: 4,
-        name: 'UTN',
       },
     ],
   },
@@ -30,12 +30,12 @@ export const universities = [
         name: 'Ciencias Básicas',
       },
       {
-        id: 6,
-        name: 'Ingeniería Electrónica',
+        id: 7,
+        name: 'Independiente',
       },
       {
-        id: 7,
-        name: 'UNR',
+        id: 6,
+        name: 'Ingeniería Electrónica',
       },
     ],
   },
