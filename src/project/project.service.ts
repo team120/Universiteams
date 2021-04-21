@@ -56,7 +56,9 @@ export class ProjectService {
   }
 
   async findOne(id: number): Promise<ProjectShowDto> {
-    this.logger.debug('Find project with matching');
+    this.logger.debug(
+      'Find project with matching ids and their related department, users, user universities and department university',
+    );
     const project = await this.getProjectWithRelationsQuery()
       .where('project.id = :projectId', { projectId: id })
       .getOne()
