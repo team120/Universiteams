@@ -18,7 +18,7 @@
     "synchronize": true,
     "logging": false,
     "entities": ["src/**/*.entity.ts"],
-    "migrations": ["test/database/migrations/*.ts"],
+    "migrations": ["src/database/migrations/*.ts"],
     "migrationsRun": true
   }
 ]

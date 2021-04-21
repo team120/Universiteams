@@ -1,8 +1,8 @@
-import { Department } from 'src/department/department.entity';
-import { Enrollment } from 'src/enrollment/enrolment.entity';
-import { Project, ProjectType } from 'src/project/project.entity';
-import { University } from 'src/university/university.entity';
-import { User } from 'src/user/user.entity';
+import { Department } from '../../department/department.entity';
+import { Enrollment } from '../../enrollment/enrolment.entity';
+import { Project, ProjectType } from '../../project/project.entity';
+import { University } from '../../university/university.entity';
+import { User } from '../../user/user.entity';
 import { MigrationInterface, getRepository } from 'typeorm';
 import * as argon2 from 'argon2';
 import { NotImplementedException } from '@nestjs/common';
@@ -36,7 +36,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         university: universities[0],
       }),
       departmentRepo.create({
-        name: universities[0].name,
+        name: 'Independiente',
         university: universities[0],
       }),
       departmentRepo.create({
@@ -48,7 +48,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         university: universities[1],
       }),
       departmentRepo.create({
-        name: universities[1].name,
+        name: 'Independiente',
         university: universities[1],
       }),
     ];
@@ -66,7 +66,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
       projectRepo.create({
         name: 'University Projects Manager',
         type: ProjectType.Informal,
-        department: departments[3],
+        department: departments[0],
         creationDate: '2021-03-16 14:13:02',
       }),
     ];
@@ -80,7 +80,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         password: await argon2.hash('password1'),
         name: 'John',
         lastName: 'Doe',
-        university: universities[0],
+        department: departments[0],
         professorId: 11444,
       }),
       usersRepo.create({
@@ -89,7 +89,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         password: await argon2.hash('password2'),
         name: 'Afak',
         lastName: 'Ename',
-        university: universities[0],
+        department: departments[1],
       }),
       usersRepo.create({
         mail: 'user3@example.com',
@@ -97,7 +97,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         password: await argon2.hash('password3'),
         name: 'Nom',
         lastName: 'Eaning',
-        university: universities[0],
+        department: departments[2],
         requestPosition: true,
       }),
     ];
