@@ -12,9 +12,17 @@ export enum UserAffiliationType {
 export class UserAffiliation {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => User, (user) => user.userAffiliations)
+  @ManyToOne(() => User, (user) => user.userAffiliations, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
   user: User;
-  @ManyToOne(() => Department, (department) => department.usersAffiliations)
+  @ManyToOne(() => Department, (department) => department.usersAffiliations, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
   department: Department;
   @Column()
   departmentalId: string;

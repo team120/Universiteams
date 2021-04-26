@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { EntityMapperService } from '../serialization/entity-mapper.service';
 import { Repository } from 'typeorm';
-import { UserAdminViewDto } from './dtos/user.show.dto';
+import { UserShowDto } from './dtos/user.show.dto';
 import { User } from './user.entity';
 
 @Injectable()
@@ -16,12 +16,18 @@ export class UserService {
     this.logger.setContext(UserService.name);
   }
 
-  async findAll(): Promise<UserAdminViewDto[]> {
+  async findAll(): Promise<UserShowDto[]> {
     this.logger.debug('Find users and their related university');
     const users = await this.userRepository.find({
-      relations: ['department', 'department.university'],
+      relations: [
+        'userAffiliations',
+        'userAffiliations.department',
+        'userAffiliations.department.university',
+      ],
     });
     this.logger.debug('Map users to dto');
-    return this.entityMapper.mapArray(UserAdminViewDto, users);
+    return this.entityMapper.mapArray(UserShowDto, users, {
+      groups: ['admin'],
+    });
   }
 }

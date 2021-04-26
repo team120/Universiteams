@@ -28,8 +28,6 @@ export class User {
   gender: string;
   @Column({ nullable: true })
   picture: string;
-  @Column({ default: false })
-  requestPosition: boolean;
 
   @OneToMany(() => UserAffiliation, (userAffiliation) => userAffiliation.user, {
     nullable: false,
