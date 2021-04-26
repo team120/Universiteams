@@ -53,7 +53,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         university: universities['unr-fceia'],
       }),
       'unr-fceia-general': departmentRepo.create({
-        name: 'Independiente',
+        name: 'General',
         university: universities['unr-fceia'],
       }),
     };
@@ -99,7 +99,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         password: await argon2.hash('password3'),
         name: 'Marcos',
         lastName: 'Sanchez',
-        requestPosition: true,
       }),
     };
     await usersRepo.save(Object.values(users));
@@ -126,6 +125,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         user: users['marcos-sanchez'],
         department: departments['utn-frro-iq'],
         departmentalId: '744777',
+        requestedType: UserAffiliationType.Professor,
       }),
       'unr-fceia-cb:marcos-sanchez': userAffiliationRepo.create({
         user: users['marcos-sanchez'],
@@ -140,19 +140,19 @@ export class SeedDb1590967789743 implements MigrationInterface {
     const enrollments = {
       'utn-frro-isi:geolocation-iot:juan-rizzo': enrollmentsRepo.create({
         user: users['juan-rizzo'],
-        project: projects['utn-frro-isi-geolocation-iot'],
+        project: projects['utn-frro-isi:geolocation-iot'],
       }),
       'utn-frro-isi:geolocation-iot:carlos-villa': enrollmentsRepo.create({
         user: users['carlos-villa'],
-        project: projects['utn-frro-isi-geolocation-iot'],
+        project: projects['utn-frro-isi:geolocation-iot'],
       }),
       'utn-frro-isi:universiteams:carlos-villa': enrollmentsRepo.create({
         user: users['carlos-villa'],
-        project: projects['utn-frro-isi-universiteams'],
+        project: projects['utn-frro-isi:universiteams'],
       }),
       'utn-frro-isi:universiteams:marcos-sanchez': enrollmentsRepo.create({
         user: users['marcos-sanchez'],
-        project: projects['utn-frro-isi-universiteams'],
+        project: projects['utn-frro-isi:universiteams'],
       }),
     };
 

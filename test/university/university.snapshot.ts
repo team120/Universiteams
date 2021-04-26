@@ -1,11 +1,11 @@
 export const universities = [
   {
     id: 1,
-    name: 'UTN',
+    name: 'UTN FRRo',
     departments: [
       {
         id: 4,
-        name: 'Independiente',
+        name: 'General',
       },
       {
         id: 2,
@@ -31,7 +31,7 @@ export const universities = [
       },
       {
         id: 7,
-        name: 'Independiente',
+        name: 'General',
       },
       {
         id: 6,
