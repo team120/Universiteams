@@ -6,8 +6,16 @@ import { User } from '../user/user.entity';
 export class Enrollment {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => User, (user) => user.enrollments)
+  @ManyToOne(() => User, (user) => user.enrollments, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
   user: User;
-  @ManyToOne(() => Project, (project) => project.enrollments)
+  @ManyToOne(() => Project, (project) => project.enrollments, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
   project: Project;
 }
