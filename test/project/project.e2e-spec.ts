@@ -38,7 +38,7 @@ describe('Project Actions (e2e)', () => {
           .then((res) => {
             expect(res.status).toBe(200);
             expect(res.body).toEqual(projects.filter((e) => e.id === id).pop());
-            expect(res.body.users[0].password).not.toBeDefined();
+            expect(res.body.enrollments[0].user.password).not.toBeDefined();
           });
       },
     );
@@ -51,7 +51,7 @@ describe('Project Actions (e2e)', () => {
         .then((res) => {
           expect(res.status).toBe(200);
           expect(res.body).toEqual(projects);
-          expect(res.body[0].users[0].password).not.toBeDefined();
+          expect(res.body[0].enrollments[0].user.password).not.toBeDefined();
           expect(res.body).toHaveLength(2);
         });
     });
@@ -103,7 +103,7 @@ describe('Project Actions (e2e)', () => {
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body).toHaveLength(1);
-              expect(res.body[0].name).toBe('University Projects Manager');
+              expect(res.body[0].name).toBe('Universiteams');
             });
         });
       });
@@ -122,7 +122,7 @@ describe('Project Actions (e2e)', () => {
     });
     describe('when project type is', () => {
       describe('Informal', () => {
-        const projectName = 'University Projects Manager';
+        const projectName = 'Universiteams';
         it(`should get one project which name is ${projectName}`, async () => {
           const type = 'Informal';
           await request(app.getHttpServer())
@@ -162,7 +162,7 @@ describe('Project Actions (e2e)', () => {
             expect(res.body[0].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
-            expect(res.body[1].name).toBe('University Projects Manager');
+            expect(res.body[1].name).toBe('Universiteams');
           });
       });
 
@@ -172,7 +172,7 @@ describe('Project Actions (e2e)', () => {
           .then((res) => {
             expect(res.status).toBe(200);
             expect(res.body).toHaveLength(2);
-            expect(res.body[0].name).toBe('University Projects Manager');
+            expect(res.body[0].name).toBe('Universiteams');
             expect(res.body[1].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
@@ -186,7 +186,7 @@ describe('Project Actions (e2e)', () => {
           .then((res) => {
             expect(res.status).toBe(200);
             expect(res.body).toHaveLength(2);
-            expect(res.body[0].name).toBe('University Projects Manager');
+            expect(res.body[0].name).toBe('Universiteams');
             expect(res.body[1].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
@@ -198,7 +198,7 @@ describe('Project Actions (e2e)', () => {
           .then((res) => {
             expect(res.status).toBe(200);
             expect(res.body).toHaveLength(2);
-            expect(res.body[0].name).toBe('University Projects Manager');
+            expect(res.body[0].name).toBe('Universiteams');
             expect(res.body[1].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
@@ -214,7 +214,7 @@ describe('Project Actions (e2e)', () => {
             expect(res.body[0].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
-            expect(res.body[1].name).toBe('University Projects Manager');
+            expect(res.body[1].name).toBe('Universiteams');
           });
       });
       it('should get all projects sorted by date in ascending order', async () => {
@@ -225,7 +225,7 @@ describe('Project Actions (e2e)', () => {
             expect(res.body[0].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
-            expect(res.body[1].name).toBe('University Projects Manager');
+            expect(res.body[1].name).toBe('Universiteams');
           });
       });
     });
@@ -240,7 +240,7 @@ describe('Project Actions (e2e)', () => {
         expect(res.body).toHaveLength(1);
         expect(res.body).toEqual(
           projects.filter(
-            (e) => e.users.filter((u) => u.id === userId).length > 0,
+            (e) => e.enrollments.filter((u) => u.user.id === userId).length > 0,
           ),
         );
       });
@@ -248,7 +248,7 @@ describe('Project Actions (e2e)', () => {
   describe('search projects by a general text search', () => {
     describe('when exactly match some of their users', () => {
       it('should get the two existent projects', async () => {
-        const generalSearchText = 'fAk';
+        const generalSearchText = 'carl';
         await request(app.getHttpServer())
           .get(`/projects?generalSearch=${generalSearchText}`)
           .then((res) => {
@@ -259,7 +259,7 @@ describe('Project Actions (e2e)', () => {
     });
     describe('when project name is partially matched', () => {
       it('should get all matching projects', async () => {
-        const generalSearchText = 'Manager';
+        const generalSearchText = 'teams';
         await request(app.getHttpServer())
           .get(`/projects?generalSearch=${generalSearchText}`)
           .then((res) => {

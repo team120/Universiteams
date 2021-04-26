@@ -31,7 +31,7 @@ export class Project {
     onUpdate: 'CASCADE',
   })
   department: Department;
-  @OneToMany(() => Enrollment, (userToProject) => userToProject.project, {
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {
     nullable: false,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',

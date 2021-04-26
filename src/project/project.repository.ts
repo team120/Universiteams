@@ -112,7 +112,8 @@ export class ProjectCustomRepository {
       .createQueryBuilder('project')
       .innerJoinAndSelect('project.enrollments', 'enrollment')
       .innerJoinAndSelect('enrollment.user', 'user')
-      .leftJoinAndSelect('user.department', 'userDepartment')
+      .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
+      .leftJoinAndSelect('userAffiliation.department', 'userDepartment')
       .leftJoinAndSelect('userDepartment.university', 'userUniversity')
       .leftJoinAndSelect('project.department', 'department')
       .leftJoinAndSelect('department.university', 'departmentUniversity');

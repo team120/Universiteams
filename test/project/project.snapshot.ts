@@ -11,43 +11,73 @@ export const projects = [
       name: 'Ingeniería en Sistemas',
       university: {
         id: 1,
-        name: 'UTN',
+        name: 'UTN FRRo',
       },
     },
-    users: [
+    enrollments: [
       {
         id: 1,
-        name: 'John',
-        lastName: 'Doe',
-        mail: 'user1@example.com',
-        department: {
+        user: {
           id: 1,
-          name: 'Ingeniería en Sistemas',
-          university: {
-            id: 1,
-            name: 'UTN',
-          },
+          name: 'Juan',
+          lastName: 'Rizzo',
+          mail: 'user1@example.com',
+          userAffiliations: [
+            {
+              id: 3,
+              department: {
+                id: 2,
+                name: 'Ingeniería Civil',
+                university: {
+                  id: 1,
+                  name: 'UTN FRRo',
+                },
+              },
+              currentType: 'Student',
+            },
+          ],
         },
       },
       {
         id: 2,
-        name: 'Afak',
-        lastName: 'Ename',
-        mail: 'user2@example.com',
-        department: {
+        user: {
           id: 2,
-          name: 'Ingeniería Civil',
-          university: {
-            id: 1,
-            name: 'UTN',
-          },
+          name: 'Carlos',
+          lastName: 'Villa',
+          mail: 'user2@example.com',
+          userAffiliations: [
+            {
+              id: 2,
+              department: {
+                id: 6,
+                name: 'Ingeniería Electrónica',
+                university: {
+                  id: 2,
+                  name: 'UNR',
+                },
+              },
+              currentType: 'Professor',
+            },
+            {
+              id: 1,
+              department: {
+                id: 1,
+                name: 'Ingeniería en Sistemas',
+                university: {
+                  id: 1,
+                  name: 'UTN FRRo',
+                },
+              },
+              currentType: 'Professor',
+            },
+          ],
         },
       },
     ],
   },
   {
     id: 2,
-    name: 'University Projects Manager',
+    name: 'Universiteams',
     type: 'Informal',
     isDown: false,
     creationDate: '2021-03-16T17:13:02.000Z',
@@ -56,36 +86,78 @@ export const projects = [
       name: 'Ingeniería en Sistemas',
       university: {
         id: 1,
-        name: 'UTN',
+        name: 'UTN FRRo',
       },
     },
-    users: [
+    enrollments: [
       {
-        id: 2,
-        name: 'Afak',
-        lastName: 'Ename',
-        mail: 'user2@example.com',
-        department: {
+        id: 3,
+        user: {
           id: 2,
-          name: 'Ingeniería Civil',
-          university: {
-            id: 1,
-            name: 'UTN',
-          },
+          name: 'Carlos',
+          lastName: 'Villa',
+          mail: 'user2@example.com',
+          userAffiliations: [
+            {
+              id: 2,
+              department: {
+                id: 6,
+                name: 'Ingeniería Electrónica',
+                university: {
+                  id: 2,
+                  name: 'UNR',
+                },
+              },
+              currentType: 'Professor',
+            },
+            {
+              id: 1,
+              department: {
+                id: 1,
+                name: 'Ingeniería en Sistemas',
+                university: {
+                  id: 1,
+                  name: 'UTN FRRo',
+                },
+              },
+              currentType: 'Professor',
+            },
+          ],
         },
       },
       {
-        id: 3,
-        name: 'Nom',
-        lastName: 'Eaning',
-        mail: 'user3@example.com',
-        department: {
+        id: 4,
+        user: {
           id: 3,
-          name: 'Ingeniería Química',
-          university: {
-            id: 1,
-            name: 'UTN',
-          },
+          name: 'Marcos',
+          lastName: 'Sanchez',
+          mail: 'user3@example.com',
+          userAffiliations: [
+            {
+              id: 5,
+              department: {
+                id: 6,
+                name: 'Ingeniería Electrónica',
+                university: {
+                  id: 2,
+                  name: 'UNR',
+                },
+              },
+              currentType: 'Professor',
+            },
+            {
+              id: 4,
+              department: {
+                id: 3,
+                name: 'Ingeniería Química',
+                university: {
+                  id: 1,
+                  name: 'UTN FRRo',
+                },
+              },
+              currentType: 'Student',
+            },
+          ],
         },
       },
     ],
