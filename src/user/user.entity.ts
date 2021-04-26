@@ -1,13 +1,6 @@
 import { Enrollment } from '../enrollment/enrolment.entity';
-import {
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  Entity,
-  OneToMany,
-} from 'typeorm';
-import { University } from '../university/university.entity';
-import { Department } from '../department/department.entity';
+import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
+import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 
 @Entity()
 export class User {
@@ -38,12 +31,12 @@ export class User {
   @Column({ default: false })
   requestPosition: boolean;
 
-  @ManyToOne(() => Department, (department) => department.users, {
+  @OneToMany(() => UserAffiliation, (userAffiliation) => userAffiliation.user, {
     nullable: false,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
-  department: Department;
+  userAffiliations: UserAffiliation[];
   @OneToMany(() => Enrollment, (enrolment) => enrolment.user)
   enrollments: Enrollment[];
 }
