@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { DepartmentShowDto } from '../../department/dtos/department.show.dto';
+import { ResearchDepartmentShowDto } from '../../research-department/dtos/research-department.show.dto';
 import { UserShowDto } from '../../user/dtos/user.show.dto';
 import { UserAffiliationType } from '../user-affiliation.entity';
 
@@ -11,8 +11,8 @@ export class UserAffiliationShowDto {
   @Type(() => UserShowDto)
   user: UserShowDto;
   @Expose()
-  @Type(() => DepartmentShowDto)
-  department: DepartmentShowDto;
+  @Type(() => ResearchDepartmentShowDto)
+  researchDepartment: ResearchDepartmentShowDto;
   @Expose()
   currentType: UserAffiliationType;
   @Expose({ groups: ['admin'] })

@@ -16,8 +16,8 @@ export class ProjectCustomRepository {
 
   private sortBy = new Map([
     ['name', 'project.name'],
-    ['department', 'department.name'],
-    ['university', 'departmentUniversity.name'],
+    ['researchDepartment', 'researchDepartment.name'],
+    ['institution', 'researchDepartmentInstitution.name'],
     ['creationDate', 'project.creationDate'],
     ['type', 'project.type'],
   ]);
@@ -77,14 +77,14 @@ export class ProjectCustomRepository {
       );
     }
 
-    if (filters.universityId) {
-      query.andWhere(`userUniversity.id = :userUniversityId`, {
-        userUniversityId: filters.universityId,
+    if (filters.institutionId) {
+      query.andWhere(`userInstitution.id = :userInstitutionId`, {
+        userInstitutionId: filters.institutionId,
       });
     }
-    if (filters.departmentId) {
-      query.andWhere('department.id = :departmentId', {
-        departmentId: filters.departmentId,
+    if (filters.researchDepartmentId) {
+      query.andWhere('researchDepartment.id = :researchDepartmentId', {
+        researchDepartmentId: filters.researchDepartmentId,
       });
     }
     if (filters.type) {
@@ -113,9 +113,18 @@ export class ProjectCustomRepository {
       .innerJoinAndSelect('project.enrollments', 'enrollment')
       .innerJoinAndSelect('enrollment.user', 'user')
       .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
-      .leftJoinAndSelect('userAffiliation.department', 'userDepartment')
-      .leftJoinAndSelect('userDepartment.university', 'userUniversity')
-      .leftJoinAndSelect('project.department', 'department')
-      .leftJoinAndSelect('department.university', 'departmentUniversity');
+      .leftJoinAndSelect(
+        'userAffiliation.researchDepartment',
+        'userResearchDepartment',
+      )
+      .leftJoinAndSelect(
+        'userResearchDepartment.institution',
+        'userInstitution',
+      )
+      .leftJoinAndSelect('project.researchDepartment', 'researchDepartment')
+      .leftJoinAndSelect(
+        'researchDepartment.institution',
+        'researchDepartmentInstitution',
+      );
   }
 }

@@ -6,27 +6,30 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Project } from '../project/project.entity';
-import { University } from '../university/university.entity';
+import { Institution } from '../institution/institution.entity';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
-import { User } from '../user/user.entity';
 
 @Entity()
-export class Department {
+export class ResearchDepartment {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
   name: string;
 
-  @ManyToOne(() => University, (university) => university.departments, {
-    nullable: false,
-    cascade: ['insert', 'update'],
-    onUpdate: 'CASCADE',
-  })
-  university: University;
+  @ManyToOne(
+    () => Institution,
+    (institution) => institution.researchDepartments,
+    {
+      nullable: false,
+      cascade: ['insert', 'update'],
+      onUpdate: 'CASCADE',
+    },
+  )
+  institution: Institution;
 
   @OneToMany(
     () => UserAffiliation,
-    (userAffiliation) => userAffiliation.department,
+    (userAffiliation) => userAffiliation.researchDepartment,
     {
       nullable: true,
       cascade: ['insert', 'update'],
@@ -35,6 +38,6 @@ export class Department {
   )
   usersAffiliations: UserAffiliation[];
 
-  @OneToMany(() => Project, (project) => project.department)
+  @OneToMany(() => Project, (project) => project.researchDepartment)
   projects: Project[];
 }

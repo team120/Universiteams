@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AuthController } from './auth/auth.controller';
-import { UniversityController } from './university/university.controller';
+import { InstitutionController } from './institution/institution.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
@@ -9,8 +9,8 @@ import { ExceptionsModule } from './exceptions/exceptions.module';
 import { LoggerModule } from 'nestjs-pino';
 import { SerializationModule } from './serialization/serialization.module';
 import { getConnectionOptions } from 'typeorm';
-import { UniversityService } from './university/university.service';
-import { UniversityModule } from './university/university.module';
+import { InstitutionService } from './institution/institution.service';
+import { InstitutionModule } from './institution/institution.module';
 
 @Module({
   imports: [
@@ -41,7 +41,7 @@ import { UniversityModule } from './university/university.module';
     UserModule,
     ExceptionsModule,
     SerializationModule,
-    UniversityModule,
+    InstitutionModule,
   ],
   controllers: [AppController, AuthController],
 })

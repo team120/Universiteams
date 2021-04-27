@@ -6,10 +6,10 @@ export const projects = [
     type: 'Formal',
     isDown: false,
     creationDate: '2020-03-16T17:13:02.000Z',
-    department: {
+    researchDepartment: {
       id: 1,
       name: 'Ingeniería en Sistemas',
-      university: {
+      institution: {
         id: 1,
         name: 'UTN FRRo',
       },
@@ -25,10 +25,10 @@ export const projects = [
           userAffiliations: [
             {
               id: 3,
-              department: {
+              researchDepartment: {
                 id: 2,
                 name: 'Ingeniería Civil',
-                university: {
+                institution: {
                   id: 1,
                   name: 'UTN FRRo',
                 },
@@ -48,10 +48,10 @@ export const projects = [
           userAffiliations: [
             {
               id: 2,
-              department: {
+              researchDepartment: {
                 id: 6,
                 name: 'Ingeniería Electrónica',
-                university: {
+                institution: {
                   id: 2,
                   name: 'UNR',
                 },
@@ -60,10 +60,10 @@ export const projects = [
             },
             {
               id: 1,
-              department: {
+              researchDepartment: {
                 id: 1,
                 name: 'Ingeniería en Sistemas',
-                university: {
+                institution: {
                   id: 1,
                   name: 'UTN FRRo',
                 },
@@ -81,10 +81,10 @@ export const projects = [
     type: 'Informal',
     isDown: false,
     creationDate: '2021-03-16T17:13:02.000Z',
-    department: {
+    researchDepartment: {
       id: 1,
       name: 'Ingeniería en Sistemas',
-      university: {
+      institution: {
         id: 1,
         name: 'UTN FRRo',
       },
@@ -100,10 +100,10 @@ export const projects = [
           userAffiliations: [
             {
               id: 2,
-              department: {
+              researchDepartment: {
                 id: 6,
                 name: 'Ingeniería Electrónica',
-                university: {
+                institution: {
                   id: 2,
                   name: 'UNR',
                 },
@@ -112,10 +112,10 @@ export const projects = [
             },
             {
               id: 1,
-              department: {
+              researchDepartment: {
                 id: 1,
                 name: 'Ingeniería en Sistemas',
-                university: {
+                institution: {
                   id: 1,
                   name: 'UTN FRRo',
                 },
@@ -135,10 +135,10 @@ export const projects = [
           userAffiliations: [
             {
               id: 5,
-              department: {
+              researchDepartment: {
                 id: 6,
                 name: 'Ingeniería Electrónica',
-                university: {
+                institution: {
                   id: 2,
                   name: 'UNR',
                 },
@@ -147,10 +147,10 @@ export const projects = [
             },
             {
               id: 4,
-              department: {
+              researchDepartment: {
                 id: 3,
                 name: 'Ingeniería Química',
-                university: {
+                institution: {
                   id: 1,
                   name: 'UTN FRRo',
                 },

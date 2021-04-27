@@ -13,9 +13,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Universiteams API')
-    .setDescription(
-      'University-projects-manager: Pro Scientific Dissemination ',
-    )
+    .setDescription('Universiteams: Pro Scientific Dissemination ')
     .setVersion('1.0')
     .build();
 

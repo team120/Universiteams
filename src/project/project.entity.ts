@@ -7,7 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Department } from '../department/department.entity';
+import { ResearchDepartment } from '../research-department/research-department.entity';
 
 export enum ProjectType {
   Informal = 'Informal',
@@ -26,11 +26,15 @@ export class Project {
   type: ProjectType;
   @Column({ default: false })
   isDown: boolean;
-  @ManyToOne(() => Department, (department) => department.projects, {
-    cascade: ['insert', 'update'],
-    onUpdate: 'CASCADE',
-  })
-  department: Department;
+  @ManyToOne(
+    () => ResearchDepartment,
+    (researchDepartment) => researchDepartment.projects,
+    {
+      cascade: ['insert', 'update'],
+      onUpdate: 'CASCADE',
+    },
+  )
+  researchDepartment: ResearchDepartment;
   @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {
     nullable: false,
     cascade: ['insert', 'update'],

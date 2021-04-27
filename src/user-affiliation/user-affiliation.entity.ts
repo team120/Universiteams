@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Department } from '../department/department.entity';
+import { ResearchDepartment } from '../research-department/research-department.entity';
 import { User } from '../user/user.entity';
 
 export enum UserAffiliationType {
@@ -18,12 +18,16 @@ export class UserAffiliation {
     onUpdate: 'CASCADE',
   })
   user: User;
-  @ManyToOne(() => Department, (department) => department.usersAffiliations, {
-    nullable: false,
-    cascade: ['insert', 'update'],
-    onUpdate: 'CASCADE',
-  })
-  department: Department;
+  @ManyToOne(
+    () => ResearchDepartment,
+    (researchDepartment) => researchDepartment.usersAffiliations,
+    {
+      nullable: false,
+      cascade: ['insert', 'update'],
+      onUpdate: 'CASCADE',
+    },
+  )
+  researchDepartment: ResearchDepartment;
   @Column()
   departmentalId: string;
   @Column({ default: UserAffiliationType.Student })

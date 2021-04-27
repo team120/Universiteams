@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { DepartmentShowDto } from '../../department/dtos/department.show.dto';
+import { ResearchDepartmentShowDto } from '../../research-department/dtos/research-department.show.dto';
 import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
 import { ProjectType } from '../project.entity';
 
@@ -17,8 +17,8 @@ export class ProjectShowDto {
   @Type(() => Date)
   creationDate: Date;
   @Expose()
-  @Type(() => DepartmentShowDto)
-  department: DepartmentShowDto;
+  @Type(() => ResearchDepartmentShowDto)
+  researchDepartment: ResearchDepartmentShowDto;
   @Expose()
   @Type(() => EnrollmentShowDto)
   enrollments: EnrollmentShowDto[];

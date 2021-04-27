@@ -1,14 +1,14 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UniversityE2EModule } from './university.e2e.module';
+import { InstitutionE2EModule } from './institution.e2e.module';
 import * as request from 'supertest';
-import { universities } from './university.snapshot';
+import { institutions } from './institution.snapshot';
 
-describe('University Actions (e2e)', () => {
+describe('Institution Actions (e2e)', () => {
   let app: INestApplication;
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [UniversityE2EModule],
+      imports: [InstitutionE2EModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -19,14 +19,14 @@ describe('University Actions (e2e)', () => {
     app.close();
   });
 
-  describe('get universities', () => {
-    it('should return all universities', async () => {
+  describe('get institutions', () => {
+    it('should return all institutions', async () => {
       await request(app.getHttpServer())
-        .get('/universities')
+        .get('/institutions')
         .then((res) => {
           expect(res.status).toBe(200);
           expect(res.body).toHaveLength(2);
-          expect(res.body).toEqual(universities);
+          expect(res.body).toEqual(institutions);
         });
     });
   });

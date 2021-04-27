@@ -21,7 +21,7 @@ export class ProjectService {
       findOptions,
     );
     this.logger.debug(
-      'Find projects with those ids and their related users, department, user departments and university departments',
+      'Find projects with those ids and their related users, department, user departments and institution departments',
     );
     const projects = await this.projectRepository.findProjectsById(
       selectedProjectIds,
@@ -36,7 +36,7 @@ export class ProjectService {
 
   async findOne(id: number): Promise<ProjectShowDto> {
     this.logger.debug(
-      'Find project with matching ids and their related department, users, user universities and department university',
+      'Find project with matching ids and their related department, users, user institution and department institution',
     );
     const project = await this.projectRepository.findOne(id);
 

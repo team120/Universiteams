@@ -1,8 +1,8 @@
-export const universities = [
+export const institutions = [
   {
     id: 1,
     name: 'UTN FRRo',
-    departments: [
+    researchDepartments: [
       {
         id: 4,
         name: 'General',
@@ -24,7 +24,7 @@ export const universities = [
   {
     id: 2,
     name: 'UNR',
-    departments: [
+    researchDepartments: [
       {
         id: 5,
         name: 'Ciencias Básicas',

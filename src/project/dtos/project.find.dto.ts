@@ -13,9 +13,9 @@ export class ProjectFindDto {
   @ParseOptionalBoolean()
   isDown?: boolean;
   @Expose()
-  departmentId?: number;
+  researchDepartmentId?: number;
   @Expose()
-  universityId?: number;
+  institutionId?: number;
   @Expose()
   userId?: number;
   @Expose()

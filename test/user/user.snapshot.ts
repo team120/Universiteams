@@ -7,10 +7,10 @@ export const users = [
     userAffiliations: [
       {
         id: 3,
-        department: {
+        researchDepartment: {
           id: 2,
           name: 'Ingeniería Civil',
-          university: {
+          institution: {
             id: 1,
             name: 'UTN FRRo',
           },
@@ -28,10 +28,10 @@ export const users = [
     userAffiliations: [
       {
         id: 2,
-        department: {
+        researchDepartment: {
           id: 6,
           name: 'Ingeniería Electrónica',
-          university: {
+          institution: {
             id: 2,
             name: 'UNR',
           },
@@ -41,10 +41,10 @@ export const users = [
       },
       {
         id: 1,
-        department: {
+        researchDepartment: {
           id: 1,
           name: 'Ingeniería en Sistemas',
-          university: {
+          institution: {
             id: 1,
             name: 'UTN FRRo',
           },
@@ -62,10 +62,10 @@ export const users = [
     userAffiliations: [
       {
         id: 5,
-        department: {
+        researchDepartment: {
           id: 6,
           name: 'Ingeniería Electrónica',
-          university: {
+          institution: {
             id: 2,
             name: 'UNR',
           },
@@ -75,10 +75,10 @@ export const users = [
       },
       {
         id: 4,
-        department: {
+        researchDepartment: {
           id: 3,
           name: 'Ingeniería Química',
-          university: {
+          institution: {
             id: 1,
             name: 'UTN FRRo',
           },

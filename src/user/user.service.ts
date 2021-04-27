@@ -17,12 +17,12 @@ export class UserService {
   }
 
   async findAll(): Promise<UserShowDto[]> {
-    this.logger.debug('Find users and their related university');
+    this.logger.debug('Find users and their related institution');
     const users = await this.userRepository.find({
       relations: [
         'userAffiliations',
-        'userAffiliations.department',
-        'userAffiliations.department.university',
+        'userAffiliations.researchDepartment',
+        'userAffiliations.researchDepartment.institution',
       ],
     });
     this.logger.debug('Map users to dto');
