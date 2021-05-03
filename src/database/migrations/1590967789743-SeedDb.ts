@@ -20,41 +20,41 @@ export class SeedDb1590967789743 implements MigrationInterface {
     const usersRepo = getRepository(User);
     const userAffiliationRepo = getRepository(UserAffiliation);
 
-    const universities = {
+    const institutions = {
       'utn-frro': institutionRepo.create({ name: 'UTN FRRo' }),
       'unr-fceia': institutionRepo.create({ name: 'UNR' }),
     };
 
-    await institutionRepo.save(Object.values(universities));
+    await institutionRepo.save(Object.values(institutions));
 
     const researchDepartments = {
       'utn-frro-isi': researchDepartmentRepo.create({
         name: 'Ingeniería en Sistemas',
-        institution: universities['utn-frro'],
+        institution: institutions['utn-frro'],
       }),
       'utn-frro-ic': researchDepartmentRepo.create({
         name: 'Ingeniería Civil',
-        institution: universities['utn-frro'],
+        institution: institutions['utn-frro'],
       }),
       'utn-frro-iq': researchDepartmentRepo.create({
         name: 'Ingeniería Química',
-        institution: universities['utn-frro'],
+        institution: institutions['utn-frro'],
       }),
       'utn-frro-general': researchDepartmentRepo.create({
         name: 'General',
-        institution: universities['utn-frro'],
+        institution: institutions['utn-frro'],
       }),
       'unr-fceia-cb': researchDepartmentRepo.create({
         name: 'Ciencias Básicas',
-        institution: universities['unr-fceia'],
+        institution: institutions['unr-fceia'],
       }),
       'unr-fceia-ie': researchDepartmentRepo.create({
         name: 'Ingeniería Electrónica',
-        institution: universities['unr-fceia'],
+        institution: institutions['unr-fceia'],
       }),
       'unr-fceia-general': researchDepartmentRepo.create({
         name: 'General',
-        institution: universities['unr-fceia'],
+        institution: institutions['unr-fceia'],
       }),
     };
 
