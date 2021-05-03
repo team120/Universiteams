@@ -1,16 +1,17 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { LoggerModule } from 'nestjs-pino';
+import { getConnectionOptions } from 'typeorm';
+
 import { AppController } from './app.controller';
 import { AuthController } from './auth/auth.controller';
-import { InstitutionController } from './institution/institution.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { SerializationModule } from './serialization/serialization.module';
+import { ExceptionsModule } from './exceptions/exceptions.module';
+
+import { InstitutionModule } from './institution/institution.module';
+import { InterestModule } from './interest/interest.module';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
-import { ExceptionsModule } from './exceptions/exceptions.module';
-import { LoggerModule } from 'nestjs-pino';
-import { SerializationModule } from './serialization/serialization.module';
-import { getConnectionOptions } from 'typeorm';
-import { InstitutionService } from './institution/institution.service';
-import { InstitutionModule } from './institution/institution.module';
 
 @Module({
   imports: [
@@ -30,19 +31,20 @@ import { InstitutionModule } from './institution/institution.module';
         prettyPrint:
           process.env.NODE_ENV !== 'production'
             ? {
-                colorize: true,
-                levelFirst: true,
-                translateTime: 'mm/dd/yyyy h:MM:ss TT Z',
-              }
+              colorize: true,
+              levelFirst: true,
+              translateTime: 'mm/dd/yyyy h:MM:ss TT Z',
+            }
             : undefined,
       },
     }),
+    SerializationModule,
+    ExceptionsModule,
+    InstitutionModule,
+    InterestModule,
     ProjectModule,
     UserModule,
-    ExceptionsModule,
-    SerializationModule,
-    InstitutionModule,
   ],
-  controllers: [AppController, AuthController],
+  controllers: [ AppController, AuthController ]
 })
-export class AppModule {}
+export class AppModule { }
