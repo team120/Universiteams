@@ -5,4 +5,4 @@ import { commonImportsArray } from '../utils/common-imports.e2e';
 @Module({
   imports: [ProjectModule, ...commonImportsArray],
 })
-export class ProjectE2EModule {}
+export class ProjectE2EModule { }
