@@ -16,7 +16,7 @@ describe('User Actions (e2e)', () => {
   });
 
   afterEach(async () => {
-    app.close();
+    await app.close();
   });
 
   describe('get users', () => {
