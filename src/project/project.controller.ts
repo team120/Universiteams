@@ -17,18 +17,18 @@ import { ProjectService } from './project.service';
 @ApiTags('projects')
 @Controller('projects')
 export class ProjectController {
-  constructor(private projectService: ProjectService) {}
+  constructor(private projectService: ProjectService) { }
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getProjects(
+  async get(
     @Query() findOptions: ProjectFindDto,
   ): Promise<ProjectShowDto[]> {
     return this.projectService.findProjects(findOptions);
   }
 
   @Get(':id')
-  async getOneProject(@Param('id', ParseIntPipe) projectId: number) {
+  async getOne(@Param('id', ParseIntPipe) projectId: number) {
     return this.projectService.findOne(projectId);
   }
 }

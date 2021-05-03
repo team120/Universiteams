@@ -5,16 +5,15 @@ import { InterestService } from "./interest.service";
 @ApiTags('interests')
 @Controller('interests')
 export class InterestController {
+  constructor(private interestService: InterestService) { }
 
-    constructor(private interestService: InterestService) { }
+  @Get()
+  async get() {
+    return this.interestService.findAll();
+  }
 
-    @Get()
-    getInterests() {
-        return this.interestService.findAll();
-    }
-
-    @Get(':id')
-    getOneInterest() {
-        return this.interestService.getOne();
-    }
+  @Get(':id')
+  async getOne() {
+    return this.interestService.getOne();
+  }
 }
