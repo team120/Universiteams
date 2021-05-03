@@ -29,13 +29,11 @@ import { UserModule } from './user/user.module';
           level: (level: string) => new Object({ level: level }),
         },
         prettyPrint:
-          process.env.NODE_ENV !== 'production'
-            ? {
-              colorize: true,
-              levelFirst: true,
-              translateTime: 'mm/dd/yyyy h:MM:ss TT Z',
-            }
-            : undefined,
+          process.env.NODE_ENV !== 'production' ? {
+            colorize: true,
+            levelFirst: true,
+            translateTime: 'mm/dd/yyyy h:MM:ss TT Z',
+          } : undefined,
       },
     }),
     SerializationModule,
@@ -45,6 +43,6 @@ import { UserModule } from './user/user.module';
     ProjectModule,
     UserModule,
   ],
-  controllers: [ AppController, AuthController ]
+  controllers: [AppController, AuthController]
 })
 export class AppModule { }
