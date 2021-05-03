@@ -4,9 +4,8 @@ import { LoggerModule } from 'nestjs-pino';
 import { getConnectionOptions } from 'typeorm';
 
 import { AppController } from './app.controller';
-import { AuthController } from './auth/auth.controller';
-import { SerializationModule } from './serialization/serialization.module';
-import { ExceptionsModule } from './exceptions/exceptions.module';
+import { SerializationModule } from './utils/serialization/serialization.module';
+import { ExceptionsModule } from './utils/exceptions/exceptions.module';
 
 import { InstitutionModule } from './institution/institution.module';
 import { InterestModule } from './interest/interest.module';
@@ -43,6 +42,6 @@ import { UserModule } from './user/user.module';
     ProjectModule,
     UserModule,
   ],
-  controllers: [AppController, AuthController]
+  controllers: [AppController]
 })
 export class AppModule { }

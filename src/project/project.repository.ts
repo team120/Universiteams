@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Brackets, Repository } from 'typeorm';
-import { DbException } from '../exceptions/database.exception';
+import { DbException } from '../utils/exceptions/database.exception';
 import { ProjectFilters, ProjectSortAttributes } from './dtos/project.find.dto';
 import { Project } from './project.entity';
 

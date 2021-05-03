@@ -1,7 +1,7 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
-import { ExceptionsModule } from '../../src/exceptions/exceptions.module';
-import { SerializationModule } from '../../src/serialization/serialization.module';
+import { ExceptionsModule } from '../../src/utils/exceptions/exceptions.module';
+import { SerializationModule } from '../../src/utils/serialization/serialization.module';
 import { getConnectionOptions } from 'typeorm';
 
 export const commonImportsArray = [

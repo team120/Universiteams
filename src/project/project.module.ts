@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SerializationModule } from '../serialization/serialization.module';
+import { SerializationModule } from '../utils/serialization/serialization.module';
 import { ProjectController } from './project.controller';
 import { Project } from './project.entity';
 import { ProjectCustomRepository } from './project.repository';

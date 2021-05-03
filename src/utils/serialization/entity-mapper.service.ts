@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
-import { Type } from '../utils/generic-type';
+import { Type } from '../generic-type';
 
 export interface MapperConfig {
   groups: string[];
