@@ -1,7 +1,13 @@
 import { Enrollment } from '../enrollment/enrolment.entity';
-import { PrimaryGeneratedColumn, Column, Entity, ManyToMany, OneToMany } from 'typeorm';
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+} from 'typeorm';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
-import { Interest } from 'src/interest/interest.entity';
+import { Interest } from '../interest/interest.entity';
 
 @Entity()
 export class User {

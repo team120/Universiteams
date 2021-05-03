@@ -1,7 +1,15 @@
 import { Enrollment } from '../enrollment/enrolment.entity';
-import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { ResearchDepartment } from '../research-department/research-department.entity';
-import { Interest } from 'src/interest/interest.entity';
+import { Interest } from '../interest/interest.entity';
 
 export enum ProjectType {
   Informal = 'Informal',
@@ -21,10 +29,14 @@ export class Project {
   @Column({ default: false })
   isDown: boolean;
 
-  @ManyToOne(() => ResearchDepartment, (researchDepartment) => researchDepartment.projects, {
-    cascade: ['insert', 'update'],
-    onUpdate: 'CASCADE',
-  })
+  @ManyToOne(
+    () => ResearchDepartment,
+    (researchDepartment) => researchDepartment.projects,
+    {
+      cascade: ['insert', 'update'],
+      onUpdate: 'CASCADE',
+    },
+  )
   researchDepartment: ResearchDepartment;
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {

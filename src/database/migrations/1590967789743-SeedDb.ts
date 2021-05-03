@@ -8,7 +8,10 @@ import { Interest } from '../../interest/interest.entity';
 import { Project, ProjectType } from '../../project/project.entity';
 import { ResearchDepartment } from '../../research-department/research-department.entity';
 import { User } from '../../user/user.entity';
-import { UserAffiliation, UserAffiliationType } from '../../user-affiliation/user-affiliation.entity';
+import {
+  UserAffiliation,
+  UserAffiliationType,
+} from '../../user-affiliation/user-affiliation.entity';
 
 export class SeedDb1590967789743 implements MigrationInterface {
   public async up(): Promise<void> {
@@ -163,7 +166,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         name: 'Data Science',
         projectRefsCounter: 1,
         userRefsCounter: 4,
-        verified: true,        
+        verified: true,
       }),
       'it-security': interestsRepo.create({
         name: 'IT Security',
@@ -171,7 +174,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         userRefsCounter: 3,
         verified: true,
       }),
-      'arduino': interestsRepo.create({
+      arduino: interestsRepo.create({
         name: 'Arduino',
         projectRefsCounter: 3,
         userRefsCounter: 2,
