@@ -12,9 +12,9 @@ export class InterestController {
     getInterests() {
         return this.interestService.findAll();
     }
-    
-    @Get()
-    getInterest() {
+
+    @Get(':id')
+    getOneInterest() {
         return this.interestService.getOne();
     }
 }
