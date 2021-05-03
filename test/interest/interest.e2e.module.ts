@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { InstitutionModule } from '../../src/institution/institution.module';
+import { InterestModule } from '../../src/interest/interest.module';
 import { commonImportsArray } from '../utils/common-imports.e2e';
 
-@Module({ imports: [...commonImportsArray, InstitutionModule] })
-export class InstitutionE2EModule { }
+@Module({ imports: [...commonImportsArray, InterestModule] })
+export class InterestE2EModule {}
