@@ -7,4 +7,6 @@ const optionalBooleanMapper = new Map([
 ]);
 
 export const ParseOptionalBoolean = () =>
-  Transform(({ value }: TransformFnParams): boolean => optionalBooleanMapper.get(value));
+  Transform(({ value }: TransformFnParams): boolean =>
+    optionalBooleanMapper.get(value),
+  );

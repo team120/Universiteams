@@ -17,13 +17,11 @@ import { ProjectService } from './project.service';
 @ApiTags('projects')
 @Controller('projects')
 export class ProjectController {
-  constructor(private projectService: ProjectService) { }
+  constructor(private projectService: ProjectService) {}
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
-  async get(
-    @Query() findOptions: ProjectFindDto,
-  ): Promise<ProjectShowDto[]> {
+  async get(@Query() findOptions: ProjectFindDto): Promise<ProjectShowDto[]> {
     return this.projectService.findProjects(findOptions);
   }
 
