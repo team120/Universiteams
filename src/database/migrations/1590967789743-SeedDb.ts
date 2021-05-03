@@ -1,23 +1,23 @@
-import { ResearchDepartment } from '../../research-department/research-department.entity';
-import { Enrollment } from '../../enrollment/enrolment.entity';
-import { Project, ProjectType } from '../../project/project.entity';
-import { Institution } from '../../institution/institution.entity';
-import { User } from '../../user/user.entity';
 import { MigrationInterface, getRepository } from 'typeorm';
-import * as argon2 from 'argon2';
 import { NotImplementedException } from '@nestjs/common';
-import {
-  UserAffiliation,
-  UserAffiliationType,
-} from '../../user-affiliation/user-affiliation.entity';
+import * as argon2 from 'argon2';
+
+import { Enrollment } from '../../enrollment/enrolment.entity';
+import { Institution } from '../../institution/institution.entity';
+import { Interest } from '../../interest/interest.entity';
+import { Project, ProjectType } from '../../project/project.entity';
+import { ResearchDepartment } from '../../research-department/research-department.entity';
+import { User } from '../../user/user.entity';
+import { UserAffiliation, UserAffiliationType } from '../../user-affiliation/user-affiliation.entity';
 
 export class SeedDb1590967789743 implements MigrationInterface {
   public async up(): Promise<void> {
-    const usersRepo = getRepository(User);
-    const institutionRepo = getRepository(Institution);
-    const projectRepo = getRepository(Project);
     const enrollmentsRepo = getRepository(Enrollment);
+    const institutionRepo = getRepository(Institution);
+    const interestsRepo = getRepository(Interest);
+    const projectRepo = getRepository(Project);
     const researchDepartmentRepo = getRepository(ResearchDepartment);
+    const usersRepo = getRepository(User);
     const userAffiliationRepo = getRepository(UserAffiliation);
 
     const universities = {
@@ -157,6 +157,41 @@ export class SeedDb1590967789743 implements MigrationInterface {
     };
 
     await enrollmentsRepo.save(Object.values(enrollments));
+
+    const interests = {
+      'data-science': interestsRepo.create({
+        name: 'Data Science',
+        projectRefsCounter: 1,
+        userRefsCounter: 4,
+        verified: true,        
+      }),
+      'it-security': interestsRepo.create({
+        name: 'IT Security',
+        projectRefsCounter: 0,
+        userRefsCounter: 3,
+        verified: true,
+      }),
+      'arduino': interestsRepo.create({
+        name: 'Arduino',
+        projectRefsCounter: 3,
+        userRefsCounter: 2,
+        verified: true,
+      }),
+      'business-intelligence': interestsRepo.create({
+        name: 'Business Intelligence',
+        projectRefsCounter: 2,
+        userRefsCounter: 0,
+        verified: true,
+      }),
+      'crypto-currency': interestsRepo.create({
+        name: 'Crypto Currency',
+        projectRefsCounter: 1,
+        userRefsCounter: 1,
+        verified: true,
+      }),
+    };
+
+    await interestsRepo.save(Object.values(interests));
   }
 
   public async down(): Promise<void> {
