@@ -3,7 +3,6 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Project } from '../project/project.entity';

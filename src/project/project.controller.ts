@@ -1,11 +1,9 @@
 import {
-  ClassSerializerInterceptor,
   Controller,
   Get,
   Param,
   ParseIntPipe,
   Query,
-  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
