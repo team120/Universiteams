@@ -6,8 +6,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Project } from '../project/project.entity';
-import { Institution } from '../institution/institution.entity';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
+import { Facility } from '../facility/facility.entity';
 
 @Entity()
 export class ResearchDepartment {
@@ -15,17 +15,15 @@ export class ResearchDepartment {
   id: number;
   @Column()
   name: string;
+  @Column()
+  abbreviation: string;
 
-  @ManyToOne(
-    () => Institution,
-    (institution) => institution.researchDepartments,
-    {
-      nullable: false,
-      cascade: ['insert', 'update'],
-      onUpdate: 'CASCADE',
-    },
-  )
-  institution: Institution;
+  @ManyToOne(() => Facility, (facility) => facility.researchDepartments, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
+  facility: Facility;
 
   @OneToMany(
     () => UserAffiliation,

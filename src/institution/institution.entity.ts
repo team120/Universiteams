@@ -1,5 +1,5 @@
 import { PrimaryGeneratedColumn, Column, OneToMany, Entity } from 'typeorm';
-import { ResearchDepartment } from '../research-department/research-department.entity';
+import { Facility } from '../facility/facility.entity';
 
 @Entity()
 export class Institution {
@@ -7,15 +7,13 @@ export class Institution {
   id: number;
   @Column()
   name: string;
+  @Column()
+  abbreviation: string;
 
-  @OneToMany(
-    () => ResearchDepartment,
-    (researchDepartment) => researchDepartment.institution,
-    {
-      nullable: true,
-      cascade: ['insert', 'update'],
-      onUpdate: 'CASCADE',
-    },
-  )
-  researchDepartments: ResearchDepartment[];
+  @OneToMany(() => Facility, (facility) => facility.institution, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
+  facilities: Facility[];
 }
