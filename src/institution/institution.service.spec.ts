@@ -53,6 +53,7 @@ describe('InstitutionService', () => {
           expect(error.response).toBe('Internal Server Error');
         });
         expect(institutionRepositoryMock.find).toHaveBeenCalledTimes(1);
+        expect.assertions(3);
       });
     });
   });
