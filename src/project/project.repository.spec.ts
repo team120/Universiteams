@@ -6,7 +6,16 @@ import { ProjectCustomRepository, QueryCreator } from './project.repository';
 
 describe('ProjectCustomRepository', () => {
   let repository: ProjectCustomRepository;
-  const queryCreatorMock = { getProjectWithRelationsQuery: jest.fn() };
+  const queryMock = {
+    andWhere: jest.fn(),
+    select: jest.fn(),
+    where: jest.fn(),
+    orderBy: jest.fn(),
+    getMany: jest.fn(),
+  };
+  const queryCreatorMock = {
+    getProjectWithRelationsQuery: jest.fn().mockReturnValue(queryMock),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -27,7 +36,7 @@ describe('ProjectCustomRepository', () => {
   });
 
   afterEach(() => {
-    queryCreatorMock.getProjectWithRelationsQuery.mockReset();
+    Object.values(queryMock).map((mock) => mock.mockReset());
   });
 
   it('should be defined', () => {
@@ -39,13 +48,7 @@ describe('ProjectCustomRepository', () => {
       test.each([{ type: ProjectType.Formal }, { isDown: true }])(
         'should call andWhere only once with exactly that parameter',
         async (filters: ProjectFilters) => {
-          const queryMock = {
-            andWhere: jest.fn(),
-            select: jest.fn().mockReturnValue({ getMany: jest.fn() }),
-          };
-          queryCreatorMock.getProjectWithRelationsQuery.mockReturnValue(
-            queryMock,
-          );
+          queryMock.select.mockReturnValue({ getMany: jest.fn() });
 
           await repository.getMatchingProjectIds(filters);
 
@@ -54,6 +57,24 @@ describe('ProjectCustomRepository', () => {
           expect(queryMock.select).toHaveBeenCalledTimes(1);
         },
       );
+    });
+  });
+
+  describe('find projects by id', () => {
+    describe('when a bunch of projects are requested in a certain order', () => {
+      it('should join the project ids and then apply that kind of sorting', async () => {
+        queryMock.where.mockReturnThis();
+        const sortByProperty = 'name';
+        const inAscendingOrder = true;
+
+        await repository.findProjectsById([{ id: 1 }, { id: 2 }], {
+          sortBy: sortByProperty,
+          inAscendingOrder: inAscendingOrder,
+        });
+
+        expect(queryMock.where).toHaveBeenCalledWith(`project.id IN (1, 2)`);
+        expect(queryMock.orderBy).toHaveBeenCalledWith('project.name', 'ASC');
+      });
     });
   });
 });

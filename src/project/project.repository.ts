@@ -50,7 +50,7 @@ export class ProjectCustomRepository {
   ]);
 
   async findProjectsById(
-    selectedProjectIds: Project[],
+    selectedProjectIds: Array<{ id: number }>,
     sortAttributes: ProjectSortAttributes,
   ): Promise<Project[]> {
     const projectIdsMappedString = selectedProjectIds
@@ -88,7 +88,9 @@ export class ProjectCustomRepository {
     return project;
   }
 
-  async getMatchingProjectIds(filters: ProjectFilters): Promise<Project[]> {
+  async getMatchingProjectIds(
+    filters: ProjectFilters,
+  ): Promise<Array<{ id: number }>> {
     const query = this.queryCreator.getProjectWithRelationsQuery();
 
     if (filters.generalSearch) {
@@ -130,6 +132,6 @@ export class ProjectCustomRepository {
       });
     }
 
-    return query.select('project.id').getMany();
+    return await query.select('project.id').getMany();
   }
 }
