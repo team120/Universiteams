@@ -6,11 +6,39 @@ import { ProjectFilters, ProjectSortAttributes } from './dtos/project.find.dto';
 import { Project } from './project.entity';
 
 @Injectable()
-export class ProjectCustomRepository {
+export class QueryCreator {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+  ) {}
+
+  getProjectWithRelationsQuery() {
+    return this.projectRepository
+      .createQueryBuilder('project')
+      .innerJoinAndSelect('project.enrollments', 'enrollment')
+      .innerJoinAndSelect('enrollment.user', 'user')
+      .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
+      .leftJoinAndSelect(
+        'userAffiliation.researchDepartment',
+        'userResearchDepartment',
+      )
+      .leftJoinAndSelect(
+        'userResearchDepartment.institution',
+        'userInstitution',
+      )
+      .leftJoinAndSelect('project.researchDepartment', 'researchDepartment')
+      .leftJoinAndSelect(
+        'researchDepartment.institution',
+        'researchDepartmentInstitution',
+      );
+  }
+}
+
+@Injectable()
+export class ProjectCustomRepository {
+  constructor(
     private readonly logger: PinoLogger,
+    private readonly queryCreator: QueryCreator,
   ) {}
 
   private sortBy = new Map([
@@ -29,9 +57,9 @@ export class ProjectCustomRepository {
       .map((project) => project.id)
       .join(', ');
 
-    const query = this.getProjectWithRelationsQuery().where(
-      `project.id IN (${projectIdsMappedString})`,
-    );
+    const query = this.queryCreator
+      .getProjectWithRelationsQuery()
+      .where(`project.id IN (${projectIdsMappedString})`);
 
     if (sortAttributes.sortBy) {
       const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
@@ -52,7 +80,8 @@ export class ProjectCustomRepository {
   }
 
   async findOne(id: number): Promise<Project> {
-    const project = await this.getProjectWithRelationsQuery()
+    const project = await this.queryCreator
+      .getProjectWithRelationsQuery()
       .where('project.id = :projectId', { projectId: id })
       .getOne();
 
@@ -60,7 +89,7 @@ export class ProjectCustomRepository {
   }
 
   async getMatchingProjectIds(filters: ProjectFilters): Promise<Project[]> {
-    const query = this.getProjectWithRelationsQuery();
+    const query = this.queryCreator.getProjectWithRelationsQuery();
 
     if (filters.generalSearch) {
       query.where(
@@ -102,26 +131,5 @@ export class ProjectCustomRepository {
     }
 
     return query.select('project.id').getMany();
-  }
-
-  private getProjectWithRelationsQuery() {
-    return this.projectRepository
-      .createQueryBuilder('project')
-      .innerJoinAndSelect('project.enrollments', 'enrollment')
-      .innerJoinAndSelect('enrollment.user', 'user')
-      .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
-      .leftJoinAndSelect(
-        'userAffiliation.researchDepartment',
-        'userResearchDepartment',
-      )
-      .leftJoinAndSelect(
-        'userResearchDepartment.institution',
-        'userInstitution',
-      )
-      .leftJoinAndSelect('project.researchDepartment', 'researchDepartment')
-      .leftJoinAndSelect(
-        'researchDepartment.institution',
-        'researchDepartmentInstitution',
-      );
   }
 }

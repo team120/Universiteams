@@ -1,21 +1,20 @@
 import { TestingModule, Test } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { ProjectFilters } from './dtos/project.find.dto';
-import { Project, ProjectType } from './project.entity';
-import { ProjectCustomRepository } from './project.repository';
+import { ProjectType } from './project.entity';
+import { ProjectCustomRepository, QueryCreator } from './project.repository';
 
 describe('ProjectCustomRepository', () => {
   let repository: ProjectCustomRepository;
-  const projectRepositoryMock = {};
+  const queryCreatorMock = { getProjectWithRelationsQuery: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProjectCustomRepository,
         {
-          provide: getRepositoryToken(Project),
-          useValue: projectRepositoryMock,
+          provide: QueryCreator,
+          useValue: queryCreatorMock,
         },
         {
           provide: PinoLogger,
@@ -25,6 +24,10 @@ describe('ProjectCustomRepository', () => {
     }).compile();
 
     repository = module.get<ProjectCustomRepository>(ProjectCustomRepository);
+  });
+
+  afterEach(() => {
+    queryCreatorMock.getProjectWithRelationsQuery.mockReset();
   });
 
   it('should be defined', () => {
@@ -40,9 +43,9 @@ describe('ProjectCustomRepository', () => {
             andWhere: jest.fn(),
             select: jest.fn().mockReturnValue({ getMany: jest.fn() }),
           };
-          repository[
-            'getProjectWithRelationsQuery'
-          ] = jest.fn().mockReturnValue(queryMock);
+          queryCreatorMock.getProjectWithRelationsQuery.mockReturnValue(
+            queryMock,
+          );
 
           await repository.getMatchingProjectIds(filters);
 
