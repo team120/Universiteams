@@ -29,6 +29,10 @@ describe('ProjectService', () => {
     service = module.get<ProjectService>(ProjectService);
   });
 
+  afterEach(() => {
+    projectCustomRepositoryMock.findOne.mockReset();
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
@@ -41,6 +45,18 @@ describe('ProjectService', () => {
         await service.findOne(noMatchingId).catch((error) => {
           expect(error).toBeInstanceOf(NotFoundException);
           expect(error.response.message).toBe('Not Found');
+        });
+        expect.assertions(2);
+      });
+    });
+
+    describe('when an exception is thrown by repository method', () => {
+      it('should re-trow a db exception', async () => {
+        projectCustomRepositoryMock.findOne.mockRejectedValue(new Error());
+        const anyId = 155;
+        await service.findOne(anyId).catch((error) => {
+          expect(error).toBeInstanceOf(DbException);
+          expect(error.response).toBe('Internal Server Error');
         });
         expect.assertions(2);
       });

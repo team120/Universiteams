@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Brackets, Repository } from 'typeorm';
-import { DbException } from '../utils/exceptions/database.exception';
 import { ProjectFilters, ProjectSortAttributes } from './dtos/project.find.dto';
 import { Project } from './project.entity';
 
@@ -55,10 +54,8 @@ export class ProjectCustomRepository {
   async findOne(id: number): Promise<Project> {
     const project = await this.getProjectWithRelationsQuery()
       .where('project.id = :projectId', { projectId: id })
-      .getOne()
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
+      .getOne();
+
     return project;
   }
 
