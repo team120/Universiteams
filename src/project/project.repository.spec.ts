@@ -45,18 +45,19 @@ describe('ProjectCustomRepository', () => {
 
   describe('getMatchingProjectIds', () => {
     describe('when only one filter argument is provided', () => {
-      test.each([{ type: ProjectType.Formal }, { isDown: true }])(
-        'should call andWhere only once with exactly that parameter',
-        async (filters: ProjectFilters) => {
-          queryMock.select.mockReturnValue({ getMany: jest.fn() });
+      test.each([
+        { type: ProjectType.Formal },
+        { isDown: true },
+        { researchDepartmentId: 1 },
+        { institutionId: 1 },
+        { dateFrom: new Date() },
+      ])('should call andWhere only once', async (filters: ProjectFilters) => {
+        queryMock.select.mockReturnValue({ getMany: jest.fn() });
 
-          await repository.getMatchingProjectIds(filters);
+        await repository.getMatchingProjectIds(filters);
 
-          expect(queryMock.andWhere).toHaveBeenCalledTimes(1);
-          expect(queryMock.andWhere.mock.calls[0][1]).toEqual(filters);
-          expect(queryMock.select).toHaveBeenCalledTimes(1);
-        },
-      );
+        expect(queryMock.andWhere).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
