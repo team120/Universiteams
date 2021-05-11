@@ -5,6 +5,7 @@ import { EntityMapperService } from '../utils/serialization/entity-mapper.servic
 import { Repository } from 'typeorm';
 import { UserShowDto } from './dtos/user.show.dto';
 import { User } from './user.entity';
+import { DbException } from '../utils/exceptions/database.exception';
 
 @Injectable()
 export class UserService {
@@ -18,13 +19,17 @@ export class UserService {
 
   async findAll(): Promise<UserShowDto[]> {
     this.logger.debug('Find users and their related institution');
-    const users = await this.userRepository.find({
-      relations: [
-        'userAffiliations',
-        'userAffiliations.researchDepartment',
-        'userAffiliations.researchDepartment.institution',
-      ],
-    });
+    const users = await this.userRepository
+      .find({
+        relations: [
+          'userAffiliations',
+          'userAffiliations.researchDepartment',
+          'userAffiliations.researchDepartment.institution',
+        ],
+      })
+      .catch((error: Error) => {
+        throw new DbException(error.message, error.stack);
+      });
     this.logger.debug('Map users to dto');
     return this.entityMapper.mapArray(UserShowDto, users, {
       groups: ['admin'],
