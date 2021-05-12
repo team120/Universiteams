@@ -69,13 +69,13 @@ export class SeedDb1590967789743 implements MigrationInterface {
           'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
         type: ProjectType.Formal,
         researchDepartment: researchDepartments.utnFrroIsi,
-        creationDate: '2020-03-16 14:13:02',
+        creationDate: '2020-03-16T17:13:02.000Z',
       }),
       utnFrroIsiUniversiteams: projectRepo.create({
         name: 'Universiteams',
         type: ProjectType.Informal,
         researchDepartment: researchDepartments.utnFrroIsi,
-        creationDate: '2021-03-16 14:13:02',
+        creationDate: '2021-03-16T17:13:02.000Z',
       }),
     };
 
