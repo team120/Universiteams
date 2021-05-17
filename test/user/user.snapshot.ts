@@ -16,7 +16,23 @@ export const users = [
           },
         },
         currentType: 'Student',
-        requestedType: null,
+        requestedType: null,        
+      },
+    ],
+    interests: [
+      {
+        id: 1,
+        name: 'Data Science',
+        projectRefsCounter: 1,
+        userRefsCounter: 4,
+        verified: true,
+      },
+      {
+        id: 4,
+        name: 'Business Intelligence',
+        projectRefsCounter: 2,
+        userRefsCounter: 0,
+        verified: true,
       },
     ],
   },
@@ -37,7 +53,7 @@ export const users = [
           },
         },
         currentType: 'Professor',
-        requestedType: null,
+        requestedType: null,        
       },
       {
         id: 1,
@@ -51,6 +67,15 @@ export const users = [
         },
         currentType: 'Professor',
         requestedType: null,
+      },
+    ],
+    interests: [
+      {
+        id: 2,
+        name: 'IT Security',
+        projectRefsCounter: 0,
+        userRefsCounter: 3,
+        verified: true,
       },
     ],
   },
@@ -87,5 +112,6 @@ export const users = [
         requestedType: 'Professor',
       },
     ],
+    interests: [],
   },
 ];

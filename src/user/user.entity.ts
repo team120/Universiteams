@@ -51,5 +51,5 @@ export class User {
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
-  interests: Interest[];
+  interests?: Interest[];
 }

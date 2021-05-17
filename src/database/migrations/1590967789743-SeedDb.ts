@@ -63,6 +63,41 @@ export class SeedDb1590967789743 implements MigrationInterface {
 
     await researchDepartmentRepo.save(Object.values(researchDepartments));
 
+    const interests = {
+      dataScience: interestsRepo.create({
+        name: 'Data Science',
+        projectRefsCounter: 1,
+        userRefsCounter: 4,
+        verified: true,
+      }),
+      itSecurity: interestsRepo.create({
+        name: 'IT Security',
+        projectRefsCounter: 0,
+        userRefsCounter: 3,
+        verified: true,
+      }),
+      arduino: interestsRepo.create({
+        name: 'Arduino',
+        projectRefsCounter: 3,
+        userRefsCounter: 2,
+        verified: true,
+      }),
+      businessIntelligence: interestsRepo.create({
+        name: 'Business Intelligence',
+        projectRefsCounter: 2,
+        userRefsCounter: 0,
+        verified: true,
+      }),
+      cryptoCurrency: interestsRepo.create({
+        name: 'Crypto Currency',
+        projectRefsCounter: 1,
+        userRefsCounter: 1,
+        verified: true,
+      }),
+    };
+
+    await interestsRepo.save(Object.values(interests));
+
     const projects = {
       utnFrroIsiGeolocationIot: projectRepo.create({
         name:
@@ -88,6 +123,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         password: await argon2.hash('password1'),
         name: 'Juan',
         lastName: 'Rizzo',
+        interests: [interests.dataScience, interests.businessIntelligence],
       }),
       carlosVilla: usersRepo.create({
         mail: 'user2@example.com',
@@ -95,6 +131,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         password: await argon2.hash('password2'),
         name: 'Carlos',
         lastName: 'Villa',
+        interests: [interests.itSecurity],
       }),
       marcosSanchez: usersRepo.create({
         mail: 'user3@example.com',
@@ -102,6 +139,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
         password: await argon2.hash('password3'),
         name: 'Marcos',
         lastName: 'Sanchez',
+        interests: [],
       }),
     };
     await usersRepo.save(Object.values(users));
@@ -160,41 +198,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
     };
 
     await enrollmentsRepo.save(Object.values(enrollments));
-
-    const interests = {
-      dataScience: interestsRepo.create({
-        name: 'Data Science',
-        projectRefsCounter: 1,
-        userRefsCounter: 4,
-        verified: true,
-      }),
-      itSecurity: interestsRepo.create({
-        name: 'IT Security',
-        projectRefsCounter: 0,
-        userRefsCounter: 3,
-        verified: true,
-      }),
-      arduino: interestsRepo.create({
-        name: 'Arduino',
-        projectRefsCounter: 3,
-        userRefsCounter: 2,
-        verified: true,
-      }),
-      businessIntelligence: interestsRepo.create({
-        name: 'Business Intelligence',
-        projectRefsCounter: 2,
-        userRefsCounter: 0,
-        verified: true,
-      }),
-      cryptoCurrency: interestsRepo.create({
-        name: 'Crypto Currency',
-        projectRefsCounter: 1,
-        userRefsCounter: 1,
-        verified: true,
-      }),
-    };
-
-    await interestsRepo.save(Object.values(interests));
   }
 
   public async down(): Promise<void> {
