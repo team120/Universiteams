@@ -105,12 +105,14 @@ export class SeedDb1590967789743 implements MigrationInterface {
         type: ProjectType.Formal,
         researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2020-03-16T17:13:02.000Z',
+        interests: [interests.arduino, interests.itSecurity]
       }),
       utnFrroIsiUniversiteams: projectRepo.create({
         name: 'Universiteams',
         type: ProjectType.Informal,
         researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2021-03-16T17:13:02.000Z',
+        interests: [interests.dataScience, interests.cryptoCurrency]
       }),
     };
 

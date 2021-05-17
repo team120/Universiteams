@@ -125,6 +125,7 @@ export class ProjectCustomRepository {
       .leftJoinAndSelect(
         'researchDepartment.institution',
         'researchDepartmentInstitution',
-      );
+      )
+      .leftJoinAndSelect('project.interests', 'interest');
   }
 }

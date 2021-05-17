@@ -13,9 +13,9 @@ export class UserShowDto {
   @Expose()
   mail: string;
   @Expose()
-  @Type(() => InterestShowDto)
-  interests?: InterestShowDto[];
-  @Expose()
   @Type(() => UserAffiliationShowDto)
   userAffiliations: UserAffiliationShowDto[];
+  @Expose()
+  @Type(() => InterestShowDto)
+  interests?: InterestShowDto[];
 }
