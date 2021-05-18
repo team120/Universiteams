@@ -17,7 +17,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
   public async up(): Promise<void> {
     const enrollmentsRepo = getRepository(Enrollment);
     const institutionRepo = getRepository(Institution);
-    const interestsRepo = getRepository(Interest);
+    const interestRepo = getRepository(Interest);
     const projectRepo = getRepository(Project);
     const researchDepartmentRepo = getRepository(ResearchDepartment);
     const usersRepo = getRepository(User);
@@ -64,31 +64,31 @@ export class SeedDb1590967789743 implements MigrationInterface {
     await researchDepartmentRepo.save(Object.values(researchDepartments));
 
     const interests = {
-      dataScience: interestsRepo.create({
+      dataScience: interestRepo.create({
         name: 'Data Science',
         projectRefsCounter: 1,
         userRefsCounter: 4,
         verified: true,
       }),
-      itSecurity: interestsRepo.create({
+      itSecurity: interestRepo.create({
         name: 'IT Security',
         projectRefsCounter: 0,
         userRefsCounter: 3,
         verified: true,
       }),
-      arduino: interestsRepo.create({
+      arduino: interestRepo.create({
         name: 'Arduino',
         projectRefsCounter: 3,
         userRefsCounter: 2,
         verified: true,
       }),
-      businessIntelligence: interestsRepo.create({
+      businessIntelligence: interestRepo.create({
         name: 'Business Intelligence',
         projectRefsCounter: 2,
         userRefsCounter: 0,
         verified: true,
       }),
-      cryptoCurrency: interestsRepo.create({
+      cryptoCurrency: interestRepo.create({
         name: 'Crypto Currency',
         projectRefsCounter: 1,
         userRefsCounter: 1,
@@ -96,7 +96,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
       }),
     };
 
-    await interestsRepo.save(Object.values(interests));
+    await interestRepo.save(Object.values(interests));
 
     const projects = {
       utnFrroIsiGeolocationIot: projectRepo.create({
@@ -105,14 +105,14 @@ export class SeedDb1590967789743 implements MigrationInterface {
         type: ProjectType.Formal,
         researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2020-03-16T17:13:02.000Z',
-        interests: [interests.arduino, interests.itSecurity]
+        interests: [interests.arduino, interests.itSecurity],
       }),
       utnFrroIsiUniversiteams: projectRepo.create({
         name: 'Universiteams',
         type: ProjectType.Informal,
         researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2021-03-16T17:13:02.000Z',
-        interests: [interests.dataScience, interests.cryptoCurrency]
+        interests: [interests.dataScience, interests.cryptoCurrency],
       }),
     };
 
