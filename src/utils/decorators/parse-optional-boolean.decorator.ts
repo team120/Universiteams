@@ -1,4 +1,4 @@
-import { Transform } from 'class-transformer';
+import { Transform, TransformFnParams } from 'class-transformer';
 
 const optionalBooleanMapper = new Map([
   ['undefined', undefined],
@@ -7,4 +7,6 @@ const optionalBooleanMapper = new Map([
 ]);
 
 export const ParseOptionalBoolean = () =>
-  Transform(({ value }) => optionalBooleanMapper.get(value));
+  Transform(({ value }: TransformFnParams): boolean =>
+    optionalBooleanMapper.get(value),
+  );

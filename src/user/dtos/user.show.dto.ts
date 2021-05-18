@@ -1,5 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer';
 import { UserAffiliationShowDto } from '../../user-affiliation/dtos/user-affiliation.show.dto';
+import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
 
 @Exclude()
 export class UserShowDto {
@@ -14,4 +15,7 @@ export class UserShowDto {
   @Expose()
   @Type(() => UserAffiliationShowDto)
   userAffiliations: UserAffiliationShowDto[];
+  @Expose()
+  @Type(() => InterestShowDto)
+  interests?: InterestShowDto[];
 }

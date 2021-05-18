@@ -1,17 +1,15 @@
 import {
-  ClassSerializerInterceptor,
   Controller,
   Get,
   Param,
   ParseIntPipe,
   Query,
-  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ProjectFindDto } from './dtos/project.find.dto';
-import { ProjectShowDto } from './dtos/project.show.dto';
+import { ProjectInListDto } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 
 @ApiTags('projects')
@@ -21,14 +19,12 @@ export class ProjectController {
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getProjects(
-    @Query() findOptions: ProjectFindDto,
-  ): Promise<ProjectShowDto[]> {
+  async get(@Query() findOptions: ProjectFindDto): Promise<ProjectInListDto[]> {
     return this.projectService.findProjects(findOptions);
   }
 
   @Get(':id')
-  async getOneProject(@Param('id', ParseIntPipe) projectId: number) {
+  async getOne(@Param('id', ParseIntPipe) projectId: number) {
     return this.projectService.findOne(projectId);
   }
 }

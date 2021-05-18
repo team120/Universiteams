@@ -3,11 +3,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ResearchDepartment } from '../research-department/research-department.entity';
+import { Interest } from '../interest/interest.entity';
 
 export enum ProjectType {
   Informal = 'Informal',
@@ -26,6 +28,7 @@ export class Project {
   type: ProjectType;
   @Column({ default: false })
   isDown: boolean;
+
   @ManyToOne(
     () => ResearchDepartment,
     (researchDepartment) => researchDepartment.projects,
@@ -35,10 +38,18 @@ export class Project {
     },
   )
   researchDepartment: ResearchDepartment;
+
   @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {
     nullable: false,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
   enrollments: Enrollment[];
+
+  @ManyToMany(() => Interest, (interest) => interest.projects, {
+    nullable: true,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
+  interests: Interest[];
 }

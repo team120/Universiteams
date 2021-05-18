@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SerializationModule } from '../serialization/serialization.module';
+import { SerializationModule } from '../utils/serialization/serialization.module';
 import { InstitutionController } from './institution.controller';
 import { Institution } from './institution.entity';
 import { InstitutionService } from './institution.service';

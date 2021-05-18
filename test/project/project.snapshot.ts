@@ -163,3 +163,17 @@ export const projects = [
     ],
   },
 ];
+
+export const projectGeolocationWithExtendedDta = {
+  ...projects[0],
+  interests: [
+    {
+      id: 3,
+      name: 'Arduino',
+    },
+    {
+      id: 2,
+      name: 'IT Security',
+    },
+  ],
+};

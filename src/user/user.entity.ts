@@ -1,6 +1,13 @@
 import { Enrollment } from '../enrollment/enrolment.entity';
-import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+} from 'typeorm';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
+import { Interest } from '../interest/interest.entity';
 
 @Entity()
 export class User {
@@ -35,6 +42,14 @@ export class User {
     onUpdate: 'CASCADE',
   })
   userAffiliations: UserAffiliation[];
+
   @OneToMany(() => Enrollment, (enrolment) => enrolment.user)
   enrollments: Enrollment[];
+
+  @ManyToMany(() => Interest, (interest) => interest.users, {
+    nullable: true,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
+  interests?: Interest[];
 }

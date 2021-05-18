@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
-import { EntityMapperService } from '../serialization/entity-mapper.service';
+import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { ProjectFindDto } from './dtos/project.find.dto';
-import { ProjectShowDto } from './dtos/project.show.dto';
+import { ProjectInListDto, ProjectSingleDto } from './dtos/project.show.dto';
 import { ProjectCustomRepository } from './project.repository';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class ProjectService {
     this.logger.setContext(ProjectService.name);
   }
 
-  async findProjects(findOptions: ProjectFindDto): Promise<ProjectShowDto[]> {
+  async findProjects(findOptions: ProjectFindDto): Promise<ProjectInListDto[]> {
     this.logger.debug('Find matching project ids');
     const selectedProjectIds = await this.projectRepository.getMatchingProjectIds(
       findOptions,
@@ -31,10 +31,10 @@ export class ProjectService {
       },
     );
     this.logger.debug('Map projects to dto');
-    return this.entityMapper.mapArray(ProjectShowDto, projects);
+    return this.entityMapper.mapArray(ProjectInListDto, projects);
   }
 
-  async findOne(id: number): Promise<ProjectShowDto> {
+  async findOne(id: number): Promise<ProjectSingleDto> {
     this.logger.debug(
       'Find project with matching ids and their related department, users, user institution and department institution',
     );
@@ -44,6 +44,6 @@ export class ProjectService {
     if (!project) throw new NotFoundException();
 
     this.logger.debug('Map project to dto');
-    return this.entityMapper.mapValue(ProjectShowDto, project);
+    return this.entityMapper.mapValue(ProjectSingleDto, project);
   }
 }

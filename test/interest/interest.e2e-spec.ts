@@ -1,14 +1,14 @@
 import { INestApplication } from '@nestjs/common';
-import { TestingModule, Test } from '@nestjs/testing';
-import { UserE2EModule } from './user.e2e.module';
+import { Test, TestingModule } from '@nestjs/testing';
+import { InterestE2EModule } from './interest.e2e.module';
 import * as request from 'supertest';
-import { users } from './user.snapshot';
+import { interests } from './interest.snapshot';
 
-describe('User Actions (e2e)', () => {
+describe('Interest Actions (e2e)', () => {
   let app: INestApplication;
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [UserE2EModule],
+      imports: [InterestE2EModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -19,15 +19,14 @@ describe('User Actions (e2e)', () => {
     await app.close();
   });
 
-  describe('get users', () => {
-    it('should return all users', async () => {
+  describe('get interests', () => {
+    it('should return all interests', async () => {
       await request(app.getHttpServer())
-        .get('/users')
+        .get('/interests')
         .then((res) => {
           expect(res.status).toBe(200);
-          expect(res.body).toHaveLength(3);
-          expect(res.body[0]).not.toHaveProperty('password');
-          expect(res.body).toEqual(users);
+          expect(res.body).toHaveLength(5);
+          expect(res.body).toEqual(interests);
         });
     });
   });

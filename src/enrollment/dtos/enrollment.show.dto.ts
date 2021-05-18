@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { ProjectShowDto } from '../../project/dtos/project.show.dto';
+import { ProjectInListDto } from '../../project/dtos/project.show.dto';
 import { UserShowDto } from '../../user/dtos/user.show.dto';
 
 @Exclude()
@@ -10,6 +10,6 @@ export class EnrollmentShowDto {
   @Type(() => UserShowDto)
   user: UserShowDto;
   @Expose()
-  @Type(() => ProjectShowDto)
-  project: ProjectShowDto;
+  @Type(() => ProjectInListDto)
+  project: ProjectInListDto;
 }

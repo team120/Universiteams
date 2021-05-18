@@ -51,7 +51,7 @@ npm run lint
 npm run format
 ```
 
-# Tech Stack
+## Tech Stack
 
 ### Common
 
@@ -65,6 +65,7 @@ npm run format
 | :--------------------------------- |
 | :ballot_box_with_check: Node.JS    |
 | :ballot_box_with_check: Express    |
+| :ballot_box_with_check: Nest       |
 | :ballot_box_with_check: TypeORM    |
 | :ballot_box_with_check: PostgreSQL |
 
@@ -77,7 +78,7 @@ npm run format
 | :ballot_box_with_check: Angular Flex Layout |
 | :ballot_box_with_check: HTML5 / CSS3 / SASS |
 
-# Authors
+## Authors
 
 | Name               | GitHub Account                             |
 | :----------------- | :----------------------------------------- |

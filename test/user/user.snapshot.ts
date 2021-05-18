@@ -19,6 +19,16 @@ export const users = [
         requestedType: null,
       },
     ],
+    interests: [
+      {
+        id: 1,
+        name: 'Data Science',
+      },
+      {
+        id: 4,
+        name: 'Business Intelligence',
+      },
+    ],
   },
   {
     id: 2,
@@ -51,6 +61,12 @@ export const users = [
         },
         currentType: 'Professor',
         requestedType: null,
+      },
+    ],
+    interests: [
+      {
+        id: 2,
+        name: 'IT Security',
       },
     ],
   },
@@ -87,5 +103,6 @@ export const users = [
         requestedType: 'Professor',
       },
     ],
+    interests: [],
   },
 ];

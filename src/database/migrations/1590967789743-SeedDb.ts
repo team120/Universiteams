@@ -1,11 +1,13 @@
-import { ResearchDepartment } from '../../research-department/research-department.entity';
-import { Enrollment } from '../../enrollment/enrolment.entity';
-import { Project, ProjectType } from '../../project/project.entity';
-import { Institution } from '../../institution/institution.entity';
-import { User } from '../../user/user.entity';
 import { MigrationInterface, getRepository } from 'typeorm';
-import * as argon2 from 'argon2';
 import { NotImplementedException } from '@nestjs/common';
+import * as argon2 from 'argon2';
+
+import { Enrollment } from '../../enrollment/enrolment.entity';
+import { Institution } from '../../institution/institution.entity';
+import { Interest } from '../../interest/interest.entity';
+import { Project, ProjectType } from '../../project/project.entity';
+import { ResearchDepartment } from '../../research-department/research-department.entity';
+import { User } from '../../user/user.entity';
 import {
   UserAffiliation,
   UserAffiliationType,
@@ -13,87 +15,127 @@ import {
 
 export class SeedDb1590967789743 implements MigrationInterface {
   public async up(): Promise<void> {
-    const usersRepo = getRepository(User);
-    const institutionRepo = getRepository(Institution);
-    const projectRepo = getRepository(Project);
     const enrollmentsRepo = getRepository(Enrollment);
+    const institutionRepo = getRepository(Institution);
+    const interestRepo = getRepository(Interest);
+    const projectRepo = getRepository(Project);
     const researchDepartmentRepo = getRepository(ResearchDepartment);
+    const usersRepo = getRepository(User);
     const userAffiliationRepo = getRepository(UserAffiliation);
 
-    const universities = {
-      'utn-frro': institutionRepo.create({ name: 'UTN FRRo' }),
-      'unr-fceia': institutionRepo.create({ name: 'UNR' }),
+    const institutions = {
+      utnFrro: institutionRepo.create({ name: 'UTN FRRo' }),
+      unrFceia: institutionRepo.create({ name: 'UNR' }),
     };
 
-    await institutionRepo.save(Object.values(universities));
+    await institutionRepo.save(Object.values(institutions));
 
     const researchDepartments = {
-      'utn-frro-isi': researchDepartmentRepo.create({
+      utnFrroIsi: researchDepartmentRepo.create({
         name: 'Ingeniería en Sistemas',
-        institution: universities['utn-frro'],
+        institution: institutions.utnFrro,
       }),
-      'utn-frro-ic': researchDepartmentRepo.create({
+      utnFrroIc: researchDepartmentRepo.create({
         name: 'Ingeniería Civil',
-        institution: universities['utn-frro'],
+        institution: institutions.utnFrro,
       }),
-      'utn-frro-iq': researchDepartmentRepo.create({
+      utnFrroIq: researchDepartmentRepo.create({
         name: 'Ingeniería Química',
-        institution: universities['utn-frro'],
+        institution: institutions.utnFrro,
       }),
-      'utn-frro-general': researchDepartmentRepo.create({
+      utnFrroGeneral: researchDepartmentRepo.create({
         name: 'General',
-        institution: universities['utn-frro'],
+        institution: institutions.utnFrro,
       }),
-      'unr-fceia-cb': researchDepartmentRepo.create({
+      unrFceiaCb: researchDepartmentRepo.create({
         name: 'Ciencias Básicas',
-        institution: universities['unr-fceia'],
+        institution: institutions.unrFceia,
       }),
-      'unr-fceia-ie': researchDepartmentRepo.create({
+      unrFceiaIe: researchDepartmentRepo.create({
         name: 'Ingeniería Electrónica',
-        institution: universities['unr-fceia'],
+        institution: institutions.unrFceia,
       }),
-      'unr-fceia-general': researchDepartmentRepo.create({
+      unrFceiaGeneral: researchDepartmentRepo.create({
         name: 'General',
-        institution: universities['unr-fceia'],
+        institution: institutions.unrFceia,
       }),
     };
 
     await researchDepartmentRepo.save(Object.values(researchDepartments));
 
+    const interests = {
+      dataScience: interestRepo.create({
+        name: 'Data Science',
+        projectRefsCounter: 1,
+        userRefsCounter: 4,
+        verified: true,
+      }),
+      itSecurity: interestRepo.create({
+        name: 'IT Security',
+        projectRefsCounter: 0,
+        userRefsCounter: 3,
+        verified: true,
+      }),
+      arduino: interestRepo.create({
+        name: 'Arduino',
+        projectRefsCounter: 3,
+        userRefsCounter: 2,
+        verified: true,
+      }),
+      businessIntelligence: interestRepo.create({
+        name: 'Business Intelligence',
+        projectRefsCounter: 2,
+        userRefsCounter: 0,
+        verified: true,
+      }),
+      cryptoCurrency: interestRepo.create({
+        name: 'Crypto Currency',
+        projectRefsCounter: 1,
+        userRefsCounter: 1,
+        verified: true,
+      }),
+    };
+
+    await interestRepo.save(Object.values(interests));
+
     const projects = {
-      'utn-frro-isi:geolocation-iot': projectRepo.create({
+      utnFrroIsiGeolocationIot: projectRepo.create({
         name:
           'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
         type: ProjectType.Formal,
-        researchDepartment: researchDepartments['utn-frro-isi'],
+        researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2020-03-16T17:13:02.000Z',
+        interests: [interests.arduino, interests.itSecurity],
       }),
-      'utn-frro-isi:universiteams': projectRepo.create({
+      utnFrroIsiUniversiteams: projectRepo.create({
         name: 'Universiteams',
         type: ProjectType.Informal,
-        researchDepartment: researchDepartments['utn-frro-isi'],
+        researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2021-03-16T17:13:02.000Z',
+        interests: [interests.dataScience, interests.cryptoCurrency],
       }),
     };
 
     await projectRepo.save(Object.values(projects));
 
     const users = {
-      'juan-rizzo': usersRepo.create({
+      juanRizzo: usersRepo.create({
         mail: 'user1@example.com',
         isMailVerified: true,
         password: await argon2.hash('password1'),
         name: 'Juan',
         lastName: 'Rizzo',
+        interests: [interests.dataScience, interests.businessIntelligence],
       }),
-      'carlos-villa': usersRepo.create({
+      carlosVilla: usersRepo.create({
         mail: 'user2@example.com',
         isMailVerified: true,
         password: await argon2.hash('password2'),
         name: 'Carlos',
         lastName: 'Villa',
+        interests: [interests.itSecurity],
       }),
-      'marcos-sanchez': usersRepo.create({
+      marcosSanchez: usersRepo.create({
         mail: 'user3@example.com',
         isMailVerified: true,
         password: await argon2.hash('password3'),
@@ -104,32 +146,32 @@ export class SeedDb1590967789743 implements MigrationInterface {
     await usersRepo.save(Object.values(users));
 
     const userAffiliations = {
-      'utn-frro-isi:carlos-villa-professor': userAffiliationRepo.create({
-        user: users['carlos-villa'],
-        researchDepartment: researchDepartments['utn-frro-isi'],
+      utnFrroIsiCarlosVillaProfessor: userAffiliationRepo.create({
+        user: users.carlosVilla,
+        researchDepartment: researchDepartments.utnFrroIsi,
         departmentalId: '44477',
         currentType: UserAffiliationType.Professor,
       }),
-      'unr-fceia-ie:carlos-villa-professor': userAffiliationRepo.create({
-        user: users['carlos-villa'],
-        researchDepartment: researchDepartments['unr-fceia-ie'],
+      unrFceiaIeCarlosVillaProfessor: userAffiliationRepo.create({
+        user: users.carlosVilla,
+        researchDepartment: researchDepartments.unrFceiaIe,
         departmentalId: '32000',
         currentType: UserAffiliationType.Professor,
       }),
-      'utn-frro-ic:juan-rizzo': userAffiliationRepo.create({
-        user: users['juan-rizzo'],
-        researchDepartment: researchDepartments['utn-frro-ic'],
+      utnFrroIcJuanRizzo: userAffiliationRepo.create({
+        user: users.juanRizzo,
+        researchDepartment: researchDepartments.utnFrroIc,
         departmentalId: '66477',
       }),
-      'utn-frro-iq:marcos-sanchez': userAffiliationRepo.create({
-        user: users['marcos-sanchez'],
-        researchDepartment: researchDepartments['utn-frro-iq'],
+      utnFrroIqMarcosSanchez: userAffiliationRepo.create({
+        user: users.marcosSanchez,
+        researchDepartment: researchDepartments.utnFrroIq,
         departmentalId: '744777',
         requestedType: UserAffiliationType.Professor,
       }),
-      'unr-fceia-cb:marcos-sanchez': userAffiliationRepo.create({
-        user: users['marcos-sanchez'],
-        researchDepartment: researchDepartments['unr-fceia-ie'],
+      unrFceiaIeMarcosSanchez: userAffiliationRepo.create({
+        user: users.marcosSanchez,
+        researchDepartment: researchDepartments.unrFceiaIe,
         departmentalId: '60254',
         currentType: UserAffiliationType.Professor,
       }),
@@ -138,21 +180,21 @@ export class SeedDb1590967789743 implements MigrationInterface {
     await userAffiliationRepo.save(Object.values(userAffiliations));
 
     const enrollments = {
-      'utn-frro-isi:geolocation-iot:juan-rizzo': enrollmentsRepo.create({
-        user: users['juan-rizzo'],
-        project: projects['utn-frro-isi:geolocation-iot'],
+      utnFrroIsiGeolocationIotJuanRizzo: enrollmentsRepo.create({
+        user: users.juanRizzo,
+        project: projects.utnFrroIsiGeolocationIot,
       }),
-      'utn-frro-isi:geolocation-iot:carlos-villa': enrollmentsRepo.create({
-        user: users['carlos-villa'],
-        project: projects['utn-frro-isi:geolocation-iot'],
+      utnFrroIsiGeolocationIotCarlosVilla: enrollmentsRepo.create({
+        user: users.carlosVilla,
+        project: projects.utnFrroIsiGeolocationIot,
       }),
-      'utn-frro-isi:universiteams:carlos-villa': enrollmentsRepo.create({
-        user: users['carlos-villa'],
-        project: projects['utn-frro-isi:universiteams'],
+      utnFrroIsiUniversiteamsCarlosVilla: enrollmentsRepo.create({
+        user: users.carlosVilla,
+        project: projects.utnFrroIsiUniversiteams,
       }),
-      'utn-frro-isi:universiteams:marcos-sanchez': enrollmentsRepo.create({
-        user: users['marcos-sanchez'],
-        project: projects['utn-frro-isi:universiteams'],
+      utnFrroIsiUniversiteamsMarcosSanchez: enrollmentsRepo.create({
+        user: users.marcosSanchez,
+        project: projects.utnFrroIsiUniversiteams,
       }),
     };
 
