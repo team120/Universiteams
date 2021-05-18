@@ -1,7 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import { TestingModule, Test } from '@nestjs/testing';
 import * as request from 'supertest';
-import { projects } from './project.snapshot';
+import {
+  projectGeolocationWithExtendedDta,
+  projects,
+} from './project.snapshot';
 import { ProjectE2EModule } from './project.e2e.module';
 
 describe('Project Actions (e2e)', () => {
@@ -27,21 +30,20 @@ describe('Project Actions (e2e)', () => {
         .get(`/projects/${id}`)
         .then((res) => {
           expect(res.status).toBe(404);
-          expect(res.body.message).toEqual(`Not Found`);
+          expect(res.body.message).toBe(`Not Found`);
         });
     });
-    test.each([1, 2])(
-      'should get the specified project (id: %s) with their associated users',
-      async (id) => {
-        await request(app.getHttpServer())
-          .get(`/projects/${id}`)
-          .then((res) => {
-            expect(res.status).toBe(200);
-            expect(res.body).toEqual(projects.filter((e) => e.id === id).pop());
-            expect(res.body.enrollments[0].user.password).not.toBeDefined();
-          });
-      },
-    );
+    it('should get the specified geolocation project with their associated users', async () => {
+      const id = 1;
+      await request(app.getHttpServer())
+        .get(`/projects/${id}`)
+        .then((res) => {
+          expect(res.status).toBe(200);
+          expect(res.body).toEqual(projectGeolocationWithExtendedDta);
+          expect(res.body.interests).toBeDefined();
+          expect(res.body.enrollments[0].user.password).not.toBeDefined();
+        });
+    });
   });
 
   describe('Get all', () => {
