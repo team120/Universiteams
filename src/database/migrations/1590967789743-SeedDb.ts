@@ -142,7 +142,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         type: ProjectType.Informal,
         creationDate: '2021-03-16T17:13:02.000Z',
         researchDepartment: researchDepartments.utnFrroIsi,
-        creationDate: '2021-03-16T17:13:02.000Z',
         interests: [interests.dataScience, interests.cryptoCurrency],
       }),
     };
