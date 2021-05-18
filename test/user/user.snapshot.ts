@@ -10,9 +10,16 @@ export const users = [
         researchDepartment: {
           id: 2,
           name: 'Ingeniería Civil',
-          institution: {
+          abbreviation: 'IC',
+          facility: {
             id: 1,
-            name: 'UTN FRRo',
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
           },
         },
         currentType: 'Student',
@@ -41,9 +48,16 @@ export const users = [
         researchDepartment: {
           id: 6,
           name: 'Ingeniería Electrónica',
-          institution: {
+          abbreviation: 'IE',
+          facility: {
             id: 2,
-            name: 'UNR',
+            name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+            abbreviation: 'FCEIA',
+            institution: {
+              id: 2,
+              name: 'Universidad Nacional de Rosario',
+              abbreviation: 'UNR',
+            },
           },
         },
         currentType: 'Professor',
@@ -54,9 +68,16 @@ export const users = [
         researchDepartment: {
           id: 1,
           name: 'Ingeniería en Sistemas',
-          institution: {
+          abbreviation: 'ISI',
+          facility: {
             id: 1,
-            name: 'UTN FRRo',
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
           },
         },
         currentType: 'Professor',
@@ -81,9 +102,16 @@ export const users = [
         researchDepartment: {
           id: 6,
           name: 'Ingeniería Electrónica',
-          institution: {
+          abbreviation: 'IE',
+          facility: {
             id: 2,
-            name: 'UNR',
+            name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+            abbreviation: 'FCEIA',
+            institution: {
+              id: 2,
+              name: 'Universidad Nacional de Rosario',
+              abbreviation: 'UNR',
+            },
           },
         },
         currentType: 'Professor',
@@ -94,9 +122,16 @@ export const users = [
         researchDepartment: {
           id: 3,
           name: 'Ingeniería Química',
-          institution: {
+          abbreviation: 'IQ',
+          facility: {
             id: 1,
-            name: 'UTN FRRo',
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
           },
         },
         currentType: 'Student',

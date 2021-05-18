@@ -17,7 +17,7 @@ export class ProjectCustomRepository {
   private sortBy = new Map([
     ['name', 'project.name'],
     ['researchDepartment', 'researchDepartment.name'],
-    ['institution', 'researchDepartmentInstitution.name'],
+    ['facility', 'researchDepartmentFacility.name'],
     ['creationDate', 'project.creationDate'],
     ['type', 'project.type'],
   ]);
@@ -120,13 +120,15 @@ export class ProjectCustomRepository {
         'userAffiliation.researchDepartment',
         'userResearchDepartment',
       )
-      .leftJoinAndSelect(
-        'userResearchDepartment.institution',
-        'userInstitution',
-      )
+      .leftJoinAndSelect('userResearchDepartment.facility', 'userFacility')
+      .leftJoinAndSelect('userFacility.institution', 'userInstitution')
       .leftJoinAndSelect('project.researchDepartment', 'researchDepartment')
       .leftJoinAndSelect(
-        'researchDepartment.institution',
+        'researchDepartment.facility',
+        'researchDepartmentFacility',
+      )
+      .leftJoinAndSelect(
+        'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       );
   }

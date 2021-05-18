@@ -12,6 +12,7 @@ import {
   UserAffiliation,
   UserAffiliationType,
 } from '../../user-affiliation/user-affiliation.entity';
+import { Facility } from '../../facility/facility.entity';
 
 export class SeedDb1590967789743 implements MigrationInterface {
   public async up(): Promise<void> {
@@ -22,42 +23,71 @@ export class SeedDb1590967789743 implements MigrationInterface {
     const researchDepartmentRepo = getRepository(ResearchDepartment);
     const usersRepo = getRepository(User);
     const userAffiliationRepo = getRepository(UserAffiliation);
+    const facilityRepo = getRepository(Facility);
 
     const institutions = {
-      utnFrro: institutionRepo.create({ name: 'UTN FRRo' }),
-      unrFceia: institutionRepo.create({ name: 'UNR' }),
+      utn: institutionRepo.create({
+        name: 'Universidad Tecnológica Nacional',
+        abbreviation: 'UTN',
+      }),
+      unr: institutionRepo.create({
+        name: 'Universidad Nacional de Rosario',
+        abbreviation: 'UNR',
+      }),
     };
 
     await institutionRepo.save(Object.values(institutions));
 
+    const facilities = {
+      utnFrro: facilityRepo.create({
+        name: 'Regional Rosario',
+        abbreviation: 'FRRo',
+        institution: institutions.utn,
+      }),
+      unrFceia: facilityRepo.create({
+        name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+        abbreviation: 'FCEIA',
+        institution: institutions.unr,
+      }),
+    };
+
+    await facilityRepo.save(Object.values(facilities));
+
     const researchDepartments = {
       utnFrroIsi: researchDepartmentRepo.create({
         name: 'Ingeniería en Sistemas',
-        institution: institutions.utnFrro,
+        facility: facilities.utnFrro,
+        abbreviation: 'ISI',
       }),
       utnFrroIc: researchDepartmentRepo.create({
         name: 'Ingeniería Civil',
-        institution: institutions.utnFrro,
+        facility: facilities.utnFrro,
+        abbreviation: 'IC',
       }),
       utnFrroIq: researchDepartmentRepo.create({
         name: 'Ingeniería Química',
-        institution: institutions.utnFrro,
+        facility: facilities.utnFrro,
+        abbreviation: 'IQ',
       }),
       utnFrroGeneral: researchDepartmentRepo.create({
         name: 'General',
-        institution: institutions.utnFrro,
+        facility: facilities.utnFrro,
+        abbreviation: 'General',
       }),
       unrFceiaCb: researchDepartmentRepo.create({
         name: 'Ciencias Básicas',
-        institution: institutions.unrFceia,
+        facility: facilities.unrFceia,
+        abbreviation: 'CB',
       }),
       unrFceiaIe: researchDepartmentRepo.create({
         name: 'Ingeniería Electrónica',
-        institution: institutions.unrFceia,
+        facility: facilities.unrFceia,
+        abbreviation: 'IE',
       }),
       unrFceiaGeneral: researchDepartmentRepo.create({
         name: 'General',
-        institution: institutions.unrFceia,
+        facility: facilities.unrFceia,
+        abbreviation: 'General',
       }),
     };
 
@@ -110,6 +140,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
       utnFrroIsiUniversiteams: projectRepo.create({
         name: 'Universiteams',
         type: ProjectType.Informal,
+        creationDate: '2021-03-16T17:13:02.000Z',
         researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2021-03-16T17:13:02.000Z',
         interests: [interests.dataScience, interests.cryptoCurrency],

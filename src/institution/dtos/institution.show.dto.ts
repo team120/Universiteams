@@ -1,5 +1,5 @@
-import { Exclude, Expose } from 'class-transformer';
-import { ResearchDepartmentShowDto } from '../../research-department/dtos/research-department.show.dto';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { FacilityShowDto } from '../../facility/dtos/facility.dto';
 
 @Exclude()
 export class InstitutionShowDto {
@@ -8,5 +8,9 @@ export class InstitutionShowDto {
   @Expose()
   name: string;
   @Expose()
-  researchDepartments: ResearchDepartmentShowDto;
+  abbreviation: string;
+
+  @Expose()
+  @Type(() => FacilityShowDto)
+  facilities: FacilityShowDto[];
 }

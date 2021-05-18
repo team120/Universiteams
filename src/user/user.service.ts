@@ -22,7 +22,8 @@ export class UserService {
       relations: [
         'userAffiliations',
         'userAffiliations.researchDepartment',
-        'userAffiliations.researchDepartment.institution',
+        'userAffiliations.researchDepartment.facility',
+        'userAffiliations.researchDepartment.facility.institution',
         'interests',
       ],
     });
