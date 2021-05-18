@@ -1,11 +1,12 @@
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import { ResearchDepartmentShowDto } from '../../research-department/dtos/research-department.show.dto';
 import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
 import { ProjectType } from '../project.entity';
+import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 @Exclude()
-export class ProjectShowDto {
+export class ProjectInListDto {
   @Expose()
   id: number;
   @Expose()
@@ -14,15 +15,16 @@ export class ProjectShowDto {
   type: ProjectType;
   @Expose()
   isDown: boolean;
-  @Expose()
-  @Type(() => Date)
+  @ExposeType(Date)
   creationDate: Date;
-  @Expose()
-  @Type(() => ResearchDepartmentShowDto)
+  @ExposeType(ResearchDepartmentShowDto)
   researchDepartment: ResearchDepartmentShowDto;
-  @Expose()
-  @Type(() => EnrollmentShowDto)
+  @ExposeType(EnrollmentShowDto)
   enrollments: EnrollmentShowDto[];
-  @Type(() => InterestShowDto)
-  interests?: InterestShowDto[];
+}
+
+@Exclude()
+export class ProjectSingleDto extends ProjectInListDto {
+  @ExposeType(InterestShowDto)
+  interests: InterestShowDto[];
 }

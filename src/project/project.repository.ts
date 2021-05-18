@@ -54,11 +54,14 @@ export class ProjectCustomRepository {
 
   async findOne(id: number): Promise<Project> {
     const project = await this.getProjectWithRelationsQuery()
+      .leftJoinAndSelect('project.interests', 'interests')
       .where('project.id = :projectId', { projectId: id })
       .getOne()
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
+
+    this.logger.debug(project);
     return project;
   }
 
@@ -125,7 +128,6 @@ export class ProjectCustomRepository {
       .leftJoinAndSelect(
         'researchDepartment.institution',
         'researchDepartmentInstitution',
-      )
-      .leftJoinAndSelect('project.interests', 'interest');
+      );
   }
 }

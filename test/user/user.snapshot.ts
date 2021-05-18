@@ -16,7 +16,7 @@ export const users = [
           },
         },
         currentType: 'Student',
-        requestedType: null,        
+        requestedType: null,
       },
     ],
     interests: [
@@ -53,7 +53,7 @@ export const users = [
           },
         },
         currentType: 'Professor',
-        requestedType: null,        
+        requestedType: null,
       },
       {
         id: 1,
