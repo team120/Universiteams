@@ -141,7 +141,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         password: await argon2.hash('password3'),
         name: 'Marcos',
         lastName: 'Sanchez',
-        interests: [],
       }),
     };
     await usersRepo.save(Object.values(users));

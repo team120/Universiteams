@@ -23,16 +23,10 @@ export const users = [
       {
         id: 1,
         name: 'Data Science',
-        projectRefsCounter: 1,
-        userRefsCounter: 4,
-        verified: true,
       },
       {
         id: 4,
         name: 'Business Intelligence',
-        projectRefsCounter: 2,
-        userRefsCounter: 0,
-        verified: true,
       },
     ],
   },
@@ -73,9 +67,6 @@ export const users = [
       {
         id: 2,
         name: 'IT Security',
-        projectRefsCounter: 0,
-        userRefsCounter: 3,
-        verified: true,
       },
     ],
   },
