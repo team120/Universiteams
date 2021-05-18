@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
+import { DbException } from '../utils/exceptions/database.exception';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectInListDto, ProjectSingleDto } from './dtos/project.show.dto';
@@ -38,7 +39,11 @@ export class ProjectService {
     this.logger.debug(
       'Find project with matching ids and their related department, users, user institution and department institution',
     );
-    const project = await this.projectRepository.findOne(id);
+    const project = await this.projectRepository
+      .findOne(id)
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
 
     this.logger.debug(`Project ${project?.id} found`);
     if (!project) throw new NotFoundException();

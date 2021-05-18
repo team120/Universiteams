@@ -5,6 +5,7 @@ import { EntityMapperService } from '../utils/serialization/entity-mapper.servic
 import { Repository } from 'typeorm';
 import { UserShowDto } from './dtos/user.show.dto';
 import { User } from './user.entity';
+import { DbException } from '../utils/exceptions/database.exception';
 
 @Injectable()
 export class UserService {
@@ -26,7 +27,10 @@ export class UserService {
         'userAffiliations.researchDepartment.facility.institution',
         'interests',
       ],
-    });
+    })
+      .catch((error: Error) => {
+        throw new DbException(error.message, error.stack);
+      });
     this.logger.debug('Map users to dto');
     return this.entityMapper.mapArray(UserShowDto, users, {
       groups: ['admin'],
