@@ -10,3 +10,4 @@ services:
     volumes: 
       - ./src:/usr/src/app/src
       - ./test:/usr/src/app/test
+      - ./ormconfig.json:/usr/src/app/ormconfig.json
