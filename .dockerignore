@@ -1,1 +1,30 @@
 node_modules
+dist
+
+# version control
+.git
+.github
+.gitignore
+
+# Docker configuration files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# linter, formatter and reame
+.eslintrc.js
+.prettierrc
+README.md
+
+database.sqlite
+
+# OS
+.DS_Store
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
