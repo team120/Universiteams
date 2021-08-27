@@ -28,3 +28,7 @@ database.sqlite
 .c9/
 *.launch
 .settings/
+
+# Environment config
+.env
+docker.env
