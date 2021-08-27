@@ -1,16 +1,26 @@
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
 import { ExceptionsModule } from '../../src/utils/exceptions/exceptions.module';
 import { SerializationModule } from '../../src/utils/serialization/serialization.module';
-import { getConnectionOptions } from 'typeorm';
 
 export const commonImportsArray = [
   TypeOrmModule.forRootAsync({
-    useFactory: async () =>
-      await getConnectionOptions('test').then((connection) => ({
-        ...connection,
-        name: 'default',
-      })),
+    imports: [ConfigModule],
+    inject: [ConfigService],
+    useFactory: async (configService: ConfigService) => ({
+      type: 'postgres',
+      database: configService.get('POSTGRES_DB'),
+      host: configService.get('POSTGRES_HOST'),
+      port: configService.get('POSTGRES_PORT'),
+      username: configService.get('POSTGRES_USER'),
+      password: configService.get('POSTGRES_PASSWORD'),
+      synchronize: true,
+      logging: false,
+      entities: ['src/**/*.entity.ts'],
+      migrations: ['src/database/migrations/*.ts'],
+      migrationsRun: true,
+    }),
   }),
   LoggerModule.forRoot({
     pinoHttp: {

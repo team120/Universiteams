@@ -1,26 +1,19 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
-import { getConnectionOptions } from 'typeorm';
-
 import { AppController } from './app.controller';
 import { SerializationModule } from './utils/serialization/serialization.module';
 import { ExceptionsModule } from './utils/exceptions/exceptions.module';
-
 import { InstitutionModule } from './institution/institution.module';
 import { InterestModule } from './interest/interest.module';
 import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
+import { ConfigModule } from '@nestjs/config';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRootAsync({
-      useFactory: async () =>
-        await getConnectionOptions('development').then((conn) => ({
-          ...conn,
-          name: 'default',
-        })),
-    }),
+    ConfigModule.forRoot(),
+    DatabaseModule,
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -43,6 +36,7 @@ import { UserModule } from './user/user.module';
     InterestModule,
     ProjectModule,
     UserModule,
+    DatabaseModule,
   ],
   controllers: [AppController],
 })
