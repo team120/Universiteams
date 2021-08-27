@@ -7,7 +7,32 @@ services:
       - 3000:3000
     command: npm run start:dev
     working_dir: /usr/src/app
-    volumes: 
+    volumes:
       - ./src:/usr/src/app/src
       - ./test:/usr/src/app/test
-      - ./ormconfig.json:/usr/src/app/ormconfig.json
+    links:
+      - postgres
+    env_file:
+      - docker.env
+  postgres:
+    image: postgres:12.8-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - docker.env
+  pg-admin:
+    image: dpage/pgadmin4:5.6
+    ports:
+      - 8080:80
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
+    links:
+      - postgres
+    env_file:
+      - docker.env
+
+volumes:
+  pgdata:
+  pgadmindata:
