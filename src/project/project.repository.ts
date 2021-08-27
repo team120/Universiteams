@@ -62,7 +62,11 @@ export class ProjectCustomRepository {
 
     const query = this.queryCreator
       .getProjectWithRelationsQuery()
-      .where(`project.id IN (${projectIdsMappedString})`);
+      .where(
+        `project.id IN (${
+          projectIdsMappedString == '' ? null : projectIdsMappedString
+        })`,
+      );
 
     if (sortAttributes.sortBy) {
       const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
@@ -104,9 +108,9 @@ export class ProjectCustomRepository {
     if (filters.generalSearch) {
       query.where(
         new Brackets((qb) => {
-          qb.where('project.name like :name', {
+          qb.where('project.name ilike :name', {
             name: `%${filters.generalSearch}%`,
-          }).orWhere('user.name like :username', {
+          }).orWhere('user.name ilike :username', {
             username: `%${filters.generalSearch}%`,
           });
         }),

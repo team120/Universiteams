@@ -10,9 +10,9 @@ export const institutions = [
         abbreviation: 'FRRo',
         researchDepartments: [
           {
-            id: 4,
-            name: 'General',
-            abbreviation: 'General',
+            id: 1,
+            name: 'Ingeniería en Sistemas',
+            abbreviation: 'ISI',
           },
           {
             id: 2,
@@ -25,9 +25,9 @@ export const institutions = [
             abbreviation: 'IQ',
           },
           {
-            id: 1,
-            name: 'Ingeniería en Sistemas',
-            abbreviation: 'ISI',
+            id: 4,
+            name: 'General',
+            abbreviation: 'General',
           },
         ],
       },
@@ -49,14 +49,14 @@ export const institutions = [
             abbreviation: 'CB',
           },
           {
-            id: 7,
-            name: 'General',
-            abbreviation: 'General',
-          },
-          {
             id: 6,
             name: 'Ingeniería Electrónica',
             abbreviation: 'IE',
+          },
+          {
+            id: 7,
+            name: 'General',
+            abbreviation: 'General',
           },
         ],
       },
