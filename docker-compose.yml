@@ -3,6 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
+    image: alereca/universiteams:1.0
     ports:
       - 3000:3000
     command: npm run start:dev
@@ -10,10 +11,10 @@ services:
     volumes:
       - ./src:/usr/src/app/src
       - ./test:/usr/src/app/test
-    links:
-      - postgres
     env_file:
       - docker.env
+    depends_on:
+      - postgres
   postgres:
     image: postgres:12.8-alpine
     ports:
@@ -28,10 +29,10 @@ services:
       - 8080:80
     volumes:
       - pgadmindata:/var/lib/pgadmin
-    links:
-      - postgres
     env_file:
       - docker.env
+    depends_on:
+      - postgres
 
 volumes:
   pgdata:
