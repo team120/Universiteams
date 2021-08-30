@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  test:
+    build: .
+    image: alereca/universiteams:1.0
+    environment:
+      POSTGRES_HOST: postgrestest
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: postgrestest
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    working_dir: /usr/src/app
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./test:/usr/src/app/test
+    depends_on:
+      - postgrestest
+  postgrestest:
+    image: postgres:12.8-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgrestest
