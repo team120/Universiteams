@@ -20,12 +20,13 @@ down:
 .PHONY: test
 ## test:  Execute unit tests
 test:
-	docker-compose run --rm app npm run test
+	docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run test
 
 .PHONY: e2e
 ## e2e:   Execute end to end tests
 e2e:
-	docker-compose run --rm app npm run test:e2e
+	- docker-compose -p test -f docker-compose.test.yml run test npm run test:e2e
+	- docker-compose -p test -f docker-compose.test.yml down -v
 
 logs:
 	docker-compose logs -f
