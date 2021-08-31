@@ -28,6 +28,23 @@ e2e:
 	- docker-compose -p test -f docker-compose.test.yml run test npm run test:e2e
 	- docker-compose -p test -f docker-compose.test.yml down -v
 
+.PHONY: cov
+## cov:   Show test test coverage info
+cov:
+	docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run test:cov
+
+.PHONY: logs
+## logs:   Show logs for every declared service
 logs:
 	docker-compose logs -f
+
+.PHONY: lint
+## lint:   Run eslint in fix mode
+lint:
+	npm run lint
+
+.PHONY: format
+## format:   Run prettier
+format:
+	npm run format
 
