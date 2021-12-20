@@ -11,9 +11,6 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
     working_dir: /usr/src/app
-    volumes:
-      - ./src:/usr/src/app/src
-      - ./test:/usr/src/app/test
     depends_on:
       - postgrestest
   postgrestest:
