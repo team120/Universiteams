@@ -11,25 +11,14 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [14.16.1]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm install    
-    - run: npm run build --if-present
-    - run: npm run format
-    - run: npm run lint
+    - run: make up
+    - run: make format
+    - run: make lint
     - name: "Run Unit Tests"
-      run: npm run test
+      run: make test
     - name: "Run E2E Tests"
-      run: npm run test:e2e
+      run: make e2e

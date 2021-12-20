@@ -11,12 +11,8 @@ Dockerfile
 .dockerignore
 docker-compose.yml
 
-# linter, formatter and reame
-.eslintrc.js
-.prettierrc
+# Readme
 README.md
-
-database.sqlite
 
 # OS
 .DS_Store
