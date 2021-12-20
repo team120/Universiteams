@@ -17,8 +17,9 @@ services:
       - postgres
   postgres:
     image: postgres:12.8-alpine
+    # Currently there is no need to expose this container port to host, since every interaction happens between containers
     ports:
-      - 5432:5432
+      - 5432
     volumes:
       - pgdata:/var/lib/postgresql/data
     env_file:
