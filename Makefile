@@ -41,10 +41,10 @@ logs:
 .PHONY: lint
 ## lint:   Run eslint in fix mode
 lint:
-	npm run lint
+	docker-compose run --rm --no-deps app npm run lint
 
 .PHONY: format
 ## format:   Run prettier
 format:
-	npm run format
+	docker-compose run --rm --no-deps app npm run format
 
