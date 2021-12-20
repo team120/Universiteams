@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_HOST: postgrestest
       POSTGRES_PORT: 5432
-      POSTGRES_DB: test
+      POSTGRES_DB: postgrestest
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
     working_dir: /usr/src/app
@@ -20,4 +20,4 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: test
+      POSTGRES_DB: postgrestest

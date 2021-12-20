@@ -15,10 +15,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: make up
-    - run: make format
-    - run: make lint
+    - name: "Run Formatter"
+      run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run format
+    - name: "Run Linter"
+      run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run lint
     - name: "Run Unit Tests"
-      run: make test
+      run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run test
     - name: "Run E2E Tests"
-      run: make e2e
+      run: docker-compose -p ci -f docker-compose.ci.yml run test npm run test:e2e
