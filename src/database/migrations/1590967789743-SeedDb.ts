@@ -130,8 +130,7 @@ export class SeedDb1590967789743 implements MigrationInterface {
 
     const projects = {
       utnFrroIsiGeolocationIot: projectRepo.create({
-        name:
-          'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
+        name: 'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
         type: ProjectType.Formal,
         researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2020-03-16T17:13:02.000Z',
