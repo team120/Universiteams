@@ -17,7 +17,7 @@ $ choco install make
 
 ### NPM
 > Just if you happen to use VSCode linter and formatter extensions
-> Using VSCode remote docker container extension could be a great alternative
+> Alternatively, using VSCode remote docker container extension might provide the same experience
 
 [https://docs.npmjs.com/downloading-and-installing-node-js-and-npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 
