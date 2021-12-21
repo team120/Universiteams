@@ -29,6 +29,6 @@ jobs:
     - name: "Run Formatter"
       run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run format
     - name: "Apply Formatter Changes"
-      use: stefanzweifel/git-auto-commit-action@v4
+      uses: stefanzweifel/git-auto-commit-action@v4
       with: 
         commit_message: Apply prettier code format changes
