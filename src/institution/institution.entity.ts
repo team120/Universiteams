@@ -10,7 +10,10 @@ export class Institution {
   @Column()
   abbreviation: string;
 
-  @OneToMany(() => Facility, (facility) => facility.institution, { nullable: false, cascade: ['insert', 'update'], onUpdate: 'CASCADE',
+  @OneToMany(() => Facility, (facility) => facility.institution, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
   })
   facilities: Facility[];
 }
