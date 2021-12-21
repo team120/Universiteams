@@ -16,7 +16,8 @@ $ choco install make
 [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
 
 ### NPM
-> Just for executing the formatter and linter
+> Just if you happen to use VSCode linter and formatter extensions
+> Using VSCode remote docker container extension could be a great alternative
 
 [https://docs.npmjs.com/downloading-and-installing-node-js-and-npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 

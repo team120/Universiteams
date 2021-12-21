@@ -15,8 +15,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: "Run Formatter"
-      run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run format
     - name: "Run Linter"
       run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run lint
     - name: "Run Unit Tests"
