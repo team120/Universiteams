@@ -19,15 +19,16 @@ export class UserService {
 
   async findAll(): Promise<UserShowDto[]> {
     this.logger.debug('Find users and their relations');
-    const users = await this.userRepository.find({
-      relations: [
-        'userAffiliations',
-        'userAffiliations.researchDepartment',
-        'userAffiliations.researchDepartment.facility',
-        'userAffiliations.researchDepartment.facility.institution',
-        'interests',
-      ],
-    })
+    const users = await this.userRepository
+      .find({
+        relations: [
+          'userAffiliations',
+          'userAffiliations.researchDepartment',
+          'userAffiliations.researchDepartment.facility',
+          'userAffiliations.researchDepartment.facility.institution',
+          'interests',
+        ],
+      })
       .catch((error: Error) => {
         throw new DbException(error.message, error.stack);
       });

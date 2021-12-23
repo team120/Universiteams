@@ -1,0 +1,30 @@
+node_modules
+dist
+
+# version control
+.git
+.github
+.gitignore
+
+# Docker configuration files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Readme
+README.md
+
+# OS
+.DS_Store
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+
+# Environment config
+.env
+docker.env

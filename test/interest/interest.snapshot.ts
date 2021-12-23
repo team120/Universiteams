@@ -4,19 +4,19 @@ export const interests = [
     name: 'Data Science',
   },
   {
-    id: 2,
-    name: 'IT Security',
-  },
-  {
-    id: 3,
-    name: 'Arduino',
-  },
-  {
     id: 4,
     name: 'Business Intelligence',
   },
   {
+    id: 2,
+    name: 'IT Security',
+  },
+  {
     id: 5,
     name: 'Crypto Currency',
+  },
+  {
+    id: 3,
+    name: 'Arduino',
   },
 ];

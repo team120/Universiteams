@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: alereca/universiteams:1.0
+    ports:
+      - 3000:3000
+    command: npm run start:dev
+    working_dir: /usr/src/app
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./test:/usr/src/app/test
+    env_file:
+      - docker.env
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:12.8-alpine
+    # Currently there is no need to expose this container port to host, since every interaction happens between containers
+    ports:
+      - 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - docker.env
+  pg-admin:
+    image: dpage/pgadmin4:5.6
+    ports:
+      - 8080:80
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
+    env_file:
+      - docker.env
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
+  pgadmindata:

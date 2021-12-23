@@ -18,9 +18,8 @@ export class ProjectService {
 
   async findProjects(findOptions: ProjectFindDto): Promise<ProjectInListDto[]> {
     this.logger.debug('Find matching project ids');
-    const selectedProjectIds = await this.projectRepository.getMatchingProjectIds(
-      findOptions,
-    );
+    const selectedProjectIds =
+      await this.projectRepository.getMatchingProjectIds(findOptions);
     this.logger.debug(
       'Find projects with those ids and their related users, department, user departments and institution departments',
     );

@@ -5,50 +5,57 @@ It mainly consists of a web application, the main page will contain all the proj
 
 #### Our main purpose is to facilitate and promote scientific dissemination.
 
-## Project Setup
-
+## Prerequisites
+### Make
+Only in case you happen to use Windows install [Chocolatey package manager](https://chocolatey.org/install)
+Then install Make with the following command:
 ```bash
-npm install
+$ choco install make
 ```
+### Docker
+[https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
 
-## Running the app
+### NPM
+> Just if you happen to use VSCode linter and formatter extensions
+> Alternatively, using VSCode remote docker container extension might provide the same experience
 
+[https://docs.npmjs.com/downloading-and-installing-node-js-and-npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+
+## Project Setup and Running the app
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+$ make up
 ```
-
 > Migrations are executed by default when the app is bootstrapping
+
+
+## Project Teardown
+```bash
+$ make down
+```
 
 ## Test
 
 ```bash
 # unit tests
-$ npm run test
+$ make test
 
 # e2e tests
-$ npm run test:e2e
+$ make e2e
 
 # test coverage
-$ npm run test:cov
+$ make cov
 ```
 
 ## Lint
 
 ```bash
-npm run lint
+make lint
 ```
 
 ## Format
 
 ```bash
-npm run format
+make format
 ```
 
 ## Tech Stack
@@ -63,11 +70,11 @@ npm run format
 
 | Tool                               |
 | :--------------------------------- |
-| :ballot_box_with_check: Node.JS    |
 | :ballot_box_with_check: Express    |
-| :ballot_box_with_check: Nest       |
+| :ballot_box_with_check: NestJS     |
 | :ballot_box_with_check: TypeORM    |
 | :ballot_box_with_check: PostgreSQL |
+| :ballot_box_with_check: Docker     |
 
 ### Frontend
 
