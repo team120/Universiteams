@@ -52,4 +52,7 @@ export class Project {
     onUpdate: 'CASCADE',
   })
   interests: Interest[];
+
+  @Column("tsvector", {select: false, nullable: true})
+  document_with_weights: any;
 }
