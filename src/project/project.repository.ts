@@ -16,6 +16,7 @@ export class QueryCreator {
   getProjectWithRelationsQuery() {
     return this.projectRepository
       .createQueryBuilder('project')
+      .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
       .innerJoinAndSelect('project.enrollments', 'enrollment')
       .innerJoinAndSelect('enrollment.user', 'user')
       .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
@@ -107,13 +108,10 @@ export class ProjectCustomRepository {
 
     if (filters.generalSearch) {
       query.where(
-        new Brackets((qb) => {
-          qb.where('project.name ilike :name', {
-            name: `%${filters.generalSearch}%`,
-          }).orWhere('user.name ilike :username', {
-            username: `%${filters.generalSearch}%`,
-          });
-        }),
+        `p_index.document_with_weights @@ plainto_tsquery(:generalSearch)`,
+        {
+          generalSearch: filters.generalSearch,
+        },
       );
     }
 
