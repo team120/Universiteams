@@ -4,8 +4,7 @@ import { NotImplementedException } from '@nestjs/common';
 export class AddFullTextSeach1590967789744 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {    
     await queryRunner.query(`
-      DROP TABLE IF EXISTS project_with_related_data;
-      CREATE TEMP TABLE IF NOT EXISTS project_with_related_data AS
+      CREATE MATERIALIZED VIEW project_search_index AS
       SELECT
         p.id,
         setweight(to_tsvector(coalesce(p.name, '')), 'A') || 
@@ -25,13 +24,13 @@ export class AddFullTextSeach1590967789744 implements MigrationInterface {
         ON rd."facilityId" = f.id
       INNER JOIN institution inst
         ON f."institutionId" = inst.id
-      INNER JOIN interest_projects_project ip
+      LEFT JOIN interest_projects_project ip
         ON ip."projectId" = p.id
-      INNER JOIN interest inter
+      LEFT JOIN interest inter
         ON ip."interestId" = inter.id
-      INNER JOIN enrollment enr
+      LEFT JOIN enrollment enr
         ON p.id = enr."projectId"
-      INNER JOIN "user" usr
+      LEFT JOIN "user" usr
         ON enr."userId" = usr.id
       GROUP BY 
         p.id,
@@ -39,14 +38,12 @@ export class AddFullTextSeach1590967789744 implements MigrationInterface {
         f.id,
         inst.id;
 
-        UPDATE project as p
-        SET document_with_weights = pwrd.document_with_weights
-        FROM project_with_related_data pwrd
-        WHERE p.id = pwrd.id;
+      CREATE INDEX IF NOT EXISTS document_with_weights_idx
+      ON project_search_index
+      USING GIN(document_with_weights);
 
-        CREATE INDEX IF NOT EXISTS document_with_weights_idx
-        ON project
-        USING GIN(document_with_weights);
+      CREATE UNIQUE INDEX IF NOT EXISTS project_search_idx
+      ON project_search_index(id);
     `);
   }
 
