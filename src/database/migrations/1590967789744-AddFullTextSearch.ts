@@ -4,19 +4,21 @@ import { NotImplementedException } from '@nestjs/common';
 export class AddFullTextSeach1590967789744 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {    
     await queryRunner.query(`
+      CREATE EXTENSION unaccent;
+    
       CREATE MATERIALIZED VIEW project_search_index AS
       SELECT
         p.id,
-        setweight(to_tsvector(coalesce(p.name, '')), 'A') || 
-        setweight(to_tsvector(coalesce(p.type, '')), 'A') ||
-        setweight(to_tsvector(coalesce(rd.name, '')), 'B') ||
-        setweight(to_tsvector(coalesce(rd.abbreviation, '')), 'B') ||
-        setweight(to_tsvector(coalesce(f.name, '')), 'B') ||
-        setweight(to_tsvector(coalesce(f.abbreviation, '')), 'B') ||
-        setweight(to_tsvector(coalesce(inst.name, '')), 'B') ||
-        setweight(to_tsvector(coalesce(inst.abbreviation, '')), 'B') ||
-        setweight(to_tsvector(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), '')), 'C') ||
-        setweight(to_tsvector(coalesce(string_agg(inter.name, ' '), '')), 'C') as document_with_weights
+        setweight(to_tsvector(unaccent(coalesce(p.name, ''))), 'A') || 
+        setweight(to_tsvector(unaccent(coalesce(p.type, ''))), 'A') ||
+        setweight(to_tsvector(unaccent(coalesce(rd.name, ''))), 'B') ||
+        setweight(to_tsvector(unaccent(coalesce(rd.abbreviation, ''))), 'B') ||
+        setweight(to_tsvector(unaccent(coalesce(f.name, ''))), 'B') ||
+        setweight(to_tsvector(unaccent(coalesce(f.abbreviation, ''))), 'B') ||
+        setweight(to_tsvector(unaccent(coalesce(inst.name, ''))), 'B') ||
+        setweight(to_tsvector(unaccent(coalesce(inst.abbreviation, ''))), 'B') ||
+        setweight(to_tsvector(unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))), 'C') ||
+        setweight(to_tsvector(unaccent(coalesce(string_agg(inter.name, ' '), ''))), 'C') as document_with_weights
       FROM project p
       INNER JOIN research_department rd
         ON p."researchDepartmentId" = rd.id
