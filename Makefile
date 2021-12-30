@@ -17,6 +17,15 @@ up:
 down:
 	docker-compose down
 
+## clean:  Stop and remove both containers and data volumes
+clean:
+	docker-compose down -v
+
+## wipe:  Stop and remove both containers and data volumes, then erase service images
+wipe:
+	- docker-compose down -v
+	- docker image rm -f $(docker-compose images)
+
 .PHONY: test
 ## test:  Execute unit tests
 test:
