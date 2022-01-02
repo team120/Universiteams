@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { NotImplementedException } from '@nestjs/common';
 
 export class AddFullTextSeach1590967789744 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<void> {    
+  public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE EXTENSION unaccent;
     
@@ -46,6 +46,17 @@ export class AddFullTextSeach1590967789744 implements MigrationInterface {
 
       CREATE UNIQUE INDEX IF NOT EXISTS project_search_idx
       ON project_search_index(id);
+
+      CREATE EXTENSION pg_trgm;
+
+      CREATE MATERIALIZED VIEW unique_words AS
+      SELECT word FROM ts_stat('
+        SELECT document_with_weights FROM project_search_index
+      ');
+
+      CREATE INDEX IF NOT EXISTS word_idx
+      ON unique_words
+      USING GIN(word gin_trgm_ops);
     `);
   }
 
