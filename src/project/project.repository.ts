@@ -16,21 +16,24 @@ export class QueryCreator {
     private readonly uniqueWordsRepository: Repository<UniqueWords>,
   ) {}
 
-  getMatchingWords(searchTerms: string): Promise<UniqueWords[]> {
+  getMatchingWords(searchTerms: string): Promise<string[]> {
     const isolatedTerms = searchTerms.split(' ');
     return Promise.all(
       isolatedTerms.map((term) =>
         this.uniqueWordsRepository
           .createQueryBuilder()
           .where(`word % :searchTerms`, { searchTerms: term })
-          .orderBy(`word <-> ${term}`, 'ASC')
-          .select('word')
           .limit(5)
-          .getMany(),
+          .getMany()
+          .then((uniqueTerms) =>
+            uniqueTerms.map((uniqueTerm) => uniqueTerm.word),
+          ),
       ),
     ).then((termsWithMatchs) =>
       termsWithMatchs.reduce((joinedMatchs, termWithMatchs) =>
-        joinedMatchs.concat(termWithMatchs),
+        joinedMatchs.map((joinedTerm, i) =>
+          joinedTerm.concat(` ${termWithMatchs[i]}`),
+        ),
       ),
     );
   }
