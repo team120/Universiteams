@@ -1,19 +1,41 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
 import { DbException } from '../utils/exceptions/database.exception';
 import { ProjectFilters, ProjectSortAttributes } from './dtos/project.find.dto';
 import { Project } from './project.entity';
+import { UniqueWords } from './uniqueWords.entity';
 
 @Injectable()
 export class QueryCreator {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @InjectRepository(UniqueWords)
+    private readonly uniqueWordsRepository: Repository<UniqueWords>,
   ) {}
 
-  getProjectWithRelationsQuery() {
+  getMatchingWords(searchTerms: string): Promise<UniqueWords[]> {
+    const isolatedTerms = searchTerms.split(' ');
+    return Promise.all(
+      isolatedTerms.map((term) =>
+        this.uniqueWordsRepository
+          .createQueryBuilder()
+          .where(`word % :searchTerms`, { searchTerms: term })
+          .orderBy(`word <-> ${term}`, 'ASC')
+          .select('word')
+          .limit(5)
+          .getMany(),
+      ),
+    ).then((termsWithMatchs) =>
+      termsWithMatchs.reduce((joinedMatchs, termWithMatchs) =>
+        joinedMatchs.concat(termWithMatchs),
+      ),
+    );
+  }
+
+  getProjectWithRelationsQuery(): SelectQueryBuilder<Project> {
     return this.projectRepository
       .createQueryBuilder('project')
       .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
@@ -142,6 +164,25 @@ export class ProjectCustomRepository {
       });
     }
 
-    return await query.select('project.id').getMany();
+    const projectCount = await query.getCount();
+    if (projectCount == 0) {
+      const matchingWords = await this.queryCreator.getMatchingWords(
+        filters.generalSearch,
+      );
+      this.logger.debug(matchingWords);
+      if (filters.generalSearch) {
+        return this.queryCreator
+          .getProjectWithRelationsQuery()
+          .where(
+            `p_index.document_with_weights @@ plainto_tsquery(:generalSearch)`,
+            {
+              generalSearch: matchingWords,
+            },
+          )
+          .getMany();
+      }
+    }
+
+    return query.select('project.id').getMany();
   }
 }
