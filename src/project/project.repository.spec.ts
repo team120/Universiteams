@@ -11,6 +11,7 @@ describe('ProjectCustomRepository', () => {
     select: jest.fn(),
     where: jest.fn(),
     orderBy: jest.fn(),
+    getCount: jest.fn(),
     getMany: jest.fn(),
   };
   const queryCreatorMock = {
