@@ -22,7 +22,9 @@ export class QueryCreator {
       isolatedTerms.map((term) =>
         this.uniqueWordsRepository
           .createQueryBuilder()
-          .where(`word % :searchTerms`, { searchTerms: term })
+          .where(`similarity(word, :term) > 0`, { term: term })
+          // to avoid sql injections, since typeorm doesn't support prepared statements in order by clauses
+          .orderBy(`format('%s <-> %L', 'word', '${term}')`)
           .limit(5)
           .getMany()
           .then((uniqueTerms) =>
