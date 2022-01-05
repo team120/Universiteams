@@ -28,3 +28,9 @@ export class ProjectSingleDto extends ProjectInListDto {
   @ExposeType(InterestShowDto)
   interests: InterestShowDto[];
 }
+
+export class ProjectsResult {
+  projects: ProjectInListDto[];
+  suggestedSearchTerms?: string[];
+  projectCount: number;
+}

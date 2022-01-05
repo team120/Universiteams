@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { DbException } from '../utils/exceptions/database.exception';
 import { ProjectFilters, ProjectSortAttributes } from './dtos/project.find.dto';
 import { Project } from './project.entity';
@@ -136,64 +136,100 @@ export class ProjectCustomRepository {
 
   async getMatchingProjectIds(
     filters: ProjectFilters,
-  ): Promise<Array<{ id: number }>> {
+  ): Promise<ProjectsIdsResult> {
     const query = this.queryCreator.getProjectWithRelationsQuery();
 
     if (filters.generalSearch) {
+      const fullTextSearchConversion = filters.generalSearch.replace(
+        ' ',
+        ':* & ',
+      );
+
       query.where(
         `p_index.document_with_weights @@ plainto_tsquery(:generalSearch)`,
         {
-          generalSearch: filters.generalSearch,
+          generalSearch: fullTextSearchConversion,
         },
       );
     }
 
+    const filtersAppliedQuery = this.applyExtraFilters(filters, query);
+
+    const projectCount = await filtersAppliedQuery.getCount();
+    if (filters.generalSearch && projectCount == 0) {
+      const matchingWords = await this.queryCreator.getMatchingWords(
+        filters.generalSearch,
+      );
+
+      const fuzzySearchQuery = this.queryCreator
+        .getProjectWithRelationsQuery()
+        .where(
+          `p_index.document_with_weights @@ plainto_tsquery(:generalSearch)`,
+          {
+            generalSearch: matchingWords[0],
+          },
+        );
+
+      const [projectIds, projectsCount] = await this.applyExtraFilters(
+        filters,
+        fuzzySearchQuery,
+      )
+        .select('project.id')
+        .getManyAndCount();
+      return {
+        projectIds: projectIds,
+        projectCount: projectsCount,
+        suggestedSearchTerms: matchingWords.slice(1, matchingWords.length),
+      };
+    }
+
+    const [projectIds, projectsCount] = await filtersAppliedQuery
+      .select('project.id')
+      .getManyAndCount();
+    return {
+      projectIds: projectIds,
+      projectCount: projectsCount,
+    };
+  }
+
+  private applyExtraFilters(
+    filters: ProjectFilters,
+    query: SelectQueryBuilder<Project>,
+  ): SelectQueryBuilder<Project> {
+    const newQuery = query;
     if (filters.institutionId) {
-      query.andWhere(`userInstitution.id = :userInstitutionId`, {
+      newQuery.andWhere(`userInstitution.id = :userInstitutionId`, {
         userInstitutionId: filters.institutionId,
       });
     }
     if (filters.researchDepartmentId) {
-      query.andWhere('researchDepartment.id = :researchDepartmentId', {
+      newQuery.andWhere('researchDepartment.id = :researchDepartmentId', {
         researchDepartmentId: filters.researchDepartmentId,
       });
     }
     if (filters.type) {
-      query.andWhere('project.type = :type', { type: filters.type });
+      newQuery.andWhere('project.type = :type', { type: filters.type });
     }
     if (filters.isDown) {
-      query.andWhere('project.isDown = :isDown', {
+      newQuery.andWhere('project.isDown = :isDown', {
         isDown: filters.isDown,
       });
     }
     if (filters.userId) {
-      query.andWhere('user.id = :userId', { userId: filters.userId });
+      newQuery.andWhere('user.id = :userId', { userId: filters.userId });
     }
     if (filters.dateFrom) {
-      query.andWhere('project.creationDate >= :dateFrom', {
+      newQuery.andWhere('project.creationDate >= :dateFrom', {
         dateFrom: filters.dateFrom.toISOString().split('T')[0],
       });
     }
 
-    const projectCount = await query.getCount();
-    if (projectCount == 0) {
-      const matchingWords = await this.queryCreator.getMatchingWords(
-        filters.generalSearch,
-      );
-      this.logger.debug(matchingWords);
-      if (filters.generalSearch) {
-        return this.queryCreator
-          .getProjectWithRelationsQuery()
-          .where(
-            `p_index.document_with_weights @@ plainto_tsquery(:generalSearch)`,
-            {
-              generalSearch: matchingWords,
-            },
-          )
-          .getMany();
-      }
-    }
-
-    return query.select('project.id').getMany();
+    return newQuery;
   }
+}
+
+export class ProjectsIdsResult {
+  projectIds: Array<{ id: number }>;
+  suggestedSearchTerms?: string[];
+  projectCount: number;
 }

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ProjectFindDto } from './dtos/project.find.dto';
-import { ProjectInListDto } from './dtos/project.show.dto';
+import { ProjectsResult } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 
 @ApiTags('projects')
@@ -19,7 +19,7 @@ export class ProjectController {
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
-  async get(@Query() findOptions: ProjectFindDto): Promise<ProjectInListDto[]> {
+  async get(@Query() findOptions: ProjectFindDto): Promise<ProjectsResult> {
     return this.projectService.findProjects(findOptions);
   }
 
