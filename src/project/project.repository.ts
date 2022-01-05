@@ -34,7 +34,13 @@ export class QueryCreator {
     ).then((termsWithMatchs) =>
       termsWithMatchs.reduce((joinedMatchs, termWithMatchs) =>
         joinedMatchs.map((joinedTerm, i) =>
-          joinedTerm.concat(` ${termWithMatchs[i]}`),
+          joinedTerm.concat(
+            ` ${
+              termWithMatchs[i] ??
+              termWithMatchs.filter((t) => t !== undefined)[0] ??
+              ''
+            }`,
+          ),
         ),
       ),
     );
