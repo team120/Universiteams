@@ -296,7 +296,7 @@ describe('Project Actions (e2e)', () => {
       describe('type', () => {
         describe('Formal', () => {
           it('should get no projects', async () => {
-            const generalSearchText = 'VERS';
+            const generalSearchText = 'Data Science';
             const type = 'Formal';
             await request(app.getHttpServer())
               .get(`/projects?generalSearch=${generalSearchText}&type=${type}`)
