@@ -24,7 +24,7 @@ export class QueryCreator {
           .createQueryBuilder()
           .where(`similarity(word, :term) > 0`, { term: term })
           // to avoid sql injections, since typeorm doesn't support prepared statements in order by clauses
-          .orderBy(`format('%s <-> %L', 'word', '${term}')`)
+          .orderBy(`word <-> format('%L', '${term}')`)
           .limit(5)
           .getMany()
           .then((uniqueTerms) =>
