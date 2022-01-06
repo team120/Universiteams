@@ -146,7 +146,7 @@ export class ProjectCustomRepository {
       );
 
       query.where(
-        `p_index.document_with_weights @@ plainto_tsquery(:generalSearch)`,
+        `p_index.document_with_weights @@ plainto_tsquery(project.language::regconfig, :generalSearch)`,
         {
           generalSearch: fullTextSearchConversion,
         },
@@ -164,7 +164,7 @@ export class ProjectCustomRepository {
       const fuzzySearchQuery = this.queryCreator
         .getProjectWithRelationsQuery()
         .where(
-          `p_index.document_with_weights @@ plainto_tsquery(:generalSearch)`,
+          `p_index.document_with_weights @@ plainto_tsquery(project.language::regconfig, :generalSearch)`,
           {
             generalSearch: matchingWords[0],
           },
