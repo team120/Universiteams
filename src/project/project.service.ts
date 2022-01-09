@@ -24,12 +24,6 @@ export class ProjectService {
     this.logger.debug('Find matching project ids');
     const projectsResult = await this.projectRepository.getMatchingProjectIds(
       findOptions,
-    );
-    this.logger.debug(
-      'Find projects with those ids and their related users, department, user departments and institution departments',
-    );
-    const projects = await this.projectRepository.findProjectsById(
-      projectsResult.projectIds,
       {
         sortBy: findOptions.sortBy,
         inAscendingOrder: findOptions.inAscendingOrder,
@@ -37,7 +31,10 @@ export class ProjectService {
     );
     this.logger.debug('Map projects to dto');
     return {
-      projects: this.entityMapper.mapArray(ProjectInListDto, projects),
+      projects: this.entityMapper.mapArray(
+        ProjectInListDto,
+        projectsResult.projects,
+      ),
       projectCount: projectsResult.projectCount,
       suggestedSearchTerms: projectsResult.suggestedSearchTerms,
     };

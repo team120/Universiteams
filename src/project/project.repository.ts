@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository, SelectQueryBuilder } from 'typeorm';
@@ -9,11 +9,20 @@ import { UniqueWords } from './uniqueWords.entity';
 
 @Injectable()
 export class QueryCreator {
+  private sortBy = new Map([
+    ['name', 'project.name'],
+    ['researchDepartment', 'researchDepartment.name'],
+    ['facility', 'researchDepartmentFacility.name'],
+    ['creationDate', 'project.creationDate'],
+    ['type', 'project.type'],
+  ]);
+
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     @InjectRepository(UniqueWords)
     private readonly uniqueWordsRepository: Repository<UniqueWords>,
+    private readonly logger: PinoLogger,
   ) {}
 
   getMatchingWords(searchTerms: string): Promise<string[]> {
@@ -44,6 +53,123 @@ export class QueryCreator {
         ),
       ),
     );
+  }
+
+  applySorting(
+    sortAttributes: ProjectSortAttributes,
+    searchTerms: string,
+    query: SelectQueryBuilder<Project>,
+  ) {
+    const newQuery = query;
+    if (sortAttributes.sortBy) {
+      const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
+      this.logger.debug(
+        `Sort by ${sortByProperty} in ${
+          sortAttributes.inAscendingOrder ? 'ascending' : 'descending'
+        } order`,
+      );
+      if (sortByProperty) {
+        return newQuery.orderBy(
+          sortByProperty,
+          sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC',
+        );
+      }
+    }
+    return newQuery.orderBy(
+      `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`,
+    );
+  }
+
+  applyTextSearch(filters: ProjectFilters, query: SelectQueryBuilder<Project>) {
+    const searchQuery = query;
+    if (filters.generalSearch) {
+      const fullTextSearchConversion = filters.generalSearch
+        .replace(/\s/g, ':* & ')
+        .concat(':*');
+
+      searchQuery.where(
+        `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
+        {
+          generalSearch: fullTextSearchConversion,
+        },
+      );
+
+      return searchQuery;
+    }
+
+    return query;
+  }
+
+  async applyFuzzyTextSearch(
+    filters: ProjectFilters,
+    query: SelectQueryBuilder<Project>,
+  ): Promise<[SelectQueryBuilder<Project>, string[]?]> {
+    if (filters.generalSearch) {
+      const projectsCountNormalSearch = await query.getCount();
+      if (projectsCountNormalSearch == 0) {
+        const matchingWords = await this.getMatchingWords(
+          filters.generalSearch,
+        );
+
+        const fuzzySearchQuery = this.getProjectWithRelationsQuery().where(
+          `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
+          {
+            generalSearch: matchingWords[0].replace(/\s/g, ' & '),
+          },
+        );
+
+        return [fuzzySearchQuery, matchingWords];
+      }
+    }
+    return [query, undefined];
+  }
+
+  applyExtraFilters(
+    filters: ProjectFilters,
+    query: SelectQueryBuilder<Project>,
+  ): SelectQueryBuilder<Project> {
+    const newQuery = query;
+    if (filters.institutionId) {
+      newQuery.andWhere(`userInstitution.id = :userInstitutionId`, {
+        userInstitutionId: filters.institutionId,
+      });
+    }
+    if (filters.researchDepartmentId) {
+      newQuery.andWhere('researchDepartment.id = :researchDepartmentId', {
+        researchDepartmentId: filters.researchDepartmentId,
+      });
+    }
+    if (filters.type) {
+      newQuery.andWhere('project.type = :type', { type: filters.type });
+    }
+    if (filters.isDown) {
+      newQuery.andWhere('project.isDown = :isDown', {
+        isDown: filters.isDown,
+      });
+    }
+    if (filters.userId) {
+      newQuery.andWhere('user.id = :userId', { userId: filters.userId });
+    }
+    if (filters.dateFrom) {
+      newQuery.andWhere('project.creationDate >= :dateFrom', {
+        dateFrom: filters.dateFrom.toISOString().split('T')[0],
+      });
+    }
+
+    return newQuery;
+  }
+
+  async joinFilteredRelations(
+    query: SelectQueryBuilder<Project>,
+  ): Promise<[SelectQueryBuilder<Project>, number]> {
+    const [projectIds, projectCount] = await query
+      .select('project.id')
+      .getManyAndCount();
+
+    return [
+      this.getProjectWithRelationsQuery().whereInIds(projectIds),
+      projectCount,
+    ];
   }
 
   getProjectWithRelationsQuery(): SelectQueryBuilder<Project> {
@@ -78,48 +204,6 @@ export class ProjectCustomRepository {
     private readonly queryCreator: QueryCreator,
   ) {}
 
-  private sortBy = new Map([
-    ['name', 'project.name'],
-    ['researchDepartment', 'researchDepartment.name'],
-    ['facility', 'researchDepartmentFacility.name'],
-    ['creationDate', 'project.creationDate'],
-    ['type', 'project.type'],
-  ]);
-
-  async findProjectsById(
-    selectedProjectIds: Array<{ id: number }>,
-    sortAttributes: ProjectSortAttributes,
-  ): Promise<Project[]> {
-    const projectIdsMappedString = selectedProjectIds
-      .map((project) => project.id)
-      .join(', ');
-
-    const query = this.queryCreator
-      .getProjectWithRelationsQuery()
-      .where(
-        `project.id IN (${
-          projectIdsMappedString == '' ? null : projectIdsMappedString
-        })`,
-      );
-
-    if (sortAttributes.sortBy) {
-      const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
-      this.logger.debug(
-        `Sort by ${sortByProperty} in ${
-          sortAttributes.inAscendingOrder ? 'ascending' : 'descending'
-        } order`,
-      );
-      if (sortByProperty) {
-        query.orderBy(
-          sortByProperty,
-          sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC',
-        );
-      }
-    }
-
-    return query.getMany();
-  }
-
   async findOne(id: number): Promise<Project> {
     const project = await this.queryCreator
       .getProjectWithRelationsQuery()
@@ -136,95 +220,42 @@ export class ProjectCustomRepository {
 
   async getMatchingProjectIds(
     filters: ProjectFilters,
-  ): Promise<ProjectsIdsResult> {
+    sortAttributes: ProjectSortAttributes,
+  ) {
     const query = this.queryCreator.getProjectWithRelationsQuery();
 
-    if (filters.generalSearch) {
-      const fullTextSearchConversion = filters.generalSearch.replace(
-        ' ',
-        ':* & ',
+    const searchQuery = this.queryCreator.applyTextSearch(filters, query);
+
+    const [fuzzyTextSearchQuery, suggestedSearchTerms] =
+      await this.queryCreator.applyFuzzyTextSearch(filters, searchQuery);
+
+    const { 1: searchTerms } = fuzzyTextSearchQuery.getQueryAndParameters();
+
+    const extraFiltersAppliedSearchQuery = this.queryCreator.applyExtraFilters(
+      filters,
+      fuzzyTextSearchQuery,
+    );
+
+    const [allPreviuslyFilteredProjectIncludedQuery, projectsCount] =
+      await this.queryCreator.joinFilteredRelations(
+        extraFiltersAppliedSearchQuery,
       );
 
-      query.where(
-        `p_index.document_with_weights @@ plainto_tsquery(project.language::regconfig, :generalSearch)`,
-        {
-          generalSearch: fullTextSearchConversion,
-        },
-      );
-    }
+    const appliedSortingQuery = this.queryCreator.applySorting(
+      sortAttributes,
+      searchTerms[0],
+      allPreviuslyFilteredProjectIncludedQuery,
+    );
 
-    const filtersAppliedQuery = this.applyExtraFilters(filters, query);
+    this.logger.debug(appliedSortingQuery.getSql());
 
-    const projectCount = await filtersAppliedQuery.getCount();
-    if (filters.generalSearch && projectCount == 0) {
-      const matchingWords = await this.queryCreator.getMatchingWords(
-        filters.generalSearch,
-      );
+    const projects = await appliedSortingQuery.getMany();
 
-      const fuzzySearchQuery = this.queryCreator
-        .getProjectWithRelationsQuery()
-        .where(
-          `p_index.document_with_weights @@ plainto_tsquery(project.language::regconfig, :generalSearch)`,
-          {
-            generalSearch: matchingWords[0],
-          },
-        );
-
-      const [projectIds, projectsCount] = await this.applyExtraFilters(
-        filters,
-        fuzzySearchQuery,
-      )
-        .select('project.id')
-        .getManyAndCount();
-      return {
-        projectIds: projectIds,
-        projectCount: projectsCount,
-        suggestedSearchTerms: matchingWords.slice(1, matchingWords.length),
-      };
-    }
-
-    const [projectIds, projectsCount] = await filtersAppliedQuery
-      .select('project.id')
-      .getManyAndCount();
     return {
-      projectIds: projectIds,
+      projects: projects,
       projectCount: projectsCount,
+      suggestedSearchTerms: suggestedSearchTerms,
     };
-  }
-
-  private applyExtraFilters(
-    filters: ProjectFilters,
-    query: SelectQueryBuilder<Project>,
-  ): SelectQueryBuilder<Project> {
-    const newQuery = query;
-    if (filters.institutionId) {
-      newQuery.andWhere(`userInstitution.id = :userInstitutionId`, {
-        userInstitutionId: filters.institutionId,
-      });
-    }
-    if (filters.researchDepartmentId) {
-      newQuery.andWhere('researchDepartment.id = :researchDepartmentId', {
-        researchDepartmentId: filters.researchDepartmentId,
-      });
-    }
-    if (filters.type) {
-      newQuery.andWhere('project.type = :type', { type: filters.type });
-    }
-    if (filters.isDown) {
-      newQuery.andWhere('project.isDown = :isDown', {
-        isDown: filters.isDown,
-      });
-    }
-    if (filters.userId) {
-      newQuery.andWhere('user.id = :userId', { userId: filters.userId });
-    }
-    if (filters.dateFrom) {
-      newQuery.andWhere('project.creationDate >= :dateFrom', {
-        dateFrom: filters.dateFrom.toISOString().split('T')[0],
-      });
-    }
-
-    return newQuery;
   }
 }
 
