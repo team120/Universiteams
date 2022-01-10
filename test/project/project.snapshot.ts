@@ -22,34 +22,15 @@ export const projects = [
     },
     enrollments: [
       {
-        id: 3,
+        id: 4,
         user: {
-          id: 2,
-          name: 'Carlos',
-          lastName: 'Villa',
-          mail: 'user2@example.com',
+          id: 3,
+          name: 'Marcos',
+          lastName: 'Sanchez',
+          mail: 'user3@example.com',
           userAffiliations: [
             {
-              id: 1,
-              researchDepartment: {
-                id: 1,
-                name: 'Ingeniería en Sistemas',
-                abbreviation: 'ISI',
-                facility: {
-                  id: 1,
-                  name: 'Regional Rosario',
-                  abbreviation: 'FRRo',
-                  institution: {
-                    id: 1,
-                    name: 'Universidad Tecnológica Nacional',
-                    abbreviation: 'UTN',
-                  },
-                },
-              },
-              currentType: 'Professor',
-            },
-            {
-              id: 2,
+              id: 5,
               researchDepartment: {
                 id: 6,
                 name: 'Ingeniería Electrónica',
@@ -67,17 +48,6 @@ export const projects = [
               },
               currentType: 'Professor',
             },
-          ],
-        },
-      },
-      {
-        id: 4,
-        user: {
-          id: 3,
-          name: 'Marcos',
-          lastName: 'Sanchez',
-          mail: 'user3@example.com',
-          userAffiliations: [
             {
               id: 4,
               researchDepartment: {
@@ -97,8 +67,19 @@ export const projects = [
               },
               currentType: 'Student',
             },
+          ],
+        },
+      },
+      {
+        id: 3,
+        user: {
+          id: 2,
+          name: 'Carlos',
+          lastName: 'Villa',
+          mail: 'user2@example.com',
+          userAffiliations: [
             {
-              id: 5,
+              id: 2,
               researchDepartment: {
                 id: 6,
                 name: 'Ingeniería Electrónica',
@@ -111,6 +92,25 @@ export const projects = [
                     id: 2,
                     name: 'Universidad Nacional de Rosario',
                     abbreviation: 'UNR',
+                  },
+                },
+              },
+              currentType: 'Professor',
+            },
+            {
+              id: 1,
+              researchDepartment: {
+                id: 1,
+                name: 'Ingeniería en Sistemas',
+                abbreviation: 'ISI',
+                facility: {
+                  id: 1,
+                  name: 'Regional Rosario',
+                  abbreviation: 'FRRo',
+                  institution: {
+                    id: 1,
+                    name: 'Universidad Tecnológica Nacional',
+                    abbreviation: 'UTN',
                   },
                 },
               },
@@ -144,55 +144,6 @@ export const projects = [
     },
     enrollments: [
       {
-        id: 2,
-        user: {
-          id: 2,
-          name: 'Carlos',
-          lastName: 'Villa',
-          mail: 'user2@example.com',
-          userAffiliations: [
-            {
-              id: 1,
-              researchDepartment: {
-                id: 1,
-                name: 'Ingeniería en Sistemas',
-                abbreviation: 'ISI',
-                facility: {
-                  id: 1,
-                  name: 'Regional Rosario',
-                  abbreviation: 'FRRo',
-                  institution: {
-                    id: 1,
-                    name: 'Universidad Tecnológica Nacional',
-                    abbreviation: 'UTN',
-                  },
-                },
-              },
-              currentType: 'Professor',
-            },
-            {
-              id: 2,
-              researchDepartment: {
-                id: 6,
-                name: 'Ingeniería Electrónica',
-                abbreviation: 'IE',
-                facility: {
-                  id: 2,
-                  name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
-                  abbreviation: 'FCEIA',
-                  institution: {
-                    id: 2,
-                    name: 'Universidad Nacional de Rosario',
-                    abbreviation: 'UNR',
-                  },
-                },
-              },
-              currentType: 'Professor',
-            },
-          ],
-        },
-      },
-      {
         id: 1,
         user: {
           id: 1,
@@ -218,6 +169,55 @@ export const projects = [
                 },
               },
               currentType: 'Student',
+            },
+          ],
+        },
+      },
+      {
+        id: 2,
+        user: {
+          id: 2,
+          name: 'Carlos',
+          lastName: 'Villa',
+          mail: 'user2@example.com',
+          userAffiliations: [
+            {
+              id: 2,
+              researchDepartment: {
+                id: 6,
+                name: 'Ingeniería Electrónica',
+                abbreviation: 'IE',
+                facility: {
+                  id: 2,
+                  name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+                  abbreviation: 'FCEIA',
+                  institution: {
+                    id: 2,
+                    name: 'Universidad Nacional de Rosario',
+                    abbreviation: 'UNR',
+                  },
+                },
+              },
+              currentType: 'Professor',
+            },
+            {
+              id: 1,
+              researchDepartment: {
+                id: 1,
+                name: 'Ingeniería en Sistemas',
+                abbreviation: 'ISI',
+                facility: {
+                  id: 1,
+                  name: 'Regional Rosario',
+                  abbreviation: 'FRRo',
+                  institution: {
+                    id: 1,
+                    name: 'Universidad Tecnológica Nacional',
+                    abbreviation: 'UTN',
+                  },
+                },
+              },
+              currentType: 'Professor',
             },
           ],
         },

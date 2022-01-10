@@ -3,7 +3,11 @@ import { PinoLogger } from 'nestjs-pino';
 import { DbException } from '../utils/exceptions/database.exception';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { ProjectFindDto } from './dtos/project.find.dto';
-import { ProjectInListDto, ProjectSingleDto } from './dtos/project.show.dto';
+import {
+  ProjectInListDto,
+  ProjectSingleDto,
+  ProjectsResult,
+} from './dtos/project.show.dto';
 import { ProjectCustomRepository } from './project.repository';
 
 @Injectable()
@@ -16,22 +20,24 @@ export class ProjectService {
     this.logger.setContext(ProjectService.name);
   }
 
-  async findProjects(findOptions: ProjectFindDto): Promise<ProjectInListDto[]> {
+  async findProjects(findOptions: ProjectFindDto): Promise<ProjectsResult> {
     this.logger.debug('Find matching project ids');
-    const selectedProjectIds =
-      await this.projectRepository.getMatchingProjectIds(findOptions);
-    this.logger.debug(
-      'Find projects with those ids and their related users, department, user departments and institution departments',
-    );
-    const projects = await this.projectRepository.findProjectsById(
-      selectedProjectIds,
+    const projectsResult = await this.projectRepository.getMatchingProjectIds(
+      findOptions,
       {
         sortBy: findOptions.sortBy,
         inAscendingOrder: findOptions.inAscendingOrder,
       },
     );
     this.logger.debug('Map projects to dto');
-    return this.entityMapper.mapArray(ProjectInListDto, projects);
+    return {
+      projects: this.entityMapper.mapArray(
+        ProjectInListDto,
+        projectsResult.projects,
+      ),
+      projectCount: projectsResult.projectCount,
+      suggestedSearchTerms: projectsResult.suggestedSearchTerms,
+    };
   }
 
   async findOne(id: number): Promise<ProjectSingleDto> {

@@ -52,9 +52,11 @@ describe('Project Actions (e2e)', () => {
         .get('/projects')
         .then((res) => {
           expect(res.status).toBe(200);
-          expect(res.body).toEqual(projects);
-          expect(res.body[0].enrollments[0].user.password).not.toBeDefined();
-          expect(res.body).toHaveLength(2);
+          expect(res.body.projects).toEqual(projects);
+          expect(
+            res.body.projects[0].enrollments[0].user.password,
+          ).not.toBeDefined();
+          expect(res.body.projects).toHaveLength(2);
         });
     });
   });
@@ -68,7 +70,7 @@ describe('Project Actions (e2e)', () => {
             .get(`/projects/?isDown=${isDown}`)
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body).toHaveLength(2);
+              expect(res.body.projects).toHaveLength(2);
             });
         });
       });
@@ -80,7 +82,7 @@ describe('Project Actions (e2e)', () => {
             .get(`/projects/?isDown=${isDown}`)
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body).toHaveLength(0);
+              expect(res.body.projects).toHaveLength(0);
             });
         });
         it('should get no projects as well when another parameter is provided', async () => {
@@ -90,7 +92,7 @@ describe('Project Actions (e2e)', () => {
             .get(`/projects/?isDown=${isDown}&type=${type}`)
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body).toHaveLength(0);
+              expect(res.body.projects).toHaveLength(0);
             });
         });
       });
@@ -104,8 +106,8 @@ describe('Project Actions (e2e)', () => {
             .get(`/projects?dateFrom=${dateFrom.toISOString()}`)
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body).toHaveLength(1);
-              expect(res.body[0].name).toBe('Universiteams');
+              expect(res.body.projects).toHaveLength(1);
+              expect(res.body.projects[0].name).toBe('Universiteams');
             });
         });
       });
@@ -117,7 +119,7 @@ describe('Project Actions (e2e)', () => {
             .get(`/projects?dateFrom=${dateFrom}`)
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body).toHaveLength(0);
+              expect(res.body.projects).toHaveLength(0);
             });
         });
       });
@@ -131,8 +133,8 @@ describe('Project Actions (e2e)', () => {
             .get(`/projects?type=${type}`)
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body).toHaveLength(1);
-              expect(res.body[0].name).toBe(projectName);
+              expect(res.body.projects).toHaveLength(1);
+              expect(res.body.projects[0].name).toBe(projectName);
             });
         });
       });
@@ -145,8 +147,8 @@ describe('Project Actions (e2e)', () => {
             .get(`/projects?type=${type}`)
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body).toHaveLength(1);
-              expect(res.body[0].name).toBe(projectName);
+              expect(res.body.projects).toHaveLength(1);
+              expect(res.body.projects[0].name).toBe(projectName);
             });
         });
       });
@@ -160,11 +162,11 @@ describe('Project Actions (e2e)', () => {
           .get('/projects?sortBy=name&inAscendingOrder=true')
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body).toHaveLength(2);
-            expect(res.body[0].name).toBe(
+            expect(res.body.projects).toHaveLength(2);
+            expect(res.body.projects[0].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
-            expect(res.body[1].name).toBe('Universiteams');
+            expect(res.body.projects[1].name).toBe('Universiteams');
           });
       });
 
@@ -173,9 +175,9 @@ describe('Project Actions (e2e)', () => {
           .get('/projects?sortBy=name&order=descending')
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body).toHaveLength(2);
-            expect(res.body[0].name).toBe('Universiteams');
-            expect(res.body[1].name).toBe(
+            expect(res.body.projects).toHaveLength(2);
+            expect(res.body.projects[0].name).toBe('Universiteams');
+            expect(res.body.projects[1].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
           });
@@ -187,9 +189,9 @@ describe('Project Actions (e2e)', () => {
           .get('/projects?sortBy=type&order=descending')
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body).toHaveLength(2);
-            expect(res.body[0].name).toBe('Universiteams');
-            expect(res.body[1].name).toBe(
+            expect(res.body.projects).toHaveLength(2);
+            expect(res.body.projects[0].name).toBe('Universiteams');
+            expect(res.body.projects[1].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
           });
@@ -199,9 +201,9 @@ describe('Project Actions (e2e)', () => {
           .get('/projects?sortBy=type&order=descending')
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body).toHaveLength(2);
-            expect(res.body[0].name).toBe('Universiteams');
-            expect(res.body[1].name).toBe(
+            expect(res.body.projects).toHaveLength(2);
+            expect(res.body.projects[0].name).toBe('Universiteams');
+            expect(res.body.projects[1].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
           });
@@ -213,10 +215,10 @@ describe('Project Actions (e2e)', () => {
           .get('/projects?sortBy=creationDate&inAscendingOrder=true')
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body[0].name).toBe(
+            expect(res.body.projects[0].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
-            expect(res.body[1].name).toBe('Universiteams');
+            expect(res.body.projects[1].name).toBe('Universiteams');
           });
       });
       it('should get all projects sorted by date in ascending order', async () => {
@@ -224,10 +226,10 @@ describe('Project Actions (e2e)', () => {
           .get('/projects?sortBy=creationDate&inAscendingOrder=true')
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body[0].name).toBe(
+            expect(res.body.projects[0].name).toBe(
               'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
             );
-            expect(res.body[1].name).toBe('Universiteams');
+            expect(res.body.projects[1].name).toBe('Universiteams');
           });
       });
     });
@@ -239,8 +241,8 @@ describe('Project Actions (e2e)', () => {
       .get(`/projects?userId=${userId}`)
       .then((res) => {
         expect(res.status).toBe(200);
-        expect(res.body).toHaveLength(1);
-        expect(res.body).toEqual(
+        expect(res.body.projects).toHaveLength(1);
+        expect(res.body.projects).toEqual(
           projects.filter(
             (e) => e.enrollments.filter((u) => u.user.id === userId).length > 0,
           ),
@@ -255,7 +257,7 @@ describe('Project Actions (e2e)', () => {
           .get(`/projects?generalSearch=${generalSearchText}`)
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body).toHaveLength(2);
+            expect(res.body.projects).toHaveLength(2);
           });
       });
     });
@@ -266,10 +268,10 @@ describe('Project Actions (e2e)', () => {
           .get(`/projects?generalSearch=${generalSearchText}`)
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body).toEqual(
+            expect(res.body.projects).toEqual(
               projects.filter((p) => p.name.includes(generalSearchText)),
             );
-            expect(res.body).toHaveLength(1);
+            expect(res.body.projects).toHaveLength(1);
           });
       });
     });
@@ -277,32 +279,27 @@ describe('Project Actions (e2e)', () => {
       describe('userId', () => {
         it('should get all projects that partially match their name and exactly one of their users', async () => {
           const generalSearchText = 'VERS';
-          const userId = 2;
+          const userId = 3;
           await request(app.getHttpServer())
             .get(
               `/projects?generalSearch=${generalSearchText}&userId=${userId}`,
             )
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body).toEqual(
-                projects.filter((p) =>
-                  p.name.toUpperCase().includes(generalSearchText),
-                ),
-              );
-              expect(res.body).toHaveLength(1);
+              expect(res.body.projects).toHaveLength(1);
             });
         });
       });
       describe('type', () => {
         describe('Formal', () => {
           it('should get no projects', async () => {
-            const generalSearchText = 'VERS';
+            const generalSearchText = 'Data Science';
             const type = 'Formal';
             await request(app.getHttpServer())
               .get(`/projects?generalSearch=${generalSearchText}&type=${type}`)
               .then((res) => {
                 expect(res.status).toBe(200);
-                expect(res.body).toHaveLength(0);
+                expect(res.body.projects).toHaveLength(0);
               });
           });
         });
