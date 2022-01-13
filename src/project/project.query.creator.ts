@@ -1,4 +1,4 @@
-import { Injectable, Query } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository, SelectQueryBuilder } from 'typeorm';
@@ -195,12 +195,11 @@ export class QueryCreator {
   async applyPagination(
     sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
-    const subqueryProjectIds = sortedAndFilteredProjectsSubquery
-      .select('project.id, row_number() over () as orderId')
-      .limit(1);
+    const subqueryProjectIds = sortedAndFilteredProjectsSubquery.select(
+      'project.id, row_number() over () as orderId',
+    );
     const projectCount = await subqueryProjectIds.getCount();
 
-    const subqueryParameters = subqueryProjectIds.getParameters();
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
       .innerJoin(
@@ -218,12 +217,12 @@ export class QueryCreator {
         'researchDepartmentInstitution',
       )
       .orderBy('orderId')
-      .setParameters(subqueryParameters);
+      .setParameters(subqueryProjectIds.getParameters());
 
     return [finalPaginatedQuery, projectCount];
   }
 
-  async getOne(id: number) {
+  async getOne(id: number): Promise<Project> {
     const project = await this.projectRepository
       .createQueryBuilder('project')
       .innerJoinAndSelect('project.enrollments', 'enrollment')
@@ -258,58 +257,4 @@ export class QueryCreator {
   initialProjectQuery(): SelectQueryBuilder<Project> {
     return this.projectRepository.createQueryBuilder('project');
   }
-}
-
-@Injectable()
-export class ProjectCustomRepository {
-  constructor(
-    private readonly logger: PinoLogger,
-    private readonly queryCreator: QueryCreator,
-  ) {}
-
-  async findOne(id: number): Promise<Project> {
-    return this.queryCreator.getOne(id);
-  }
-
-  async getMatchingProjectIds(
-    filters: ProjectFilters,
-    sortAttributes: ProjectSortAttributes,
-  ) {
-    const query = this.queryCreator.initialProjectQuery();
-
-    const searchQuery = this.queryCreator.applyTextSearch(filters, query);
-
-    const [fuzzyTextSearchQuery, suggestedSearchTerms] =
-      await this.queryCreator.applyFuzzyTextSearch(filters, searchQuery);
-
-    const { 1: searchTerms } = fuzzyTextSearchQuery.getQueryAndParameters();
-
-    const extraFiltersAppliedSearchQuery = this.queryCreator.applyExtraFilters(
-      filters,
-      fuzzyTextSearchQuery,
-    );
-
-    const appliedSortingQuery = this.queryCreator.applySorting(
-      sortAttributes,
-      searchTerms[0],
-      extraFiltersAppliedSearchQuery,
-    );
-
-    const [paginationAppliedQuery, projectsCount] =
-      await this.queryCreator.applyPagination(appliedSortingQuery);
-
-    const projects = await paginationAppliedQuery.getMany();
-
-    return {
-      projects: projects,
-      projectCount: projectsCount,
-      suggestedSearchTerms: suggestedSearchTerms,
-    };
-  }
-}
-
-export class ProjectsIdsResult {
-  projectIds: Array<{ id: number }>;
-  suggestedSearchTerms?: string[];
-  projectCount: number;
 }

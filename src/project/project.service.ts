@@ -2,18 +2,22 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import { DbException } from '../utils/exceptions/database.exception';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
-import { ProjectFindDto } from './dtos/project.find.dto';
+import {
+  ProjectFilters,
+  ProjectFindDto,
+  ProjectSortAttributes,
+} from './dtos/project.find.dto';
 import {
   ProjectInListDto,
   ProjectSingleDto,
   ProjectsResult,
 } from './dtos/project.show.dto';
-import { ProjectCustomRepository } from './project.repository';
+import { QueryCreator } from './project.query.creator';
 
 @Injectable()
 export class ProjectService {
   constructor(
-    private readonly projectRepository: ProjectCustomRepository,
+    private readonly queryCreator: QueryCreator,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
   ) {
@@ -21,22 +25,41 @@ export class ProjectService {
   }
 
   async findProjects(findOptions: ProjectFindDto): Promise<ProjectsResult> {
-    this.logger.debug('Find matching project ids');
-    const projectsResult = await this.projectRepository.getMatchingProjectIds(
-      findOptions,
-      {
-        sortBy: findOptions.sortBy,
-        inAscendingOrder: findOptions.inAscendingOrder,
-      },
+    const sortAttributes: ProjectSortAttributes = {
+      sortBy: findOptions.sortBy,
+      inAscendingOrder: findOptions.inAscendingOrder,
+    };
+    const filters: ProjectFilters = findOptions;
+    const query = this.queryCreator.initialProjectQuery();
+
+    const searchQuery = this.queryCreator.applyTextSearch(filters, query);
+
+    const [fuzzyTextSearchQuery, suggestedSearchTerms] =
+      await this.queryCreator.applyFuzzyTextSearch(filters, searchQuery);
+
+    const { 1: searchTerms } = fuzzyTextSearchQuery.getQueryAndParameters();
+
+    const extraFiltersAppliedSearchQuery = this.queryCreator.applyExtraFilters(
+      filters,
+      fuzzyTextSearchQuery,
     );
+
+    const appliedSortingQuery = this.queryCreator.applySorting(
+      sortAttributes,
+      searchTerms[0],
+      extraFiltersAppliedSearchQuery,
+    );
+
+    const [paginationAppliedQuery, projectsCount] =
+      await this.queryCreator.applyPagination(appliedSortingQuery);
+
+    const projects = await paginationAppliedQuery.getMany();
+
     this.logger.debug('Map projects to dto');
     return {
-      projects: this.entityMapper.mapArray(
-        ProjectInListDto,
-        projectsResult.projects,
-      ),
-      projectCount: projectsResult.projectCount,
-      suggestedSearchTerms: projectsResult.suggestedSearchTerms,
+      projects: this.entityMapper.mapArray(ProjectInListDto, projects),
+      projectCount: projectsCount,
+      suggestedSearchTerms: suggestedSearchTerms,
     };
   }
 
@@ -44,11 +67,9 @@ export class ProjectService {
     this.logger.debug(
       'Find project with matching ids and their related department, users, user institution and department institution',
     );
-    const project = await this.projectRepository
-      .findOne(id)
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
+    const project = await this.queryCreator.getOne(id).catch((err: Error) => {
+      throw new DbException(err.message, err.stack);
+    });
 
     this.logger.debug(`Project ${project?.id} found`);
     if (!project) throw new NotFoundException();

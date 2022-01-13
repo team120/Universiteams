@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { ProjectController } from './project.controller';
 import { Project } from './project.entity';
-import { ProjectCustomRepository, QueryCreator } from './project.repository';
+import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
 import { UniqueWords } from './uniqueWords.entity';
 
@@ -13,6 +13,6 @@ import { UniqueWords } from './uniqueWords.entity';
     SerializationModule,
   ],
   controllers: [ProjectController],
-  providers: [ProjectCustomRepository, ProjectService, QueryCreator],
+  providers: [ProjectService, QueryCreator],
 })
 export class ProjectModule {}
