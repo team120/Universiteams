@@ -81,7 +81,11 @@ export class QueryCreator {
   }
 
   applyTextSearch(filters: ProjectFilters, query: SelectQueryBuilder<Project>) {
-    const searchQuery = query;
+    const searchQuery = query.innerJoin(
+      'project_search_index',
+      'p_index',
+      'p_index.id = project.id',
+    );
     if (filters.generalSearch) {
       const fullTextSearchConversion = filters.generalSearch
         .replace(/\s/g, ':* & ')
@@ -111,12 +115,19 @@ export class QueryCreator {
           filters.generalSearch,
         );
 
-        const fuzzySearchQuery = this.getProjectWithRelationsQuery().where(
-          `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
-          {
-            generalSearch: matchingWords[0].replace(/\s/g, ' & '),
-          },
-        );
+        const fuzzySearchQuery = this.projectRepository
+          .createQueryBuilder('project')
+          .innerJoin(
+            'project_search_index',
+            'p_index',
+            'p_index.id = project.id',
+          )
+          .where(
+            `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
+            {
+              generalSearch: matchingWords[0].replace(/\s/g, ' & '),
+            },
+          );
 
         return [fuzzySearchQuery, matchingWords];
       }
@@ -128,54 +139,93 @@ export class QueryCreator {
     filters: ProjectFilters,
     query: SelectQueryBuilder<Project>,
   ): SelectQueryBuilder<Project> {
-    const newQuery = query;
+    const relatedEntitiesJoinsQuery = query
+      .innerJoin('project.enrollments', 'enrollment')
+      .innerJoin('enrollment.user', 'user')
+      .leftJoin('user.userAffiliations', 'userAffiliation')
+      .leftJoin('userAffiliation.researchDepartment', 'userResearchDepartment')
+      .leftJoin('userResearchDepartment.facility', 'userFacility')
+      .leftJoin('userFacility.institution', 'userInstitution')
+      .leftJoin('project.researchDepartment', 'researchDepartment')
+      .leftJoin('researchDepartment.facility', 'researchDepartmentFacility')
+      .leftJoin(
+        'researchDepartmentFacility.institution',
+        'researchDepartmentInstitution',
+      );
     if (filters.institutionId) {
-      newQuery.andWhere(`userInstitution.id = :userInstitutionId`, {
-        userInstitutionId: filters.institutionId,
-      });
+      relatedEntitiesJoinsQuery.andWhere(
+        `userInstitution.id = :userInstitutionId`,
+        {
+          userInstitutionId: filters.institutionId,
+        },
+      );
     }
     if (filters.researchDepartmentId) {
-      newQuery.andWhere('researchDepartment.id = :researchDepartmentId', {
-        researchDepartmentId: filters.researchDepartmentId,
-      });
+      relatedEntitiesJoinsQuery.andWhere(
+        'researchDepartment.id = :researchDepartmentId',
+        {
+          researchDepartmentId: filters.researchDepartmentId,
+        },
+      );
     }
     if (filters.type) {
-      newQuery.andWhere('project.type = :type', { type: filters.type });
+      relatedEntitiesJoinsQuery.andWhere('project.type = :type', {
+        type: filters.type,
+      });
     }
     if (filters.isDown) {
-      newQuery.andWhere('project.isDown = :isDown', {
+      relatedEntitiesJoinsQuery.andWhere('project.isDown = :isDown', {
         isDown: filters.isDown,
       });
     }
     if (filters.userId) {
-      newQuery.andWhere('user.id = :userId', { userId: filters.userId });
+      relatedEntitiesJoinsQuery.andWhere('user.id = :userId', {
+        userId: filters.userId,
+      });
     }
     if (filters.dateFrom) {
-      newQuery.andWhere('project.creationDate >= :dateFrom', {
+      relatedEntitiesJoinsQuery.andWhere('project.creationDate >= :dateFrom', {
         dateFrom: filters.dateFrom.toISOString().split('T')[0],
       });
     }
 
-    return newQuery;
+    return relatedEntitiesJoinsQuery;
   }
 
-  async joinFilteredRelations(
-    query: SelectQueryBuilder<Project>,
+  async applyPagination(
+    sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
-    const [projectIds, projectCount] = await query
-      .select('project.id')
-      .getManyAndCount();
+    const subqueryProjectIds = sortedAndFilteredProjectsSubquery
+      .select('project.id, row_number() over () as orderId')
+      .limit(1);
+    const projectCount = await subqueryProjectIds.getCount();
 
-    return [
-      this.getProjectWithRelationsQuery().whereInIds(projectIds),
-      projectCount,
-    ];
+    const subqueryParameters = subqueryProjectIds.getParameters();
+    const finalPaginatedQuery = this.projectRepository
+      .createQueryBuilder('project')
+      .innerJoin(
+        `(${subqueryProjectIds.getQuery()})`,
+        'projectIds',
+        'project.id = "projectIds".id',
+      )
+      .leftJoinAndSelect('project.researchDepartment', 'researchDepartment')
+      .leftJoinAndSelect(
+        'researchDepartment.facility',
+        'researchDepartmentFacility',
+      )
+      .leftJoinAndSelect(
+        'researchDepartmentFacility.institution',
+        'researchDepartmentInstitution',
+      )
+      .orderBy('orderId')
+      .setParameters(subqueryParameters);
+
+    return [finalPaginatedQuery, projectCount];
   }
 
-  getProjectWithRelationsQuery(): SelectQueryBuilder<Project> {
-    return this.projectRepository
+  async getOne(id: number) {
+    const project = await this.projectRepository
       .createQueryBuilder('project')
-      .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
       .innerJoinAndSelect('project.enrollments', 'enrollment')
       .innerJoinAndSelect('enrollment.user', 'user')
       .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
@@ -193,20 +243,7 @@ export class QueryCreator {
       .leftJoinAndSelect(
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
-      );
-  }
-}
-
-@Injectable()
-export class ProjectCustomRepository {
-  constructor(
-    private readonly logger: PinoLogger,
-    private readonly queryCreator: QueryCreator,
-  ) {}
-
-  async findOne(id: number): Promise<Project> {
-    const project = await this.queryCreator
-      .getProjectWithRelationsQuery()
+      )
       .leftJoinAndSelect('project.interests', 'interests')
       .where('project.id = :projectId', { projectId: id })
       .getOne()
@@ -218,11 +255,27 @@ export class ProjectCustomRepository {
     return project;
   }
 
+  initialProjectQuery(): SelectQueryBuilder<Project> {
+    return this.projectRepository.createQueryBuilder('project');
+  }
+}
+
+@Injectable()
+export class ProjectCustomRepository {
+  constructor(
+    private readonly logger: PinoLogger,
+    private readonly queryCreator: QueryCreator,
+  ) {}
+
+  async findOne(id: number): Promise<Project> {
+    return this.queryCreator.getOne(id);
+  }
+
   async getMatchingProjectIds(
     filters: ProjectFilters,
     sortAttributes: ProjectSortAttributes,
   ) {
-    const query = this.queryCreator.getProjectWithRelationsQuery();
+    const query = this.queryCreator.initialProjectQuery();
 
     const searchQuery = this.queryCreator.applyTextSearch(filters, query);
 
@@ -236,20 +289,16 @@ export class ProjectCustomRepository {
       fuzzyTextSearchQuery,
     );
 
-    const [allPreviuslyFilteredProjectIncludedQuery, projectsCount] =
-      await this.queryCreator.joinFilteredRelations(
-        extraFiltersAppliedSearchQuery,
-      );
-
     const appliedSortingQuery = this.queryCreator.applySorting(
       sortAttributes,
       searchTerms[0],
-      allPreviuslyFilteredProjectIncludedQuery,
+      extraFiltersAppliedSearchQuery,
     );
 
-    this.logger.debug(appliedSortingQuery.getSql());
+    const [paginationAppliedQuery, projectsCount] =
+      await this.queryCreator.applyPagination(appliedSortingQuery);
 
-    const projects = await appliedSortingQuery.getMany();
+    const projects = await paginationAppliedQuery.getMany();
 
     return {
       projects: projects,
