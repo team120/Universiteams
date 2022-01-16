@@ -1,7 +1,16 @@
 import { OmitType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
+import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
+
+export enum SortByProperty {
+  name = 'name',
+  researchDepartment = 'researchDepartment',
+  facility = 'facility',
+  creationDate = 'creationDate',
+  type = 'type',
+}
 
 @Exclude()
 export class ProjectFindDto {
@@ -18,11 +27,10 @@ export class ProjectFindDto {
   institutionId?: number;
   @Expose()
   userId?: number;
-  @Expose()
-  @Type(() => Date)
+  @ExposeType(Date)
   dateFrom?: Date;
   @Expose()
-  sortBy?: string;
+  sortBy?: SortByProperty;
   @Expose()
   @ParseOptionalBoolean()
   inAscendingOrder?: boolean;

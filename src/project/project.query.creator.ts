@@ -3,18 +3,22 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { DbException } from '../utils/exceptions/database.exception';
-import { ProjectFilters, ProjectSortAttributes } from './dtos/project.find.dto';
+import {
+  ProjectFilters,
+  ProjectSortAttributes,
+  SortByProperty,
+} from './dtos/project.find.dto';
 import { Project } from './project.entity';
 import { UniqueWords } from './uniqueWords.entity';
 
 @Injectable()
 export class QueryCreator {
   private sortBy = new Map([
-    ['name', 'project.name'],
-    ['researchDepartment', 'researchDepartment.name'],
-    ['facility', 'researchDepartmentFacility.name'],
-    ['creationDate', 'project.creationDate'],
-    ['type', 'project.type'],
+    [SortByProperty.name, 'project.name'],
+    [SortByProperty.researchDepartment, 'researchDepartment.name'],
+    [SortByProperty.facility, 'researchDepartmentFacility.name'],
+    [SortByProperty.creationDate, 'project.creationDate'],
+    [SortByProperty.type, 'project.type'],
   ]);
 
   constructor(
@@ -187,9 +191,7 @@ export class QueryCreator {
           `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`,
         );
 
-    const applySortingQuery = query;
-
-    return applySortingQuery.orderBy(
+    return query.orderBy(
       sortByProperty,
       sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC',
     );
