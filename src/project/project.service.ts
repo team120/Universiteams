@@ -44,16 +44,16 @@ export class ProjectService {
       fuzzyTextSearchQuery,
     );
 
+    const [paginationAppliedQuery, projectsCount] =
+      await this.queryCreator.applyPagination(extraFiltersAppliedSearchQuery);
+
     const appliedSortingQuery = this.queryCreator.applySorting(
       sortAttributes,
+      paginationAppliedQuery,
       searchTerms[0],
-      extraFiltersAppliedSearchQuery,
     );
 
-    const [paginationAppliedQuery, projectsCount] =
-      await this.queryCreator.applyPagination(appliedSortingQuery);
-
-    const projects = await paginationAppliedQuery.getMany();
+    const projects = await appliedSortingQuery.getMany();
 
     this.logger.debug('Map projects to dto');
     return {

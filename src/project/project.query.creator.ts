@@ -25,7 +25,7 @@ export class QueryCreator {
     private readonly logger: PinoLogger,
   ) {}
 
-  getMatchingWords(searchTerms: string): Promise<string[]> {
+  private getMatchingWords(searchTerms: string): Promise<string[]> {
     const isolatedTerms = searchTerms.split(' ');
     return Promise.all(
       isolatedTerms.map((term) =>
@@ -55,84 +55,52 @@ export class QueryCreator {
     );
   }
 
-  applySorting(
-    sortAttributes: ProjectSortAttributes,
-    searchTerms: string,
-    query: SelectQueryBuilder<Project>,
-  ) {
-    const newQuery = query;
-    if (sortAttributes.sortBy) {
-      const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
-      this.logger.debug(
-        `Sort by ${sortByProperty} in ${
-          sortAttributes.inAscendingOrder ? 'ascending' : 'descending'
-        } order`,
-      );
-      if (sortByProperty) {
-        return newQuery.orderBy(
-          sortByProperty,
-          sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC',
-        );
-      }
-    }
-    return newQuery.orderBy(
-      `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`,
-    );
-  }
-
   applyTextSearch(filters: ProjectFilters, query: SelectQueryBuilder<Project>) {
     const searchQuery = query.innerJoin(
       'project_search_index',
       'p_index',
       'p_index.id = project.id',
     );
-    if (filters.generalSearch) {
-      const fullTextSearchConversion = filters.generalSearch
-        .replace(/\s/g, ':* & ')
-        .concat(':*');
 
-      searchQuery.where(
-        `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
-        {
-          generalSearch: fullTextSearchConversion,
-        },
-      );
+    if (!filters.generalSearch) return query;
 
-      return searchQuery;
-    }
+    const fullTextSearchConversion = filters.generalSearch
+      .replace(/\s/g, ':* & ')
+      .concat(':*');
 
-    return query;
+    searchQuery.where(
+      `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
+      {
+        generalSearch: fullTextSearchConversion,
+      },
+    );
+
+    return searchQuery;
   }
 
   async applyFuzzyTextSearch(
     filters: ProjectFilters,
     query: SelectQueryBuilder<Project>,
   ): Promise<[SelectQueryBuilder<Project>, string[]?]> {
-    if (filters.generalSearch) {
-      const projectsCountNormalSearch = await query.getCount();
-      if (projectsCountNormalSearch == 0) {
-        const matchingWords = await this.getMatchingWords(
-          filters.generalSearch,
-        );
+    if (!filters.generalSearch) return [query, undefined];
 
-        const fuzzySearchQuery = this.projectRepository
-          .createQueryBuilder('project')
-          .innerJoin(
-            'project_search_index',
-            'p_index',
-            'p_index.id = project.id',
-          )
-          .where(
-            `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
-            {
-              generalSearch: matchingWords[0].replace(/\s/g, ' & '),
-            },
-          );
+    const projectsCountNormalSearch = await query.getCount();
 
-        return [fuzzySearchQuery, matchingWords];
-      }
-    }
-    return [query, undefined];
+    if (projectsCountNormalSearch !== 0) return [query, undefined];
+
+    const matchingWords = await this.getMatchingWords(filters.generalSearch);
+
+    const fuzzySearchQuery = this.projectRepository
+      .createQueryBuilder('project')
+      .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
+      .where(
+        `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
+        {
+          generalSearch: matchingWords[0].replace(/\s/g, ' & '),
+        },
+      );
+
+    return [fuzzySearchQuery, matchingWords];
   }
 
   applyExtraFilters(
@@ -192,12 +160,47 @@ export class QueryCreator {
     return relatedEntitiesJoinsQuery;
   }
 
+  applySorting(
+    sortAttributes: ProjectSortAttributes,
+    query: SelectQueryBuilder<Project>,
+    searchTerms?: string,
+  ) {
+    if (!sortAttributes.sortBy && !searchTerms) return query;
+    if (!sortAttributes.sortBy && searchTerms)
+      return query
+        .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
+        .orderBy(
+          `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`,
+        );
+
+    const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
+    this.logger.debug(
+      `Sort by ${sortByProperty} in ${
+        sortAttributes.inAscendingOrder ? 'ascending' : 'descending'
+      } order`,
+    );
+    if (!sortByProperty && !searchTerms) return query;
+    if (!sortByProperty && searchTerms)
+      return query
+        .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
+        .orderBy(
+          `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`,
+        );
+
+    const applySortingQuery = query;
+
+    return applySortingQuery.orderBy(
+      sortByProperty,
+      sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC',
+    );
+  }
+
   async applyPagination(
     sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
-    const subqueryProjectIds = sortedAndFilteredProjectsSubquery.select(
-      'project.id, row_number() over () as orderId',
-    );
+    const subqueryProjectIds = sortedAndFilteredProjectsSubquery
+      .select('project.id as id')
+      .groupBy('project.id');
     const projectCount = await subqueryProjectIds.getCount();
 
     const finalPaginatedQuery = this.projectRepository
@@ -216,7 +219,6 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
-      .orderBy('orderId')
       .setParameters(subqueryProjectIds.getParameters());
 
     return [finalPaginatedQuery, projectCount];
