@@ -30,6 +30,8 @@ export class Project {
   isDown: boolean;
   @Column({ default: 'spanish' })
   language: 'spanish' | 'english';
+  @Column({ default: 0 })
+  userCount: number;
 
   @ManyToOne(
     () => ResearchDepartment,
