@@ -121,6 +121,19 @@ describe('Project Actions (e2e)', () => {
         });
       });
     });
+    describe('when searching by one userId', () => {
+      it('should get one project (UPM) that exactly match one of their users', async () => {
+        const userId = 3;
+        await request(app.getHttpServer())
+          .get(`/projects?userId=${userId}`)
+          .then((res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.projects).toHaveLength(1);
+            expect(res.body.projects[0].name).toEqual('Universiteams');
+          });
+      });
+    });
+
     describe('when project type is', () => {
       describe('Informal', () => {
         const projectName = 'Universiteams';
@@ -228,74 +241,6 @@ describe('Project Actions (e2e)', () => {
             );
             expect(res.body.projects[1].name).toBe('Universiteams');
           });
-      });
-    });
-  });
-
-  it('should get one project (UPM) that exactly match one of their users', async () => {
-    const userId = 3;
-    await request(app.getHttpServer())
-      .get(`/projects?userId=${userId}`)
-      .then((res) => {
-        expect(res.status).toBe(200);
-        expect(res.body.projects).toHaveLength(1);
-        expect(res.body.projects[0].name).toEqual('Universiteams');
-      });
-  });
-  describe('search projects by a general text search', () => {
-    describe('when exactly match some of their users', () => {
-      it('should get the two existent projects', async () => {
-        const generalSearchText = 'carl';
-        await request(app.getHttpServer())
-          .get(`/projects?generalSearch=${generalSearchText}`)
-          .then((res) => {
-            expect(res.status).toBe(200);
-            expect(res.body.projects).toHaveLength(2);
-          });
-      });
-    });
-    describe('when project name is partially matched', () => {
-      it('should get all matching projects', async () => {
-        const generalSearchText = 'teams';
-        await request(app.getHttpServer())
-          .get(`/projects?generalSearch=${generalSearchText}`)
-          .then((res) => {
-            expect(res.status).toBe(200);
-            expect(res.body.projects).toEqual(
-              projects.filter((p) => p.name.includes(generalSearchText)),
-            );
-            expect(res.body.projects).toHaveLength(1);
-          });
-      });
-    });
-    describe('and additionally filtered by', () => {
-      describe('userId', () => {
-        it('should get all projects that partially match their name and exactly one of their users', async () => {
-          const generalSearchText = 'VERS';
-          const userId = 3;
-          await request(app.getHttpServer())
-            .get(
-              `/projects?generalSearch=${generalSearchText}&userId=${userId}`,
-            )
-            .then((res) => {
-              expect(res.status).toBe(200);
-              expect(res.body.projects).toHaveLength(1);
-            });
-        });
-      });
-      describe('type', () => {
-        describe('Formal', () => {
-          it('should get no projects', async () => {
-            const generalSearchText = 'Data Science';
-            const type = 'Formal';
-            await request(app.getHttpServer())
-              .get(`/projects?generalSearch=${generalSearchText}&type=${type}`)
-              .then((res) => {
-                expect(res.status).toBe(200);
-                expect(res.body.projects).toHaveLength(0);
-              });
-          });
-        });
       });
     });
   });
