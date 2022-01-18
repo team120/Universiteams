@@ -37,8 +37,6 @@ export class ProjectService {
     const [fuzzyTextSearchQuery, suggestedSearchTerms] =
       await this.queryCreator.applyFuzzyTextSearch(filters, searchQuery);
 
-    const { 1: searchTerms } = fuzzyTextSearchQuery.getQueryAndParameters();
-
     const extraFiltersAppliedSearchQuery = this.queryCreator.applyExtraFilters(
       filters,
       fuzzyTextSearchQuery,
@@ -47,7 +45,6 @@ export class ProjectService {
     const [sortingAppliedQuery, orderByClause] = this.queryCreator.applySorting(
       sortAttributes,
       extraFiltersAppliedSearchQuery,
-      searchTerms[0],
     );
 
     const [paginationAppliedQuery, projectsCount] =

@@ -167,26 +167,18 @@ export class QueryCreator {
   applySorting(
     sortAttributes: ProjectSortAttributes,
     query: SelectQueryBuilder<Project>,
-    searchTerms?: string,
   ): [SelectQueryBuilder<Project>, string] {
-    if (!sortAttributes.sortBy && !searchTerms) return [query, undefined];
-    if (!sortAttributes.sortBy && searchTerms) return getSortbyTsRankQuery();
+    if (!sortAttributes.sortBy) return [query, undefined];
 
     const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
 
-    if (!sortByProperty && !searchTerms) return [query, undefined];
-    if (!sortByProperty && searchTerms) return getSortbyTsRankQuery();
+    if (!sortByProperty) return [query, undefined];
 
     const orderDirection =
       sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
     const orderByClause = `${sortByProperty} ${orderDirection}`;
     this.logger.debug(orderByClause);
     return [query.orderBy(sortByProperty, orderDirection), orderByClause];
-
-    function getSortbyTsRankQuery(): [SelectQueryBuilder<Project>, string] {
-      const orderByClause = `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`;
-      return [query.orderBy(orderByClause), orderByClause];
-    }
   }
 
   async applyPagination(
