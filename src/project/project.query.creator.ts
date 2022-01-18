@@ -168,42 +168,40 @@ export class QueryCreator {
     sortAttributes: ProjectSortAttributes,
     query: SelectQueryBuilder<Project>,
     searchTerms?: string,
-  ) {
-    if (!sortAttributes.sortBy && !searchTerms) return query;
-    if (!sortAttributes.sortBy && searchTerms)
-      return query
-        .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
-        .orderBy(
-          `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`,
-        );
+  ): [SelectQueryBuilder<Project>, string] {
+    if (!sortAttributes.sortBy && !searchTerms) return [query, undefined];
+    if (!sortAttributes.sortBy && searchTerms) return getSortbyTsRankQuery();
 
     const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
-    this.logger.debug(
-      `Sort by ${sortByProperty} in ${
-        sortAttributes.inAscendingOrder ? 'ascending' : 'descending'
-      } order`,
-    );
-    if (!sortByProperty && !searchTerms) return query;
-    if (!sortByProperty && searchTerms)
-      return query
-        .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
-        .orderBy(
-          `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`,
-        );
 
-    return query.orderBy(
-      sortByProperty,
-      sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC',
-    );
+    if (!sortByProperty && !searchTerms) return [query, undefined];
+    if (!sortByProperty && searchTerms) return getSortbyTsRankQuery();
+
+    const orderDirection =
+      sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
+    const orderByClause = `${sortByProperty} ${orderDirection}`;
+    this.logger.debug(orderByClause);
+    return [query.orderBy(sortByProperty, orderDirection), orderByClause];
+
+    function getSortbyTsRankQuery(): [SelectQueryBuilder<Project>, string] {
+      const orderByClause = `ts_rank(document_with_weights, to_tsquery(project.language::regconfig, format('%L', '${searchTerms}')))`;
+      return [query.orderBy(orderByClause), orderByClause];
+    }
   }
 
   async applyPagination(
     sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
+    orderByClause?: string,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
     const subqueryProjectIds = sortedAndFilteredProjectsSubquery
-      .select('project.id as id')
+      .select(
+        `project.id as id, row_number() over (${
+          orderByClause ? 'ORDER BY ' + orderByClause : ''
+        }) as orderKey`,
+      )
       .groupBy('project.id');
     const projectCount = await subqueryProjectIds.getCount();
+    this.logger.debug(subqueryProjectIds.getSql());
 
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
@@ -221,6 +219,7 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
+      .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
 
     return [finalPaginatedQuery, projectCount];
