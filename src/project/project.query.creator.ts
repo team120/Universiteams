@@ -202,12 +202,12 @@ export class QueryCreator {
         'projectIds',
         'project.id = "projectIds".id',
       )
-      .leftJoinAndSelect('project.researchDepartment', 'researchDepartment')
-      .leftJoinAndSelect(
+      .innerJoinAndSelect('project.researchDepartment', 'researchDepartment')
+      .innerJoinAndSelect(
         'researchDepartment.facility',
         'researchDepartmentFacility',
       )
-      .leftJoinAndSelect(
+      .innerJoinAndSelect(
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
@@ -221,8 +221,17 @@ export class QueryCreator {
   async getOne(id: number): Promise<Project> {
     const project = await this.projectRepository
       .createQueryBuilder('project')
-      .innerJoinAndSelect('project.enrollments', 'enrollment')
-      .innerJoinAndSelect('enrollment.user', 'user')
+      .innerJoinAndSelect('project.researchDepartment', 'researchDepartment')
+      .innerJoinAndSelect(
+        'researchDepartment.facility',
+        'researchDepartmentFacility',
+      )
+      .innerJoinAndSelect(
+        'researchDepartmentFacility.institution',
+        'researchDepartmentInstitution',
+      )
+      .leftJoinAndSelect('project.enrollments', 'enrollment')
+      .leftJoinAndSelect('enrollment.user', 'user')
       .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
       .leftJoinAndSelect(
         'userAffiliation.researchDepartment',
@@ -230,15 +239,6 @@ export class QueryCreator {
       )
       .leftJoinAndSelect('userResearchDepartment.facility', 'userFacility')
       .leftJoinAndSelect('userFacility.institution', 'userInstitution')
-      .leftJoinAndSelect('project.researchDepartment', 'researchDepartment')
-      .leftJoinAndSelect(
-        'researchDepartment.facility',
-        'researchDepartmentFacility',
-      )
-      .leftJoinAndSelect(
-        'researchDepartmentFacility.institution',
-        'researchDepartmentInstitution',
-      )
       .leftJoinAndSelect('project.interests', 'interests')
       .where('project.id = :projectId', { projectId: id })
       .getOne()
