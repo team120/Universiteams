@@ -211,6 +211,7 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
+      .leftJoinAndSelect('project.interests', 'projectInterests')
       .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
 

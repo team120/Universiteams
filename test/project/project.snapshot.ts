@@ -21,6 +21,16 @@ export const projects = [
         },
       },
     },
+    interests: [
+      {
+        id: 3,
+        name: 'Arduino',
+      },
+      {
+        id: 2,
+        name: 'IT Security',
+      },
+    ],
   },
   {
     id: 2,
@@ -44,6 +54,16 @@ export const projects = [
         },
       },
     },
+    interests: [
+      {
+        id: 1,
+        name: 'Data Science',
+      },
+      {
+        id: 5,
+        name: 'Crypto Currency',
+      },
+    ],
   },
 ];
 
