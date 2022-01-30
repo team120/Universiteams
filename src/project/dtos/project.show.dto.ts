@@ -23,13 +23,12 @@ export class ProjectInListDto {
   researchDepartment: ResearchDepartmentShowDto;
   @ExposeType(InterestShowDto)
   interests: InterestShowDto[];
-}
-
-@Exclude()
-export class ProjectSingleDto extends ProjectInListDto {
   @ExposeType(EnrollmentShowDto)
   enrollments: EnrollmentShowDto[];
 }
+
+@Exclude()
+export class ProjectSingleDto extends ProjectInListDto {}
 
 export class ProjectsResult {
   projects: ProjectInListDto[];

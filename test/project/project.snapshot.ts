@@ -31,6 +31,18 @@ export const projects = [
         name: 'IT Security',
       },
     ],
+    enrollments: [
+      {
+        id: 2,
+        role: 'Leader',
+        user: {
+          id: 2,
+          name: 'Carlos',
+          lastName: 'Villa',
+          mail: 'user2@example.com',
+        },
+      },
+    ],
   },
   {
     id: 2,
@@ -64,6 +76,28 @@ export const projects = [
         name: 'Crypto Currency',
       },
     ],
+    enrollments: [
+      {
+        id: 3,
+        role: 'Admin',
+        user: {
+          id: 2,
+          name: 'Carlos',
+          lastName: 'Villa',
+          mail: 'user2@example.com',
+        },
+      },
+      {
+        id: 4,
+        role: 'Leader',
+        user: {
+          id: 3,
+          name: 'Marcos',
+          lastName: 'Sanchez',
+          mail: 'user3@example.com',
+        },
+      },
+    ],
   },
 ];
 
@@ -89,9 +123,51 @@ export const projectGeolocationWithExtendedDta = {
       },
     },
   },
-  enrollments: [
+  interests: [
+    {
+      id: 3,
+      name: 'Arduino',
+    },
     {
       id: 2,
+      name: 'IT Security',
+    },
+  ],
+  enrollments: [
+    {
+      id: 1,
+      role: 'Member',
+      user: {
+        id: 1,
+        name: 'Juan',
+        lastName: 'Rizzo',
+        mail: 'user1@example.com',
+        userAffiliations: [
+          {
+            id: 3,
+            researchDepartment: {
+              id: 2,
+              name: 'Ingeniería Civil',
+              abbreviation: 'IC',
+              facility: {
+                id: 1,
+                name: 'Regional Rosario',
+                abbreviation: 'FRRo',
+                institution: {
+                  id: 1,
+                  name: 'Universidad Tecnológica Nacional',
+                  abbreviation: 'UTN',
+                },
+              },
+            },
+            currentType: 'Student',
+          },
+        ],
+      },
+    },
+    {
+      id: 2,
+      role: 'Leader',
       user: {
         id: 2,
         name: 'Carlos',
@@ -138,46 +214,6 @@ export const projectGeolocationWithExtendedDta = {
           },
         ],
       },
-    },
-    {
-      id: 1,
-      user: {
-        id: 1,
-        name: 'Juan',
-        lastName: 'Rizzo',
-        mail: 'user1@example.com',
-        userAffiliations: [
-          {
-            id: 3,
-            researchDepartment: {
-              id: 2,
-              name: 'Ingeniería Civil',
-              abbreviation: 'IC',
-              facility: {
-                id: 1,
-                name: 'Regional Rosario',
-                abbreviation: 'FRRo',
-                institution: {
-                  id: 1,
-                  name: 'Universidad Tecnológica Nacional',
-                  abbreviation: 'UTN',
-                },
-              },
-            },
-            currentType: 'Student',
-          },
-        ],
-      },
-    },
-  ],
-  interests: [
-    {
-      id: 2,
-      name: 'IT Security',
-    },
-    {
-      id: 3,
-      name: 'Arduino',
     },
   ],
 };

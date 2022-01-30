@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository, SelectQueryBuilder } from 'typeorm';
+import { ProjectRole } from '../enrollment/enrolment.entity';
 import { DbException } from '../utils/exceptions/database.exception';
 import {
   ProjectFilters,
@@ -193,7 +194,6 @@ export class QueryCreator {
       )
       .groupBy('project.id');
     const projectCount = await subqueryProjectIds.getCount();
-    this.logger.debug(subqueryProjectIds.getSql());
 
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
@@ -212,8 +212,14 @@ export class QueryCreator {
         'researchDepartmentInstitution',
       )
       .leftJoinAndSelect('project.interests', 'projectInterests')
+      .leftJoinAndSelect('project.enrollments', 'enrollment')
+      .leftJoinAndSelect('enrollment.user', 'user')
+      .where(`enrollment.role = '${ProjectRole.Leader}'`)
+      .orWhere(`enrollment.role = '${ProjectRole.Admin}'`)
       .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
+
+    this.logger.debug(finalPaginatedQuery.getSql());
 
     return [finalPaginatedQuery, projectCount];
   }
