@@ -4,6 +4,7 @@ export const projects = [
     name: 'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
     type: 'Formal',
     isDown: false,
+    userCount: 2,
     creationDate: '2020-03-16T00:00:00.000Z',
     researchDepartment: {
       id: 1,
@@ -26,6 +27,7 @@ export const projects = [
     name: 'Universiteams',
     type: 'Informal',
     isDown: false,
+    userCount: 2,
     creationDate: '2021-03-16T00:00:00.000Z',
     researchDepartment: {
       id: 1,
@@ -50,6 +52,7 @@ export const projectGeolocationWithExtendedDta = {
   name: 'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
   type: 'Formal',
   isDown: false,
+  userCount: 2,
   creationDate: '2020-03-16T00:00:00.000Z',
   researchDepartment: {
     id: 1,

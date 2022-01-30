@@ -15,16 +15,18 @@ export class ProjectInListDto {
   type: ProjectType;
   @Expose()
   isDown: boolean;
+  @Expose()
+  userCount: number;
   @ExposeType(Date)
   creationDate: Date;
   @ExposeType(ResearchDepartmentShowDto)
   researchDepartment: ResearchDepartmentShowDto;
-  @ExposeType(EnrollmentShowDto)
-  enrollments: EnrollmentShowDto[];
 }
 
 @Exclude()
 export class ProjectSingleDto extends ProjectInListDto {
+  @ExposeType(EnrollmentShowDto)
+  enrollments: EnrollmentShowDto[];
   @ExposeType(InterestShowDto)
   interests: InterestShowDto[];
 }
