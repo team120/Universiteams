@@ -2,7 +2,7 @@ import { MigrationInterface, getRepository } from 'typeorm';
 import { NotImplementedException } from '@nestjs/common';
 import * as argon2 from 'argon2';
 
-import { Enrollment } from '../../enrollment/enrolment.entity';
+import { Enrollment, ProjectRole } from '../../enrollment/enrolment.entity';
 import { Institution } from '../../institution/institution.entity';
 import { Interest } from '../../interest/interest.entity';
 import { Project, ProjectType } from '../../project/project.entity';
@@ -210,14 +210,17 @@ export class SeedDb1590967789743 implements MigrationInterface {
       utnFrroIsiGeolocationIotCarlosVilla: enrollmentsRepo.create({
         user: users.carlosVilla,
         project: projects.utnFrroIsiGeolocationIot,
+        role: ProjectRole.Leader,
       }),
       utnFrroIsiUniversiteamsCarlosVilla: enrollmentsRepo.create({
         user: users.carlosVilla,
         project: projects.utnFrroIsiUniversiteams,
+        role: ProjectRole.Admin,
       }),
       utnFrroIsiUniversiteamsMarcosSanchez: enrollmentsRepo.create({
         user: users.marcosSanchez,
         project: projects.utnFrroIsiUniversiteams,
+        role: ProjectRole.Leader,
       }),
     };
     await enrollmentsRepo.save(Object.values(enrollments));
