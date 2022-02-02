@@ -32,9 +32,9 @@ export class QueryCreator {
     this.logger.setContext(QueryCreator.name);
   }
 
-  private getMatchingWords(searchTerms: string): Promise<string[]> {
+  private async getMatchingWords(searchTerms: string): Promise<string[]> {
     const isolatedTerms = searchTerms.split(' ');
-    return Promise.all(
+    const termsWithMatches = await Promise.all(
       isolatedTerms.map((term) =>
         this.uniqueWordsRepository
           .createQueryBuilder()
@@ -47,19 +47,19 @@ export class QueryCreator {
             uniqueTerms.map((uniqueTerm) => uniqueTerm.word),
           ),
       ),
-    ).then((termsWithMatchs) =>
-      termsWithMatchs.reduce((joinedMatchs, termWithMatchs) =>
-        joinedMatchs.map((joinedTerm, i) =>
-          joinedTerm.concat(
-            ` ${
-              termWithMatchs[i] ??
-              termWithMatchs.filter((t) => t !== undefined)[0] ??
-              ''
-            }`,
-          ),
-        ),
-      ),
     );
+    return termsWithMatches.reduce((joinedMatches, termWithMatches) => {
+      const nonNullReplaceMatchingTerm = termWithMatches.filter(
+        (t) => t !== undefined,
+      )[0];
+      return joinedMatches.map((joinedTerm, i) =>
+        termWithMatches[i] || nonNullReplaceMatchingTerm
+          ? joinedTerm.concat(
+              ` ${termWithMatches[i] ?? nonNullReplaceMatchingTerm}`,
+            )
+          : joinedTerm.concat(''),
+      );
+    });
   }
 
   applyTextSearch(filters: ProjectFilters, query: SelectQueryBuilder<Project>) {
