@@ -5,6 +5,7 @@ import { ProjectController } from './project.controller';
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
+import { UniqueWordsService } from './unique-words.service';
 import { UniqueWords } from './uniqueWords.entity';
 
 @Module({
@@ -13,6 +14,6 @@ import { UniqueWords } from './uniqueWords.entity';
     SerializationModule,
   ],
   controllers: [ProjectController],
-  providers: [ProjectService, QueryCreator],
+  providers: [ProjectService, QueryCreator, UniqueWordsService],
 })
 export class ProjectModule {}

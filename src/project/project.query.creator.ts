@@ -10,7 +10,7 @@ import {
   SortByProperty,
 } from './dtos/project.find.dto';
 import { Project } from './project.entity';
-import { UniqueWords } from './uniqueWords.entity';
+import { UniqueWordsService } from './unique-words.service';
 
 @Injectable()
 export class QueryCreator {
@@ -25,41 +25,10 @@ export class QueryCreator {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(UniqueWords)
-    private readonly uniqueWordsRepository: Repository<UniqueWords>,
+    private readonly uniqueWordsService: UniqueWordsService,
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(QueryCreator.name);
-  }
-
-  private async getMatchingWords(searchTerms: string): Promise<string[]> {
-    const isolatedTerms = searchTerms.split(' ');
-    const termsWithMatches = await Promise.all(
-      isolatedTerms.map((term) =>
-        this.uniqueWordsRepository
-          .createQueryBuilder()
-          .where(`similarity(word, :term) > 0`, { term: term })
-          // to avoid sql injections, since typeorm doesn't support prepared statements in order by clauses
-          .orderBy(`word <-> format('%L', '${term}')`)
-          .limit(5)
-          .getMany()
-          .then((uniqueTerms) =>
-            uniqueTerms.map((uniqueTerm) => uniqueTerm.word),
-          ),
-      ),
-    );
-    return termsWithMatches.reduce((joinedMatches, termWithMatches) => {
-      const nonNullReplaceMatchingTerm = termWithMatches.filter(
-        (t) => t !== undefined,
-      )[0];
-      return joinedMatches.map((joinedTerm, i) =>
-        termWithMatches[i] || nonNullReplaceMatchingTerm
-          ? joinedTerm.concat(
-              ` ${termWithMatches[i] ?? nonNullReplaceMatchingTerm}`,
-            )
-          : joinedTerm.concat(''),
-      );
-    });
   }
 
   applyTextSearch(filters: ProjectFilters, query: SelectQueryBuilder<Project>) {
@@ -95,7 +64,9 @@ export class QueryCreator {
 
     if (projectsCountNormalSearch !== 0) return [query, undefined];
 
-    const matchingWords = await this.getMatchingWords(filters.generalSearch);
+    const matchingWords = await this.uniqueWordsService.getMatchingWords(
+      filters.generalSearch,
+    );
 
     const fuzzySearchQuery = this.projectRepository
       .createQueryBuilder('project')
