@@ -9,16 +9,16 @@ export class AddFullTextSeach1590967789744 implements MigrationInterface {
       CREATE MATERIALIZED VIEW project_search_index AS
       SELECT
         p.id,
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(p.name, ''))), 'A') || 
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(p.type, ''))), 'A') ||
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(rd.name, ''))), 'B') ||
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(rd.abbreviation, ''))), 'B') ||
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(f.name, ''))), 'B') ||
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(f.abbreviation, ''))), 'B') ||
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(inst.name, ''))), 'B') ||
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(inst.abbreviation, ''))), 'B') ||
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))), 'C') ||
-        setweight(to_tsvector(p.language::regconfig, unaccent(coalesce(string_agg(inter.name, ' '), ''))), 'C') as document_with_weights
+        to_tsvector(p.language::regconfig, unaccent(coalesce(p.name, ''))) || 
+        to_tsvector(p.language::regconfig, unaccent(coalesce(p.type, ''))) ||
+        to_tsvector(p.language::regconfig, unaccent(coalesce(rd.name, ''))) ||
+        to_tsvector(p.language::regconfig, unaccent(coalesce(rd.abbreviation, ''))) ||
+        to_tsvector(p.language::regconfig, unaccent(coalesce(f.name, ''))) ||
+        to_tsvector(p.language::regconfig, unaccent(coalesce(f.abbreviation, ''))) ||
+        to_tsvector(p.language::regconfig, unaccent(coalesce(inst.name, ''))) ||
+        to_tsvector(p.language::regconfig, unaccent(coalesce(inst.abbreviation, ''))) ||
+        to_tsvector(p.language::regconfig, unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))) ||
+        to_tsvector(p.language::regconfig, unaccent(coalesce(string_agg(inter.name, ' '), ''))) as document_with_weights
       FROM project p
       INNER JOIN research_department rd
         ON p."researchDepartmentId" = rd.id
@@ -83,16 +83,16 @@ export class AddFullTextSeach1590967789744 implements MigrationInterface {
       CREATE MATERIALIZED VIEW unique_words AS
       SELECT word FROM ts_stat($$
         SELECT
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(p.name, ''))), 'A') || 
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(p.type, ''))), 'A') ||
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(rd.name, ''))), 'B') ||
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(rd.abbreviation, ''))), 'B') ||
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(f.name, ''))), 'B') ||
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(f.abbreviation, ''))), 'B') ||
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(inst.name, ''))), 'B') ||
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(inst.abbreviation, ''))), 'B') ||
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))), 'C') ||
-          setweight(to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(string_agg(inter.name, ' '), ''))), 'C')
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(p.name, ''))) || 
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(p.type, ''))) ||
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(rd.name, ''))) ||
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(rd.abbreviation, ''))) ||
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(f.name, ''))) ||
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(f.abbreviation, ''))) ||
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(inst.name, ''))) ||
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(inst.abbreviation, ''))) ||
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))) ||
+          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(string_agg(inter.name, ' '), '')))
         FROM project p
         INNER JOIN research_department rd
           ON p."researchDepartmentId" = rd.id
