@@ -46,6 +46,19 @@ describe('Project Actions (e2e)', () => {
           });
       });
     });
+    describe('when multiple search terms are provided', () => {
+      it.each(['utn frro isi', 'uen frer asi', 'atn frro wqwqwqqw'])(
+        'should get all matching projects',
+        async (generalSearchText: string) => {
+          await request(app.getHttpServer())
+            .get(`/projects?generalSearch=${generalSearchText}`)
+            .then((res) => {
+              expect(res.status).toBe(200);
+              expect(res.body.projects).toHaveLength(2);
+            });
+        },
+      );
+    });
     describe('and additionally filtered by', () => {
       describe('dateFrom', () => {
         it('should get all projects that partially match their name and were started before dateFrom', async () => {
