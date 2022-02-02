@@ -226,7 +226,7 @@ export class QueryCreator {
     return [finalPaginatedQuery, projectCount];
   }
 
-  async getOne(id: number): Promise<Project> {
+  async findOne(id: number): Promise<Project> {
     const project = await this.projectRepository
       .createQueryBuilder('project')
       .innerJoinAndSelect('project.researchDepartment', 'researchDepartment')

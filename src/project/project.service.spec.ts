@@ -8,7 +8,10 @@ import { ProjectService } from './project.service';
 
 describe('ProjectService', () => {
   let service: ProjectService;
-  const queryCreatorMock = { findOne: jest.fn() };
+  const queryCreatorMock = {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    findOne: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
