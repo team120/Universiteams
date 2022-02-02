@@ -9,7 +9,9 @@ export class ViewRefresherService {
   constructor(
     @InjectConnection() private connection: Connection,
     private logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(ViewRefresherService.name);
+  }
 
   @SkipWhenTestingInterval('search-index-refresher', 900000)
   refreshFullTextSearchIndexMaterializedView() {

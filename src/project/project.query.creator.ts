@@ -28,7 +28,9 @@ export class QueryCreator {
     @InjectRepository(UniqueWords)
     private readonly uniqueWordsRepository: Repository<UniqueWords>,
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(QueryCreator.name);
+  }
 
   private getMatchingWords(searchTerms: string): Promise<string[]> {
     const isolatedTerms = searchTerms.split(' ');
