@@ -21,7 +21,10 @@ describe('InstitutionService', () => {
           provide: getRepositoryToken(Institution),
           useValue: institutionRepositoryMock,
         },
-        { provide: PinoLogger, useValue: { debug: jest.fn() } },
+        {
+          provide: PinoLogger,
+          useValue: { debug: jest.fn(), setContext: jest.fn() },
+        },
       ],
     }).compile();
 

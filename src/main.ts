@@ -21,6 +21,7 @@ async function bootstrap() {
   const customOptions: SwaggerCustomOptions = {
     swaggerOptions: {
       persistAuthorization: true,
+      displayRequestDuration: true,
     },
   };
 

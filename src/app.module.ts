@@ -9,19 +9,21 @@ import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     DatabaseModule,
+    ScheduleModule.forRoot(),
     LoggerModule.forRoot({
       pinoHttp: {
-        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        level: process.env.NODE_ENV === 'prod' ? 'info' : 'debug',
         formatters: {
           level: (level: string) => new Object({ level: level }),
         },
         prettyPrint:
-          process.env.NODE_ENV !== 'production'
+          process.env.NODE_ENV !== 'prod'
             ? {
                 colorize: true,
                 levelFirst: true,

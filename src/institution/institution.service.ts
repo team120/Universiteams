@@ -14,7 +14,9 @@ export class InstitutionService {
     private readonly institutionRepository: Repository<Institution>,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(InstitutionService.name);
+  }
 
   async findAll(): Promise<InstitutionShowDto[]> {
     this.logger.debug('Find all universities and their related departments');

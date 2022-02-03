@@ -14,7 +14,9 @@ export class InterestService {
     private readonly interestRepository: Repository<Interest>,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(InterestService.name);
+  }
 
   async findAll(): Promise<InterestShowDto[]> {
     this.logger.debug('Find all interests');

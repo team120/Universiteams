@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ViewRefresherService } from './view-refresher.service';
 
 @Module({
   imports: [
@@ -23,5 +24,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
     }),
   ],
+  providers: [ViewRefresherService],
 })
 export class DatabaseModule {}

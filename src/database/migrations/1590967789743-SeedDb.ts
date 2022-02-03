@@ -2,7 +2,7 @@ import { MigrationInterface, getRepository } from 'typeorm';
 import { NotImplementedException } from '@nestjs/common';
 import * as argon2 from 'argon2';
 
-import { Enrollment } from '../../enrollment/enrolment.entity';
+import { Enrollment, ProjectRole } from '../../enrollment/enrolment.entity';
 import { Institution } from '../../institution/institution.entity';
 import { Interest } from '../../interest/interest.entity';
 import { Project, ProjectType } from '../../project/project.entity';
@@ -35,7 +35,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         abbreviation: 'UNR',
       }),
     };
-
     await institutionRepo.save(Object.values(institutions));
 
     const facilities = {
@@ -50,7 +49,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         institution: institutions.unr,
       }),
     };
-
     await facilityRepo.save(Object.values(facilities));
 
     const researchDepartments = {
@@ -90,7 +88,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         abbreviation: 'General',
       }),
     };
-
     await researchDepartmentRepo.save(Object.values(researchDepartments));
 
     const interests = {
@@ -125,7 +122,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         verified: true,
       }),
     };
-
     await interestRepo.save(Object.values(interests));
 
     const projects = {
@@ -144,7 +140,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         interests: [interests.dataScience, interests.cryptoCurrency],
       }),
     };
-
     await projectRepo.save(Object.values(projects));
 
     const users = {
@@ -205,7 +200,6 @@ export class SeedDb1590967789743 implements MigrationInterface {
         currentType: UserAffiliationType.Professor,
       }),
     };
-
     await userAffiliationRepo.save(Object.values(userAffiliations));
 
     const enrollments = {
@@ -216,18 +210,37 @@ export class SeedDb1590967789743 implements MigrationInterface {
       utnFrroIsiGeolocationIotCarlosVilla: enrollmentsRepo.create({
         user: users.carlosVilla,
         project: projects.utnFrroIsiGeolocationIot,
+        role: ProjectRole.Leader,
       }),
       utnFrroIsiUniversiteamsCarlosVilla: enrollmentsRepo.create({
         user: users.carlosVilla,
         project: projects.utnFrroIsiUniversiteams,
+        role: ProjectRole.Admin,
       }),
       utnFrroIsiUniversiteamsMarcosSanchez: enrollmentsRepo.create({
         user: users.marcosSanchez,
         project: projects.utnFrroIsiUniversiteams,
+        role: ProjectRole.Leader,
       }),
     };
-
     await enrollmentsRepo.save(Object.values(enrollments));
+
+    await projectRepo.query(`
+      DROP TABLE IF EXISTS project_user_counts;
+      CREATE TEMPORARY TABLE project_user_counts AS
+      SELECT proj.id as id, count(*) as "computedUserCount"
+      FROM project proj
+      INNER JOIN enrollment enr
+        ON "proj"."id" = enr."projectId"
+      INNER JOIN "user" usr
+        ON "enr"."userId" = usr.id
+      GROUP BY proj.id;
+      
+      UPDATE project 
+      SET "userCount" = "computedUserCount"
+      FROM project_user_counts
+      WHERE project.id = project_user_counts.id;
+    `);
   }
 
   public async down(): Promise<void> {
