@@ -5,27 +5,29 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: "Run Linter"
-      run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run lint
-    - name: "Run Unit Tests"
-      run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run test
-    - name: "Run E2E Tests"
-      run: | 
-        docker-compose -p test -f docker-compose.test.yml run test npm run test:e2e
-        docker-compose -p test -f docker-compose.test.yml down
-    - name: "Run Formatter"
-      run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run format
-    - name: "Apply Formatter Changes"
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with: 
-        commit_message: Apply prettier code format changes
+      - uses: actions/checkout@v2
+      - name: 'Run Linter'
+        run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run lint
+      - name: 'Run Unit Tests'
+        run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run test
+      - name: 'Run E2E Tests'
+        run: |
+          docker-compose -p test -f docker-compose.test.yml run test npm run test:e2e
+          docker-compose -p test -f docker-compose.test.yml down
+      - name: 'Run Linter'
+        run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run lint
+      - name: 'Run Formatter'
+        run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run format
+      - name: 'Apply Linter and Formatter Changes'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply eslint and prettier code changes
