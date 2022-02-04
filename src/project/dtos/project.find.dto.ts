@@ -1,6 +1,6 @@
 import { OmitType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
-import { IsNumber, Min } from 'class-validator';
+import { IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
@@ -36,10 +36,12 @@ export class ProjectFindDto {
   @ParseOptionalBoolean()
   inAscendingOrder?: boolean;
   @ExposeType(Number)
+  @IsOptional()
   @IsNumber()
   @Min(0)
   offset?: number;
   @ExposeType(Number)
+  @IsOptional()
   @IsNumber()
   @Min(1)
   limit?: number;
