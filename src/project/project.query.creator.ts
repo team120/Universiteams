@@ -87,18 +87,18 @@ export class QueryCreator {
     query: SelectQueryBuilder<Project>,
   ): SelectQueryBuilder<Project> {
     const relatedEntitiesJoinsQuery = query
-      .innerJoin('project.enrollments', 'enrollment')
-      .innerJoin('enrollment.user', 'user')
+      .innerJoin('project.researchDepartment', 'researchDepartment')
+      .innerJoin('researchDepartment.facility', 'researchDepartmentFacility')
+      .innerJoin(
+        'researchDepartmentFacility.institution',
+        'researchDepartmentInstitution',
+      )
+      .leftJoin('project.enrollments', 'enrollment')
+      .leftJoin('enrollment.user', 'user')
       .leftJoin('user.userAffiliations', 'userAffiliation')
       .leftJoin('userAffiliation.researchDepartment', 'userResearchDepartment')
       .leftJoin('userResearchDepartment.facility', 'userFacility')
-      .leftJoin('userFacility.institution', 'userInstitution')
-      .leftJoin('project.researchDepartment', 'researchDepartment')
-      .leftJoin('researchDepartment.facility', 'researchDepartmentFacility')
-      .leftJoin(
-        'researchDepartmentFacility.institution',
-        'researchDepartmentInstitution',
-      );
+      .leftJoin('userFacility.institution', 'userInstitution');
     if (filters.institutionId) {
       relatedEntitiesJoinsQuery.andWhere(
         `userInstitution.id = :userInstitutionId`,
@@ -191,8 +191,8 @@ export class QueryCreator {
       .leftJoinAndSelect('project.interests', 'projectInterests')
       .leftJoinAndSelect('project.enrollments', 'enrollment')
       .leftJoinAndSelect('enrollment.user', 'user')
-      .where(`enrollment.role = '${ProjectRole.Leader}'`)
-      .orWhere(`enrollment.role = '${ProjectRole.Admin}'`)
+      .where(`enrollment is null OR enrollment.role = '${ProjectRole.Leader}'`)
+      .orWhere(`enrollment is null OR enrollment.role = '${ProjectRole.Admin}'`)
       .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
 
