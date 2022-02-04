@@ -22,11 +22,11 @@ export class ProjectFindDto {
   @Expose()
   @ParseOptionalBoolean()
   isDown?: boolean;
-  @Expose()
+  @ExposeType(Number)
   researchDepartmentId?: number;
-  @Expose()
+  @ExposeType(Number)
   institutionId?: number;
-  @Expose()
+  @ExposeType(Number)
   userId?: number;
   @ExposeType(Date)
   dateFrom?: Date;
