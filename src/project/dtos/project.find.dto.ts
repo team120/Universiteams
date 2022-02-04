@@ -1,5 +1,6 @@
 import { OmitType, PickType } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { IsNumber, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
@@ -34,6 +35,14 @@ export class ProjectFindDto {
   @Expose()
   @ParseOptionalBoolean()
   inAscendingOrder?: boolean;
+  @ExposeType(Number)
+  @IsNumber()
+  @Min(0)
+  offset?: number;
+  @ExposeType(Number)
+  @IsNumber()
+  @Min(1)
+  limit?: number;
 }
 
 const sortAttributes = ['sortBy', 'inAscendingOrder'] as const;
@@ -44,3 +53,8 @@ export class ProjectSortAttributes extends PickType(
   ProjectFindDto,
   sortAttributes,
 ) {}
+
+export class PaginationAttributes extends PickType(ProjectFindDto, [
+  'limit',
+  'offset',
+] as const) {}

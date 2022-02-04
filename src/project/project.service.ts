@@ -5,6 +5,7 @@ import { EntityMapperService } from '../utils/serialization/entity-mapper.servic
 import {
   ProjectFilters,
   ProjectFindDto,
+  PaginationAttributes,
   ProjectSortAttributes,
 } from './dtos/project.find.dto';
 import {
@@ -25,11 +26,19 @@ export class ProjectService {
   }
 
   async findProjects(findOptions: ProjectFindDto): Promise<ProjectsResult> {
-    const sortAttributes: ProjectSortAttributes = {
-      sortBy: findOptions.sortBy,
-      inAscendingOrder: findOptions.inAscendingOrder,
-    };
-    const filters: ProjectFilters = findOptions;
+    const filters: ProjectFilters = this.entityMapper.mapValue(
+      ProjectFilters,
+      findOptions,
+    );
+    const sortAttributes: ProjectSortAttributes = this.entityMapper.mapValue(
+      ProjectSortAttributes,
+      findOptions,
+    );
+    const paginationAttributes = this.entityMapper.mapValue(
+      PaginationAttributes,
+      findOptions,
+    );
+
     const query = this.queryCreator.initialProjectQuery();
 
     const searchQuery = this.queryCreator.applyTextSearch(filters, query);
@@ -50,6 +59,7 @@ export class ProjectService {
     const [paginationAppliedQuery, projectsCount] =
       await this.queryCreator.applyPagination(
         sortingAppliedQuery,
+        paginationAttributes,
         orderByClause,
       );
 

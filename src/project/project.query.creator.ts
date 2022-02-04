@@ -6,6 +6,7 @@ import { ProjectRole } from '../enrollment/enrolment.entity';
 import { DbException } from '../utils/exceptions/database.exception';
 import {
   ProjectFilters,
+  PaginationAttributes,
   ProjectSortAttributes,
   SortByProperty,
 } from './dtos/project.find.dto';
@@ -157,6 +158,7 @@ export class QueryCreator {
 
   async applyPagination(
     sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
+    paginationAttributes: PaginationAttributes,
     orderByClause?: string,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
     const subqueryProjectIds = sortedAndFilteredProjectsSubquery
@@ -165,7 +167,9 @@ export class QueryCreator {
           orderByClause ? 'ORDER BY ' + orderByClause : ''
         }) as orderKey`,
       )
-      .groupBy('project.id');
+      .groupBy('project.id')
+      .offset(paginationAttributes.offset)
+      .limit(paginationAttributes.limit);
     const projectCount = await subqueryProjectIds.getCount();
 
     const finalPaginatedQuery = this.projectRepository
@@ -191,8 +195,6 @@ export class QueryCreator {
       .orWhere(`enrollment.role = '${ProjectRole.Admin}'`)
       .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
-
-    this.logger.debug(finalPaginatedQuery.getSql());
 
     return [finalPaginatedQuery, projectCount];
   }
