@@ -1,5 +1,11 @@
 import { OmitType, PickType } from '@nestjs/swagger';
-import { Exclude, Expose, Type } from 'class-transformer';
+import {
+  Exclude,
+  Expose,
+  Transform,
+  TransformFnParams,
+  Type,
+} from 'class-transformer';
 import { IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
@@ -47,16 +53,22 @@ export class ProjectFindDto {
   limit?: number;
 }
 
-const sortAttributes = ['sortBy', 'inAscendingOrder'] as const;
+@Exclude()
+export class ProjectFilters extends OmitType(ProjectFindDto, [
+  'sortBy',
+  'inAscendingOrder',
+  'limit',
+  'offset',
+]) {}
 
-export class ProjectFilters extends OmitType(ProjectFindDto, sortAttributes) {}
+@Exclude()
+export class ProjectSortAttributes extends PickType(ProjectFindDto, [
+  'sortBy',
+  'inAscendingOrder',
+]) {}
 
-export class ProjectSortAttributes extends PickType(
-  ProjectFindDto,
-  sortAttributes,
-) {}
-
+@Exclude()
 export class PaginationAttributes extends PickType(ProjectFindDto, [
   'limit',
   'offset',
-] as const) {}
+]) {}
