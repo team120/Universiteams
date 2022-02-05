@@ -1,5 +1,4 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { NotImplementedException } from '@nestjs/common';
 
 export class AddFullTextSeach1590967789744 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -121,7 +120,25 @@ export class AddFullTextSeach1590967789744 implements MigrationInterface {
     `);
   }
 
-  public async down(): Promise<void> {
-    throw new NotImplementedException();
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+      DROP MATERIALIZED VIEW project_search_index;
+
+      -- Dictionary and search configuration that includes SPANISH stop words but does not stem words
+      DROP TEXT SEARCH DICTIONARY spanish_simple_dict;
+      DROP TEXT SEARCH CONFIGURATION spanish_simple;
+
+      -- Dictionary and search configuration that includes ENGLISH stop words but does not stem words
+      DROP TEXT SEARCH DICTIONARY english_simple_dict;
+      DROP TEXT SEARCH CONFIGURATION english_simple;
+
+      -- Function that maps traditional search configurations to simple non-stemmed no-stop-words configs
+      DROP FUNCTION to_simple_searchconfig(character varying);
+
+      DROP MATERIALIZED VIEW unique_words;
+
+      DROP EXTENSION pg_trgm;
+      DROP EXTENSION unaccent;
+    `);
   }
 }
