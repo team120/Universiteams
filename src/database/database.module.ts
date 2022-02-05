@@ -18,7 +18,7 @@ import { ViewRefresherService } from './view-refresher.service';
         entities: ['dist/**/*.entity{.ts,.js}'],
         migrations: ['dist/database/migrations/*{.ts,.js}'],
         migrationsRun: true,
-        synchronize: true,
+        synchronize: configService.get('NODE_ENV') !== 'prod',
         logging: false,
         cli: { migrationsDir: 'src/database/migrations' },
       }),
