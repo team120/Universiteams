@@ -6,9 +6,15 @@ const optionalBooleanMapper = new Map([
   ['false', false],
 ]);
 
+export const parseOptionalBooleanFunc = (value: any): boolean | undefined => {
+  const valueType = typeof value;
+  if (valueType === 'boolean') return value;
+  if (valueType !== 'string') return undefined;
+
+  return optionalBooleanMapper.get(value);
+};
+
 export const ParseOptionalBoolean = () =>
   Transform(({ value }: TransformFnParams): boolean => {
-    if (typeof value === 'boolean') return value;
-
-    return optionalBooleanMapper.get(value);
+    return parseOptionalBooleanFunc(value);
   });
