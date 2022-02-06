@@ -16,6 +16,8 @@ export class Facility {
   name: string;
   @Column()
   abbreviation: string;
+  @Column({ nullable: true })
+  web: string;
 
   @ManyToOne(() => Institution, (institution) => institution.facilities, {
     nullable: false,

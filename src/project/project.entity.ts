@@ -32,6 +32,10 @@ export class Project {
   language: 'spanish' | 'english';
   @Column({ default: 0 })
   userCount: number;
+  @Column({ nullable: true })
+  web: string;
+  @Column({ default: false })
+  referenceOnly: boolean;
 
   @ManyToOne(
     () => ResearchDepartment,

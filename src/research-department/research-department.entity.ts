@@ -17,6 +17,10 @@ export class ResearchDepartment {
   name: string;
   @Column()
   abbreviation: string;
+  @Column({ nullable: true })
+  web: string;
+  @Column({ default: false })
+  referenceOnly: boolean;
 
   @ManyToOne(() => Facility, (facility) => facility.researchDepartments, {
     nullable: false,
