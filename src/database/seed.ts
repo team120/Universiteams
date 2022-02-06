@@ -51,6 +51,7 @@ export class Seed {
     await this.enrollmentsRepo.save(Object.values(enrollments));
 
     await this.computeProjectsUserCount();
+    await this.computeInterestsRefsCount();
   }
 
   async removeSeedDbData() {
@@ -100,6 +101,32 @@ export class Seed {
       SET "userCount" = "computedUserCount"
       FROM project_user_counts
       WHERE project.id = project_user_counts.id;
+    `);
+  }
+
+  private async computeInterestsRefsCount() {
+    await this.projectRepo.query(`
+      UPDATE interest
+      SET "projectRefsCounter" = projects_interest_count."count"
+      FROM (
+        SELECT i.id, count(ip."interestId") as "count"
+        FROM public.interest i
+        LEFT JOIN interest_projects_project ip
+          ON id = ip."interestId"
+        GROUP BY i.id
+        ) as projects_interest_count
+      WHERE interest.id = projects_interest_count.id;
+
+      UPDATE interest
+      SET "userRefsCounter" = users_interest_count."count"
+      FROM (
+        SELECT i.id, count(iu."interestId") as "count"
+        FROM public.interest i
+        LEFT JOIN interest_users_user iu
+          ON i.id = iu."interestId"
+        GROUP BY i.id
+        ) as users_interest_count
+      WHERE interest.id = users_interest_count.id;
     `);
   }
 
@@ -179,32 +206,38 @@ export class Seed {
     return {
       dataScience: this.interestRepo.create({
         name: 'Data Science',
-        projectRefsCounter: 1,
-        userRefsCounter: 4,
         verified: true,
       }),
       itSecurity: this.interestRepo.create({
         name: 'IT Security',
-        projectRefsCounter: 0,
-        userRefsCounter: 3,
         verified: true,
       }),
       arduino: this.interestRepo.create({
         name: 'Arduino',
-        projectRefsCounter: 3,
-        userRefsCounter: 2,
         verified: true,
       }),
       businessIntelligence: this.interestRepo.create({
         name: 'Business Intelligence',
-        projectRefsCounter: 2,
-        userRefsCounter: 0,
         verified: true,
       }),
       cryptoCurrency: this.interestRepo.create({
         name: 'Crypto Currency',
-        projectRefsCounter: 1,
-        userRefsCounter: 1,
+        verified: true,
+      }),
+      edutech: this.interestRepo.create({
+        name: 'Edutech',
+        verified: true,
+      }),
+      processEngineering: this.interestRepo.create({
+        name: 'Ingeniería de procesos y de productos',
+        verified: true,
+      }),
+      environment: this.interestRepo.create({
+        name: 'Medio ambiente',
+        verified: true,
+      }),
+      sustainableDevelopment: this.interestRepo.create({
+        name: 'Desarrollo sustentable',
         verified: true,
       }),
     };

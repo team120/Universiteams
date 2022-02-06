@@ -14,11 +14,11 @@ export class Interest {
   id: number;
   @Column()
   name: string;
-  @Column()
+  @Column({ default: 0 })
   projectRefsCounter: number;
-  @Column()
+  @Column({ default: 0 })
   userRefsCounter: number;
-  @Column()
+  @Column({ default: false })
   verified: boolean;
 
   @ManyToMany(() => Project, (project) => project.interests, {
