@@ -20,7 +20,6 @@ export class QueryCreator {
     [SortByProperty.researchDepartment, 'researchDepartment.name'],
     [SortByProperty.facility, 'researchDepartmentFacility.name'],
     [SortByProperty.creationDate, 'project.creationDate'],
-    [SortByProperty.type, 'project.type'],
   ]);
 
   constructor(

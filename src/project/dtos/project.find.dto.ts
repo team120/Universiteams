@@ -16,7 +16,6 @@ export enum SortByProperty {
   researchDepartment = 'researchDepartment',
   facility = 'facility',
   creationDate = 'creationDate',
-  type = 'type',
 }
 
 @Exclude()
