@@ -32,8 +32,4 @@ export class UserAffiliation {
   departmentalId: string;
   @Column({ default: UserAffiliationType.Student })
   currentType: UserAffiliationType;
-  @Column({ nullable: true })
-  requestedType: UserAffiliationType;
-  @Column({ nullable: true })
-  lastVerification: Date;
 }
