@@ -451,7 +451,7 @@ export class Seed {
         ],
       }),
       utnFrroCaimiInherentlySafeDesign: this.projectRepo.create({
-        name: 'Estrategias de Modelado de Procesos bajo la Filosofía de Diseño Inherentemente Seguro.',
+        name: 'Estrategias de Modelado de Procesos bajo la Filosofía de Diseño Inherentemente Seguro',
         type: ProjectType.Formal,
         creationDate: '2019-01-01T00:00:00.000Z',
         researchDepartment: researchDepartments.utnFrroCaimi,
@@ -465,7 +465,7 @@ export class Seed {
         ],
       }),
       utnFrroCaimiSustainableBioeconomyProcessDesign: this.projectRepo.create({
-        name: 'Estrategias de Diseño de Procesos de Bioingeniería Sustentables. Aplicaciones a Casos de Estudio en el marco de la bioeconomía.',
+        name: 'Estrategias de Diseño de Procesos de Bioingeniería Sustentables. Aplicaciones a Casos de Estudio en el marco de la bioeconomía',
         type: ProjectType.Formal,
         creationDate: '2018-01-01T00:00:00.000Z',
         researchDepartment: researchDepartments.utnFrroCaimi,
@@ -493,7 +493,7 @@ export class Seed {
         ],
       }),
       utnFrroOesPhotovoltaicPerformanceMeasure: this.projectRepo.create({
-        name: 'Medición de Rendimiento de Planta Fotovoltaica. Estudio Comparativo en base a Diversas Herramientas de Cálculo. Desarrollo de Aplicación de Cálculo.',
+        name: 'Medición de Rendimiento de Planta Fotovoltaica. Estudio Comparativo en base a Diversas Herramientas de Cálculo. Desarrollo de Aplicación de Cálculo',
         type: ProjectType.Formal,
         creationDate: '2019-01-01T00:00:00.000Z',
         researchDepartment: researchDepartments.utnFrroOes,
