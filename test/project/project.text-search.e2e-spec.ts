@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { TestingModule, Test } from '@nestjs/testing';
 import * as request from 'supertest';
-import { projects } from './project.snapshot';
 import { ProjectE2EModule } from './project.e2e.module';
 
 describe('Project Actions (e2e)', () => {
@@ -23,12 +22,18 @@ describe('Project Actions (e2e)', () => {
   describe('search projects by a general text search', () => {
     describe('when partially match some of their users', () => {
       it('should get the two existent projects', async () => {
-        const generalSearchText = 'carl';
+        const generalSearchText = 'carl vila';
         await request(app.getHttpServer())
           .get(`/projects?generalSearch=${generalSearchText}`)
           .then((res) => {
             expect(res.status).toBe(200);
+            expect(res.body.projectCount).toBe(2);
             expect(res.body.projects).toHaveLength(2);
+            expect(
+              res.body.projects[1].enrollments.filter(
+                (e) => e.role === 'Admin',
+              )[0].user.name,
+            ).toEqual('Carlos');
           });
       });
     });
@@ -36,25 +41,29 @@ describe('Project Actions (e2e)', () => {
       it('should get all matching projects', async () => {
         const generalSearchText = 'teams';
         await request(app.getHttpServer())
-          .get(`/projects?generalSearch=${generalSearchText}`)
+          .get(`/projects?generalSearch=${generalSearchText}&offset=0&limit=5`)
           .then((res) => {
             expect(res.status).toBe(200);
-            expect(res.body.projects).toEqual(
-              projects.filter((p) => p.name.includes(generalSearchText)),
-            );
             expect(res.body.projects).toHaveLength(1);
+            expect(res.body.projects[0].name).toBe('Universiteams');
           });
       });
     });
     describe('when multiple search terms are provided', () => {
-      it.each(['utn frro isi', 'uen frer asi', 'atn frro wqwqwqqw'])(
+      it.each(['utn frro isi', 'uen frer asi', 'etn frro isa wqwqwqqw'])(
         'should get all matching projects',
         async (generalSearchText: string) => {
           await request(app.getHttpServer())
-            .get(`/projects?generalSearch=${generalSearchText}`)
+            .get(
+              `/projects?generalSearch=${generalSearchText}&offset=0&limit=5`,
+            )
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body.projects).toHaveLength(2);
+              expect(res.body.projectCount).toBe(3);
+              expect(res.body.projects).toHaveLength(3);
+              if (generalSearchText !== 'utn frro isi') {
+                expect(res.body.suggestedSearchTerms[0]).toBe('utn frro isi');
+              }
             });
         },
       );
@@ -72,20 +81,6 @@ describe('Project Actions (e2e)', () => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(0);
             });
-        });
-      });
-      describe('type', () => {
-        describe('Formal', () => {
-          it('should get no projects', async () => {
-            const generalSearchText = 'Data Science';
-            const type = 'Formal';
-            await request(app.getHttpServer())
-              .get(`/projects?generalSearch=${generalSearchText}&type=${type}`)
-              .then((res) => {
-                expect(res.status).toBe(200);
-                expect(res.body.projects).toHaveLength(0);
-              });
-          });
         });
       });
       describe('isDown', () => {
