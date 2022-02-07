@@ -11,21 +11,51 @@ export const institutions = [
         researchDepartments: [
           {
             id: 1,
+            name: 'Ciencias Básicas',
+            abbreviation: 'CB',
+          },
+          {
+            id: 2,
             name: 'Ingeniería en Sistemas',
             abbreviation: 'ISI',
           },
           {
-            id: 2,
+            id: 3,
             name: 'Ingeniería Civil',
             abbreviation: 'IC',
           },
           {
-            id: 3,
+            id: 4,
             name: 'Ingeniería Química',
             abbreviation: 'IQ',
           },
           {
-            id: 4,
+            id: 5,
+            name: 'Centro de Aplicaciones Informáticas y Modelado en Ingeniería',
+            abbreviation: 'CAIMI',
+          },
+          {
+            id: 6,
+            name: 'Centro de Investigación y Desarrollo en Tecnología de Alimentos',
+            abbreviation: 'CIDTA',
+          },
+          {
+            id: 7,
+            name: 'Observatorio de Energía y Sustentabilidad',
+            abbreviation: 'OES',
+          },
+          {
+            id: 8,
+            name: 'Centro de Investigación y Desarrollo en Tecnologías Especiales',
+            abbreviation: 'CEDITE',
+          },
+          {
+            id: 9,
+            name: 'Grupo de Estudios Sobre Energía',
+            abbreviation: 'GESE',
+          },
+          {
+            id: 10,
             name: 'General',
             abbreviation: 'General',
           },
@@ -44,17 +74,17 @@ export const institutions = [
         abbreviation: 'FCEIA',
         researchDepartments: [
           {
-            id: 5,
+            id: 11,
             name: 'Ciencias Básicas',
             abbreviation: 'CB',
           },
           {
-            id: 6,
+            id: 12,
             name: 'Ingeniería Electrónica',
             abbreviation: 'IE',
           },
           {
-            id: 7,
+            id: 13,
             name: 'General',
             abbreviation: 'General',
           },
