@@ -4,6 +4,7 @@ import {
   ManyToOne,
   Entity,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { Project } from '../project/project.entity';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
@@ -40,6 +41,10 @@ export class ResearchDepartment {
   )
   usersAffiliations: UserAffiliation[];
 
-  @OneToMany(() => Project, (project) => project.researchDepartment)
+  @ManyToMany(() => Project, (project) => project.researchDepartments, {
+    nullable: true,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
   projects: Project[];
 }

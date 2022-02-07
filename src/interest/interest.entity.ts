@@ -1,10 +1,4 @@
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
 
@@ -26,7 +20,6 @@ export class Interest {
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
-  @JoinTable()
   projects: Project[];
 
   @ManyToMany(() => User, (user) => user.interests, {
@@ -34,6 +27,5 @@ export class Interest {
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
-  @JoinTable()
   users: User[];
 }

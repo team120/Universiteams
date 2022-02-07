@@ -86,7 +86,7 @@ export class QueryCreator {
     query: SelectQueryBuilder<Project>,
   ): SelectQueryBuilder<Project> {
     const relatedEntitiesJoinsQuery = query
-      .innerJoin('project.researchDepartment', 'researchDepartment')
+      .innerJoin('project.researchDepartments', 'researchDepartment')
       .innerJoin('researchDepartment.facility', 'researchDepartmentFacility')
       .innerJoin(
         'researchDepartmentFacility.institution',
@@ -178,7 +178,7 @@ export class QueryCreator {
         'projectIds',
         'project.id = "projectIds".id',
       )
-      .innerJoinAndSelect('project.researchDepartment', 'researchDepartment')
+      .innerJoinAndSelect('project.researchDepartments', 'researchDepartment')
       .innerJoinAndSelect(
         'researchDepartment.facility',
         'researchDepartmentFacility',
@@ -201,7 +201,7 @@ export class QueryCreator {
   async findOne(id: number): Promise<Project> {
     const project = await this.projectRepository
       .createQueryBuilder('project')
-      .innerJoinAndSelect('project.researchDepartment', 'researchDepartment')
+      .innerJoinAndSelect('project.researchDepartments', 'researchDepartment')
       .innerJoinAndSelect(
         'researchDepartment.facility',
         'researchDepartmentFacility',

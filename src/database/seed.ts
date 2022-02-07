@@ -125,10 +125,10 @@ export class Seed {
       UPDATE interest
       SET "projectRefsCounter" = projects_interest_count."count"
       FROM (
-        SELECT i.id, count(ip."interestId") as "count"
+        SELECT i.id, count(pi."interestId") as "count"
         FROM public.interest i
-        LEFT JOIN interest_projects_project ip
-          ON id = ip."interestId"
+        LEFT JOIN project_interest pi
+          ON id = pi."interestId"
         GROUP BY i.id
         ) as projects_interest_count
       WHERE interest.id = projects_interest_count.id;
@@ -136,10 +136,10 @@ export class Seed {
       UPDATE interest
       SET "userRefsCounter" = users_interest_count."count"
       FROM (
-        SELECT i.id, count(iu."interestId") as "count"
+        SELECT i.id, count(ui."interestId") as "count"
         FROM public.interest i
-        LEFT JOIN interest_users_user iu
-          ON i.id = iu."interestId"
+        LEFT JOIN user_interest ui
+          ON i.id = ui."interestId"
         GROUP BY i.id
         ) as users_interest_count
       WHERE interest.id = users_interest_count.id;
@@ -332,7 +332,7 @@ export class Seed {
       utnFrroIsiGeolocationIot: this.projectRepo.create({
         name: 'Desarrollo de un sistema para identificar geoposicionamiento en entorno de Internet de la Cosas (IoT)',
         type: ProjectType.Formal,
-        researchDepartment: researchDepartments.utnFrroIsi,
+        researchDepartments: [researchDepartments.utnFrroIsi],
         creationDate: '2020-03-16T17:13:02.000Z',
         interests: [interests.arduino, interests.itSecurity],
         enrollments: [
@@ -349,7 +349,7 @@ export class Seed {
         name: 'Universiteams',
         type: ProjectType.Informal,
         creationDate: '2021-03-16T17:13:02.000Z',
-        researchDepartment: researchDepartments.utnFrroIsi,
+        researchDepartments: [researchDepartments.utnFrroIsi],
         interests: [interests.dataScience, interests.cryptoCurrency],
         enrollments: [
           this.enrollmentsRepo.create({
@@ -366,7 +366,7 @@ export class Seed {
         name: 'Estrategias Didácticas Diversas y Contextualizadas para la Enseñanza de la Física en Carreras de Ingeniería',
         type: ProjectType.Formal,
         creationDate: '2017-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroBasicas,
+        researchDepartments: [researchDepartments.utnFrroBasicas],
         interests: [interests.edTech],
         referenceOnly: true,
         enrollments: [
@@ -380,7 +380,7 @@ export class Seed {
         name: 'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables.',
         type: ProjectType.Formal,
         creationDate: '2018-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroCaimi,
+        researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [interests.processEngineering],
         referenceOnly: true,
         enrollments: [
@@ -394,7 +394,7 @@ export class Seed {
         name: 'Modelado Matemático y Optimización de Procesos Convencionales, No Convencionales e Híbridos para la Captura de Gases de Efecto Invernadero.',
         type: ProjectType.Formal,
         creationDate: '2018-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroCaimi,
+        researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [
           interests.environment,
           interests.contingencies,
@@ -412,7 +412,7 @@ export class Seed {
         name: 'Desarrollo de Mapas de Preferencia para Mieles Monoflorales de la Región Fitogeográfica Pampeana como Estrategia para el Agregado de Valor y la Caracterización',
         type: ProjectType.Formal,
         creationDate: '2018-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroCidta,
+        researchDepartments: [researchDepartments.utnFrroCidta],
         interests: [interests.foodTech],
         referenceOnly: true,
         enrollments: [
@@ -426,7 +426,7 @@ export class Seed {
         name: 'Caracterización de Maltas de Cebada',
         type: ProjectType.Formal,
         creationDate: '2018-01-05T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroCidta,
+        researchDepartments: [researchDepartments.utnFrroCidta],
         interests: [interests.foodTech],
         referenceOnly: true,
         enrollments: [
@@ -440,7 +440,7 @@ export class Seed {
         name: 'Perfeccionamiento de un Datalogger para Medición de Vientos con fines Energéticos',
         type: ProjectType.Formal,
         creationDate: '2018-01-05T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroOes,
+        researchDepartments: [researchDepartments.utnFrroOes],
         interests: [interests.energy],
         referenceOnly: true,
         enrollments: [
@@ -454,7 +454,7 @@ export class Seed {
         name: 'Estrategias de Modelado de Procesos bajo la Filosofía de Diseño Inherentemente Seguro',
         type: ProjectType.Formal,
         creationDate: '2019-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroCaimi,
+        researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [interests.processEngineering],
         referenceOnly: true,
         enrollments: [
@@ -468,7 +468,7 @@ export class Seed {
         name: 'Estrategias de Diseño de Procesos de Bioingeniería Sustentables. Aplicaciones a Casos de Estudio en el marco de la bioeconomía',
         type: ProjectType.Formal,
         creationDate: '2018-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroCaimi,
+        researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [interests.processEngineering],
         referenceOnly: true,
         enrollments: [
@@ -482,7 +482,7 @@ export class Seed {
         name: 'Diseño Ergonométrico de un Sistema Multisensorial y Multimedial, para Salas Universitarias de Inclusión Académica',
         type: ProjectType.Formal,
         creationDate: '2019-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroCedite,
+        researchDepartments: [researchDepartments.utnFrroCedite],
         interests: [interests.edTech],
         referenceOnly: true,
         enrollments: [
@@ -496,7 +496,7 @@ export class Seed {
         name: 'Medición de Rendimiento de Planta Fotovoltaica. Estudio Comparativo en base a Diversas Herramientas de Cálculo. Desarrollo de Aplicación de Cálculo',
         type: ProjectType.Formal,
         creationDate: '2019-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroOes,
+        researchDepartments: [researchDepartments.utnFrroOes],
         interests: [interests.energy],
         referenceOnly: true,
         enrollments: [
@@ -510,7 +510,7 @@ export class Seed {
         name: 'Evaluación de la Actividad Total de Sulfatación en la Atmósfera de la Ciudad de Rosario y de la Región Industrial al Norte de la Misma - Estudio Comparativo',
         type: ProjectType.Formal,
         creationDate: '2019-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroGese,
+        researchDepartments: [researchDepartments.utnFrroGese],
         interests: [
           interests.environment,
           interests.contingencies,
@@ -528,7 +528,7 @@ export class Seed {
         name: 'Laboratorios de Innovación Pública, Abierta y Tecnológica para el Desarrollo de Ciudadanía Digital en el Ecosistema de un Estado Abierto',
         type: ProjectType.Formal,
         creationDate: '2019-01-01T00:00:00.000Z',
-        researchDepartment: researchDepartments.utnFrroIsi,
+        researchDepartments: [researchDepartments.utnFrroIsi],
         interests: [interests.orgTech],
         referenceOnly: true,
         enrollments: [

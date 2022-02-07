@@ -20,7 +20,7 @@ export class ProjectInListDto {
   @ExposeType(Date)
   creationDate: Date;
   @ExposeType(ResearchDepartmentShowDto)
-  researchDepartment: ResearchDepartmentShowDto;
+  researchDepartments: ResearchDepartmentShowDto[];
   @ExposeType(InterestShowDto)
   interests: InterestShowDto[];
   @ExposeType(EnrollmentShowDto)

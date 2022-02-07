@@ -3,8 +3,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -37,7 +37,7 @@ export class Project {
   @Column({ default: false })
   referenceOnly: boolean;
 
-  @ManyToOne(
+  @ManyToMany(
     () => ResearchDepartment,
     (researchDepartment) => researchDepartment.projects,
     {
@@ -45,7 +45,8 @@ export class Project {
       onUpdate: 'CASCADE',
     },
   )
-  researchDepartment: ResearchDepartment;
+  @JoinTable({ name: 'project_research_department' })
+  researchDepartments: ResearchDepartment[];
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {
     nullable: false,
@@ -59,5 +60,6 @@ export class Project {
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
+  @JoinTable({ name: 'project_interest' })
   interests: Interest[];
 }

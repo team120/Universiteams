@@ -235,7 +235,7 @@ describe('Project Actions (e2e)', () => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(4);
               expect(res.body.projects[0].name).toBe(
-                'Estrategias de Modelado de Procesos bajo la Filosofía de Diseño Inherentemente Seguro',
+                'Medición de Rendimiento de Planta Fotovoltaica. Estudio Comparativo en base a Diversas Herramientas de Cálculo. Desarrollo de Aplicación de Cálculo',
               );
               expect(res.body.projects[0].creationDate).toBe(
                 '2019-01-01T00:00:00.000Z',
@@ -273,7 +273,7 @@ describe('Project Actions (e2e)', () => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(4);
               expect(res.body.projects[0].name).toBe(
-                'Estrategias de Diseño de Procesos de Bioingeniería Sustentables. Aplicaciones a Casos de Estudio en el marco de la bioeconomía',
+                'Desarrollo de Mapas de Preferencia para Mieles Monoflorales de la Región Fitogeográfica Pampeana como Estrategia para el Agregado de Valor y la Caracterización',
               );
               expect(res.body.projects[0].creationDate).toBe(
                 '2018-01-01T00:00:00.000Z',

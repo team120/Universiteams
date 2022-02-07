@@ -1,43 +1,51 @@
+/* eslint-disable prettier/prettier */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddFullTextSeach1590967789744 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const tsVectorQuery = (params: {
+      textSearchConfiguration:
+        | 'p.language::regconfig'
+        | 'to_simple_searchconfig(p.language)';
+      includeGroupByIndex: boolean;
+    }) => `
+    SELECT
+      ${params.includeGroupByIndex ? 'p.id,' : ''}
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(p.name, ''))) || 
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(p.type, ''))) ||
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(string_agg(rd.name, ' '), ''))) ||
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(string_agg(rd.abbreviation, ' '), ''))) ||
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(string_agg(f.name, ' '), ''))) ||
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(string_agg(f.abbreviation, ' '), ''))) ||
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(string_agg(inst.name, ' '), ''))) ||
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(string_agg(inst.abbreviation, ' '), ''))) ||
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))) ||
+      to_tsvector(${params.textSearchConfiguration}, unaccent(coalesce(string_agg(inter.name, ' '), ''))) as document_with_weights
+    FROM project p
+    INNER JOIN project_research_department prd
+      ON p.id = prd."projectId"
+    INNER JOIN research_department rd
+      ON prd."researchDepartmentId" = rd.id
+    INNER JOIN facility f
+      ON rd."facilityId" = f.id
+    INNER JOIN institution inst
+      ON f."institutionId" = inst.id
+    LEFT JOIN project_interest pi
+      ON p.id = pi."projectId"
+    LEFT JOIN interest inter
+      ON pi."interestId" = inter.id
+    LEFT JOIN enrollment enr
+      ON p.id = enr."projectId"
+    LEFT JOIN "user" usr
+      ON enr."userId" = usr.id
+    GROUP BY 
+      p.id`;
+
     await queryRunner.query(`
       CREATE EXTENSION unaccent;
     
       CREATE MATERIALIZED VIEW project_search_index AS
-      SELECT
-        p.id,
-        to_tsvector(p.language::regconfig, unaccent(coalesce(p.name, ''))) || 
-        to_tsvector(p.language::regconfig, unaccent(coalesce(p.type, ''))) ||
-        to_tsvector(p.language::regconfig, unaccent(coalesce(rd.name, ''))) ||
-        to_tsvector(p.language::regconfig, unaccent(coalesce(rd.abbreviation, ''))) ||
-        to_tsvector(p.language::regconfig, unaccent(coalesce(f.name, ''))) ||
-        to_tsvector(p.language::regconfig, unaccent(coalesce(f.abbreviation, ''))) ||
-        to_tsvector(p.language::regconfig, unaccent(coalesce(inst.name, ''))) ||
-        to_tsvector(p.language::regconfig, unaccent(coalesce(inst.abbreviation, ''))) ||
-        to_tsvector(p.language::regconfig, unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))) ||
-        to_tsvector(p.language::regconfig, unaccent(coalesce(string_agg(inter.name, ' '), ''))) as document_with_weights
-      FROM project p
-      INNER JOIN research_department rd
-        ON p."researchDepartmentId" = rd.id
-      INNER JOIN facility f
-        ON rd."facilityId" = f.id
-      INNER JOIN institution inst
-        ON f."institutionId" = inst.id
-      LEFT JOIN interest_projects_project ip
-        ON ip."projectId" = p.id
-      LEFT JOIN interest inter
-        ON ip."interestId" = inter.id
-      LEFT JOIN enrollment enr
-        ON p.id = enr."projectId"
-      LEFT JOIN "user" usr
-        ON enr."userId" = usr.id
-      GROUP BY 
-        p.id,
-        rd.id,
-        f.id,
-        inst.id;
+      ${tsVectorQuery({textSearchConfiguration: 'p.language::regconfig', includeGroupByIndex: true})};
 
       CREATE INDEX IF NOT EXISTS document_with_weights_idx
       ON project_search_index
@@ -81,37 +89,7 @@ export class AddFullTextSeach1590967789744 implements MigrationInterface {
       -- Materialized view that contains every word (without stemming) indexed in a tsvector and ignoring stop words
       CREATE MATERIALIZED VIEW unique_words AS
       SELECT word FROM ts_stat($$
-        SELECT
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(p.name, ''))) || 
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(p.type, ''))) ||
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(rd.name, ''))) ||
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(rd.abbreviation, ''))) ||
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(f.name, ''))) ||
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(f.abbreviation, ''))) ||
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(inst.name, ''))) ||
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(inst.abbreviation, ''))) ||
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))) ||
-          to_tsvector(to_simple_searchconfig(p.language), unaccent(coalesce(string_agg(inter.name, ' '), '')))
-        FROM project p
-        INNER JOIN research_department rd
-          ON p."researchDepartmentId" = rd.id
-        INNER JOIN facility f
-          ON rd."facilityId" = f.id
-        INNER JOIN institution inst
-          ON f."institutionId" = inst.id
-        LEFT JOIN interest_projects_project ip
-          ON ip."projectId" = p.id
-        LEFT JOIN interest inter
-          ON ip."interestId" = inter.id
-        LEFT JOIN enrollment enr
-          ON p.id = enr."projectId"
-        LEFT JOIN "user" usr
-          ON enr."userId" = usr.id
-        GROUP BY 
-          p.id,
-          rd.id,
-          f.id,
-          inst.id;						 
+        ${tsVectorQuery({textSearchConfiguration: 'p.language::regconfig', includeGroupByIndex: false})}				 
       $$);
 
       CREATE INDEX IF NOT EXISTS word_idx
