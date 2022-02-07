@@ -11,16 +11,25 @@ import {
   UserAffiliationType,
 } from '../user-affiliation/user-affiliation.entity';
 import { User } from '../user/user.entity';
+import { randomInt } from 'crypto';
+
+class NumIncrease {
+  constructor(private num: number) {}
+
+  next() {
+    return this.num++;
+  }
+}
 
 export class Seed {
-  private enrollmentsRepo = getRepository(Enrollment);
-  private institutionRepo = getRepository(Institution);
-  private interestRepo = getRepository(Interest);
-  private projectRepo = getRepository(Project);
-  private researchDepartmentRepo = getRepository(ResearchDepartment);
-  private usersRepo = getRepository(User);
-  private userAffiliationRepo = getRepository(UserAffiliation);
-  private facilityRepo = getRepository(Facility);
+  private readonly enrollmentsRepo = getRepository(Enrollment);
+  private readonly institutionRepo = getRepository(Institution);
+  private readonly interestRepo = getRepository(Interest);
+  private readonly projectRepo = getRepository(Project);
+  private readonly researchDepartmentRepo = getRepository(ResearchDepartment);
+  private readonly usersRepo = getRepository(User);
+  private readonly userAffiliationRepo = getRepository(UserAffiliation);
+  private readonly facilityRepo = getRepository(Facility);
 
   async seedDbData() {
     const institutions = this.institutionsFactory();
@@ -35,20 +44,15 @@ export class Seed {
     const interests = this.interestsFactory();
     await this.interestRepo.save(Object.values(interests));
 
-    const projects = this.projectsFactory(researchDepartments, interests);
-    await this.projectRepo.save(Object.values(projects));
-
-    const users = await this.usersFactory(interests);
+    const users = await this.usersFactory(researchDepartments, interests);
     await this.usersRepo.save(Object.values(users));
 
-    const userAffiliations = await this.userAffiliations(
-      users,
+    const projects = this.projectsFactory(
       researchDepartments,
+      users,
+      interests,
     );
-    await this.userAffiliationRepo.save(Object.values(userAffiliations));
-
-    const enrollments = await this.enrollmentsFactory(users, projects);
-    await this.enrollmentsRepo.save(Object.values(enrollments));
+    await this.projectRepo.save(Object.values(projects));
 
     await this.computeProjectsUserCount();
     await this.computeInterestsRefsCount();
@@ -56,33 +60,45 @@ export class Seed {
 
   async removeSeedDbData() {
     const institutions = this.institutionsFactory();
-    await this.institutionRepo.remove(Object.values(institutions));
-
     const facilities = this.facilitiesFactory(institutions);
-    await this.facilityRepo.remove(Object.values(facilities));
-
     const researchDepartments = this.researchDepartmentsFactory(facilities);
+    const interests = this.interestsFactory();
+    const users = await this.usersFactory(researchDepartments, interests);
+    const projects = this.projectsFactory(
+      researchDepartments,
+      users,
+      interests,
+    );
+    await this.userAffiliationRepo.query(`
+      WITH related_user_affiliations as (
+        SELECT ua.id
+        FROM user_affiliation ua
+        WHERE ua."researchDepartmentId" IN (${Object.values(researchDepartments)
+          .map((rs) => rs.usersAffiliations)
+          .join(', ')}))
+      DELETE FROM user_affiliation
+      USING related_user_affiliations
+      WHERE user_affiliation.id = related_user_affiliations.id;
+    `);
+    await this.enrollmentsRepo.query(`
+      WITH related_enrollments as (
+        SELECT enr.id
+        FROM enrollment enr
+        WHERE enr."projectId" IN (${Object.values(projects)
+          .map((p) => p.id)
+          .join(', ')}))
+      DELETE FROM enrollment
+      USING related_enrollments
+      WHERE enrollment.id = related_enrollments.id;
+    `);
+    await this.usersRepo.remove(Object.values(users));
+    await this.projectRepo.remove(Object.values(projects));
+    await this.interestRepo.remove(Object.values(interests));
     await this.researchDepartmentRepo.remove(
       Object.values(researchDepartments),
     );
-
-    const interests = this.interestsFactory();
-    await this.interestRepo.remove(Object.values(interests));
-
-    const projects = this.projectsFactory(researchDepartments, interests);
-    await this.projectRepo.remove(Object.values(projects));
-
-    const users = await this.usersFactory(interests);
-    await this.usersRepo.remove(Object.values(users));
-
-    const userAffiliations = await this.userAffiliations(
-      users,
-      researchDepartments,
-    );
-    await this.userAffiliationRepo.remove(Object.values(userAffiliations));
-
-    const enrollments = await this.enrollmentsFactory(users, projects);
-    await this.enrollmentsRepo.remove(Object.values(enrollments));
+    await this.facilityRepo.remove(Object.values(facilities));
+    await this.institutionRepo.remove(Object.values(institutions));
   }
 
   private async computeProjectsUserCount() {
@@ -164,6 +180,11 @@ export class Seed {
     facilities: ReturnType<typeof this.facilitiesFactory>,
   ) {
     return {
+      utnFrroBasicas: this.researchDepartmentRepo.create({
+        name: 'Ciencias Básicas',
+        facility: facilities.utnFrro,
+        abbreviation: 'CB',
+      }),
       utnFrroIsi: this.researchDepartmentRepo.create({
         name: 'Ingeniería en Sistemas',
         facility: facilities.utnFrro,
@@ -179,12 +200,47 @@ export class Seed {
         facility: facilities.utnFrro,
         abbreviation: 'IQ',
       }),
+      utnFrroCaimi: this.researchDepartmentRepo.create({
+        name: 'Centro de Aplicaciones Informáticas y Modelado en Ingeniería',
+        facility: facilities.utnFrro,
+        abbreviation: 'CAIMI',
+        web: 'https://www.frro.utn.edu.ar/contenido.php?cont=487&subc=15',
+        referenceOnly: true,
+      }),
+      utnFrroCidta: this.researchDepartmentRepo.create({
+        name: 'Centro de Investigación y Desarrollo en Tecnología de Alimentos',
+        facility: facilities.utnFrro,
+        abbreviation: 'CIDTA',
+        web: 'https://www.frro.utn.edu.ar/contenido.php?cont=98&subc=13',
+        referenceOnly: true,
+      }),
+      utnFrroOes: this.researchDepartmentRepo.create({
+        name: 'Observatorio de Energía y Sustentabilidad',
+        facility: facilities.utnFrro,
+        abbreviation: 'OES',
+        web: 'https://www.frro.utn.edu.ar/contenido.php?cont=355&subc=23',
+        referenceOnly: true,
+      }),
+      utnFrroCedite: this.researchDepartmentRepo.create({
+        name: 'Centro de Investigación y Desarrollo en Tecnologías Especiales',
+        facility: facilities.utnFrro,
+        abbreviation: 'CEDITE',
+        web: 'https://www.frro.utn.edu.ar/contenido.php?cont=355&subc=23',
+        referenceOnly: true,
+      }),
+      utnFrroGese: this.researchDepartmentRepo.create({
+        name: 'Grupo de Estudios Sobre Energía',
+        facility: facilities.utnFrro,
+        abbreviation: 'GESE',
+        web: 'https://www.frro.utn.edu.ar/contenido.php?cont=99&subc=14',
+        referenceOnly: true,
+      }),
       utnFrroGeneral: this.researchDepartmentRepo.create({
         name: 'General',
         facility: facilities.utnFrro,
         abbreviation: 'General',
       }),
-      unrFceiaCb: this.researchDepartmentRepo.create({
+      unrFceiaBasicas: this.researchDepartmentRepo.create({
         name: 'Ciencias Básicas',
         facility: facilities.unrFceia,
         abbreviation: 'CB',
@@ -224,8 +280,8 @@ export class Seed {
         name: 'Crypto Currency',
         verified: true,
       }),
-      edutech: this.interestRepo.create({
-        name: 'Edutech',
+      edTech: this.interestRepo.create({
+        name: 'Edtech',
         verified: true,
       }),
       processEngineering: this.interestRepo.create({
@@ -240,11 +296,36 @@ export class Seed {
         name: 'Desarrollo sustentable',
         verified: true,
       }),
+      foodTech: this.interestRepo.create({
+        name: 'Tecnología de los alimentos',
+        verified: true,
+      }),
+      energy: this.interestRepo.create({
+        name: 'Energia',
+        verified: true,
+      }),
+      orgTech: this.interestRepo.create({
+        name: 'Tecnologías de las organizaciones',
+        verified: true,
+      }),
+      infoSystems: this.interestRepo.create({
+        name: 'Sistemas de información e informática',
+        verified: true,
+      }),
+      biotech: this.interestRepo.create({
+        name: 'Biotecnología',
+        verified: true,
+      }),
+      contingencies: this.interestRepo.create({
+        name: 'Contingencias',
+        verified: true,
+      }),
     };
   }
 
   private projectsFactory(
     researchDepartments: ReturnType<typeof this.researchDepartmentsFactory>,
+    users: Awaited<ReturnType<typeof this.usersFactory>>,
     interests: ReturnType<typeof this.interestsFactory>,
   ) {
     return {
@@ -254,6 +335,15 @@ export class Seed {
         researchDepartment: researchDepartments.utnFrroIsi,
         creationDate: '2020-03-16T17:13:02.000Z',
         interests: [interests.arduino, interests.itSecurity],
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.rizzoJuan,
+          }),
+          this.enrollmentsRepo.create({
+            user: users.villaCarlos,
+            role: ProjectRole.Leader,
+          }),
+        ],
       }),
       utnFrroIsiUniversiteams: this.projectRepo.create({
         name: 'Universiteams',
@@ -261,100 +351,409 @@ export class Seed {
         creationDate: '2021-03-16T17:13:02.000Z',
         researchDepartment: researchDepartments.utnFrroIsi,
         interests: [interests.dataScience, interests.cryptoCurrency],
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.villaCarlos,
+            role: ProjectRole.Admin,
+          }),
+          this.enrollmentsRepo.create({
+            user: users.sanchezMarcos,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroBasicasTeachingStrategies: this.projectRepo.create({
+        name: 'Estrategias Didácticas Diversas y Contextualizadas para la Enseñanza de la Física en Carreras de Ingeniería',
+        type: ProjectType.Formal,
+        creationDate: '2017-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroBasicas,
+        interests: [interests.edTech],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.fanaroJose,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroCaimiSustainableProcessStrategies: this.projectRepo.create({
+        name: 'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables.',
+        type: ProjectType.Formal,
+        creationDate: '2018-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroCaimi,
+        interests: [interests.processEngineering],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.beniaSol,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroCaimiGasProcessOptimization: this.projectRepo.create({
+        name: 'Modelado Matemático y Optimización de Procesos Convencionales, No Convencionales e Híbridos para la Captura de Gases de Efecto Invernadero.',
+        type: ProjectType.Formal,
+        creationDate: '2018-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroCaimi,
+        interests: [
+          interests.environment,
+          interests.contingencies,
+          interests.sustainableDevelopment,
+        ],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.musoSebastian,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroCidtaHoneyMaps: this.projectRepo.create({
+        name: 'Desarrollo de Mapas de Preferencia para Mieles Monoflorales de la Región Fitogeográfica Pampeana como Estrategia para el Agregado de Valor y la Caracterización',
+        type: ProjectType.Formal,
+        creationDate: '2018-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroCidta,
+        interests: [interests.foodTech],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.chiavoniMarcela,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroCidtaBarleyBeer: this.projectRepo.create({
+        name: 'Caracterización de Maltas de Cebada',
+        type: ProjectType.Formal,
+        creationDate: '2018-01-05T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroCidta,
+        interests: [interests.foodTech],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.martinezRosa,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroOesWindDatalogger: this.projectRepo.create({
+        name: 'Perfeccionamiento de un Datalogger para Medición de Vientos con fines Energéticos',
+        type: ProjectType.Formal,
+        creationDate: '2018-01-05T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroOes,
+        interests: [interests.energy],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.bernalPablo,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroCaimiInherentlySafeDesign: this.projectRepo.create({
+        name: 'Estrategias de Modelado de Procesos bajo la Filosofía de Diseño Inherentemente Seguro.',
+        type: ProjectType.Formal,
+        creationDate: '2019-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroCaimi,
+        interests: [interests.processEngineering],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.scaniaNicola,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroCaimiSustainableBioeconomyProcessDesign: this.projectRepo.create({
+        name: 'Estrategias de Diseño de Procesos de Bioingeniería Sustentables. Aplicaciones a Casos de Estudio en el marco de la bioeconomía.',
+        type: ProjectType.Formal,
+        creationDate: '2018-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroCaimi,
+        interests: [interests.processEngineering],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.scaniaNicola,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroCediteMultisensorialUniversityRooms: this.projectRepo.create({
+        name: 'Diseño Ergonométrico de un Sistema Multisensorial y Multimedial, para Salas Universitarias de Inclusión Académica',
+        type: ProjectType.Formal,
+        creationDate: '2019-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroCedite,
+        interests: [interests.edTech],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.albaJuan,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroOesPhotovoltaicPerformanceMeasure: this.projectRepo.create({
+        name: 'Medición de Rendimiento de Planta Fotovoltaica. Estudio Comparativo en base a Diversas Herramientas de Cálculo. Desarrollo de Aplicación de Cálculo.',
+        type: ProjectType.Formal,
+        creationDate: '2019-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroOes,
+        interests: [interests.energy],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.bernalPablo,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroGesRosarioSulphiteAtmosphere: this.projectRepo.create({
+        name: 'Evaluación de la Actividad Total de Sulfatación en la Atmósfera de la Ciudad de Rosario y de la Región Industrial al Norte de la Misma - Estudio Comparativo',
+        type: ProjectType.Formal,
+        creationDate: '2019-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroGese,
+        interests: [
+          interests.environment,
+          interests.contingencies,
+          interests.sustainableDevelopment,
+        ],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.federEdgardo,
+            role: ProjectRole.Leader,
+          }),
+        ],
+      }),
+      utnFrroIsiOpenStateData: this.projectRepo.create({
+        name: 'Laboratorios de Innovación Pública, Abierta y Tecnológica para el Desarrollo de Ciudadanía Digital en el Ecosistema de un Estado Abierto',
+        type: ProjectType.Formal,
+        creationDate: '2019-01-01T00:00:00.000Z',
+        researchDepartment: researchDepartments.utnFrroIsi,
+        interests: [interests.orgTech],
+        referenceOnly: true,
+        enrollments: [
+          this.enrollmentsRepo.create({
+            user: users.marconiRoberta,
+            role: ProjectRole.Leader,
+          }),
+        ],
       }),
     };
   }
 
   private async usersFactory(
+    researchDepartments: ReturnType<typeof this.researchDepartmentsFactory>,
     interests: ReturnType<typeof this.interestsFactory>,
   ) {
+    const numGenMockUsers = new NumIncrease(1);
+    const numGenMockPasswords = new NumIncrease(1);
+    const randomDepartmentId = () => randomInt(10000, 99999).toString();
     return {
-      juanRizzo: this.usersRepo.create({
-        mail: 'user1@example.com',
+      rizzoJuan: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
-        password: await argon2.hash('password1'),
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
         name: 'Juan',
         lastName: 'Rizzo',
         interests: [interests.dataScience, interests.businessIntelligence],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroIc,
+            departmentalId: randomDepartmentId(),
+          }),
+        ],
       }),
-      carlosVilla: this.usersRepo.create({
-        mail: 'user2@example.com',
+      villaCarlos: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
-        password: await argon2.hash('password2'),
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
         name: 'Carlos',
         lastName: 'Villa',
         interests: [interests.itSecurity],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroIsi,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.unrFceiaIe,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-      marcosSanchez: this.usersRepo.create({
-        mail: 'user3@example.com',
+      sanchezMarcos: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
-        password: await argon2.hash('password3'),
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
         name: 'Marcos',
         lastName: 'Sanchez',
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroIq,
+            departmentalId: randomDepartmentId(),
+          }),
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.unrFceiaIe,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-    };
-  }
-
-  private async userAffiliations(
-    users: Awaited<ReturnType<typeof this.usersFactory>>,
-    researchDepartments: ReturnType<typeof this.researchDepartmentsFactory>,
-  ) {
-    return {
-      utnFrroIsiCarlosVillaProfessor: this.userAffiliationRepo.create({
-        user: users.carlosVilla,
-        researchDepartment: researchDepartments.utnFrroIsi,
-        departmentalId: '44477',
-        currentType: UserAffiliationType.Professor,
+      fanaroJose: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Aldo Jose',
+        lastName: 'Fanaro',
+        interests: [interests.edTech],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroBasicas,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-      unrFceiaIeCarlosVillaProfessor: this.userAffiliationRepo.create({
-        user: users.carlosVilla,
-        researchDepartment: researchDepartments.unrFceiaIe,
-        departmentalId: '32000',
-        currentType: UserAffiliationType.Professor,
+      beniaSol: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Julia Sol',
+        lastName: 'Benia',
+        interests: [interests.processEngineering],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroCaimi,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-      utnFrroIcJuanRizzo: this.userAffiliationRepo.create({
-        user: users.juanRizzo,
-        researchDepartment: researchDepartments.utnFrroIc,
-        departmentalId: '66477',
+      musoSebastian: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Sebastian Fabricio',
+        lastName: 'Muso',
+        interests: [interests.environment, interests.sustainableDevelopment],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroCaimi,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-      utnFrroIqMarcosSanchez: this.userAffiliationRepo.create({
-        user: users.marcosSanchez,
-        researchDepartment: researchDepartments.utnFrroIq,
-        departmentalId: '744777',
-        requestedType: UserAffiliationType.Professor,
+      chiavoniMarcela: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Marcela Camila',
+        lastName: 'Chiavoni',
+        interests: [interests.foodTech],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroCidta,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-      unrFceiaIeMarcosSanchez: this.userAffiliationRepo.create({
-        user: users.marcosSanchez,
-        researchDepartment: researchDepartments.unrFceiaIe,
-        departmentalId: '60254',
-        currentType: UserAffiliationType.Professor,
+      martinezRosa: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Rosa',
+        lastName: 'Martinez',
+        interests: [interests.foodTech],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroCidta,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-    };
-  }
-
-  private async enrollmentsFactory(
-    users: Awaited<ReturnType<typeof this.usersFactory>>,
-    projects: ReturnType<typeof this.projectsFactory>,
-  ) {
-    return {
-      utnFrroIsiGeolocationIotJuanRizzo: this.enrollmentsRepo.create({
-        user: users.juanRizzo,
-        project: projects.utnFrroIsiGeolocationIot,
+      bernalPablo: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Pablo',
+        lastName: 'Bernal',
+        interests: [interests.energy],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroOes,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-      utnFrroIsiGeolocationIotCarlosVilla: this.enrollmentsRepo.create({
-        user: users.carlosVilla,
-        project: projects.utnFrroIsiGeolocationIot,
-        role: ProjectRole.Leader,
+      scaniaNicola: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Nicola',
+        lastName: 'Scania',
+        interests: [interests.processEngineering],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroCaimi,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-      utnFrroIsiUniversiteamsCarlosVilla: this.enrollmentsRepo.create({
-        user: users.carlosVilla,
-        project: projects.utnFrroIsiUniversiteams,
-        role: ProjectRole.Admin,
+      albaJuan: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Juan Luis',
+        lastName: 'Alba',
+        interests: [interests.edTech],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroCedite,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
-      utnFrroIsiUniversiteamsMarcosSanchez: this.enrollmentsRepo.create({
-        user: users.marcosSanchez,
-        project: projects.utnFrroIsiUniversiteams,
-        role: ProjectRole.Leader,
+      federEdgardo: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Edgardo Joaquin',
+        lastName: 'Feder',
+        interests: [
+          interests.environment,
+          interests.contingencies,
+          interests.sustainableDevelopment,
+        ],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroGese,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
+      }),
+      marconiRoberta: this.usersRepo.create({
+        mail: `user${numGenMockUsers.next()}@example.com`,
+        isMailVerified: true,
+        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
+        name: 'Roberta Roma',
+        lastName: 'Marconi',
+        interests: [interests.edTech],
+        userAffiliations: [
+          this.userAffiliationRepo.create({
+            researchDepartment: researchDepartments.utnFrroIsi,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+        ],
       }),
     };
   }
