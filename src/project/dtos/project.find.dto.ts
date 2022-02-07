@@ -1,12 +1,6 @@
 import { OmitType, PickType } from '@nestjs/swagger';
-import {
-  Exclude,
-  Expose,
-  Transform,
-  TransformFnParams,
-  Type,
-} from 'class-transformer';
-import { IsNumber, IsOptional, Min } from 'class-validator';
+import { Exclude, Expose } from 'class-transformer';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
@@ -22,33 +16,47 @@ export enum SortByProperty {
 export class ProjectFindDto {
   @Expose()
   generalSearch?: string;
+  @IsOptional()
+  @IsEnum(ProjectType)
   @Expose()
   type?: ProjectType;
-  @Expose()
+  @IsOptional()
+  @IsBoolean()
   @ParseOptionalBoolean()
+  @Expose()
   isDown?: boolean;
+  @IsOptional()
+  @IsNumber()
   @ExposeType(Number)
   researchDepartmentId?: number;
+  @IsOptional()
+  @IsNumber()
   @ExposeType(Number)
   institutionId?: number;
+  @IsOptional()
+  @IsNumber()
   @ExposeType(Number)
   userId?: number;
   @ExposeType(Date)
   dateFrom?: Date;
+  @IsOptional()
+  @IsEnum(SortByProperty)
   @Expose()
   sortBy?: SortByProperty;
-  @Expose()
+  @IsOptional()
+  @IsBoolean()
   @ParseOptionalBoolean()
+  @Expose()
   inAscendingOrder?: boolean;
-  @ExposeType(Number)
   @IsOptional()
   @IsNumber()
   @Min(0)
-  offset?: number;
   @ExposeType(Number)
+  offset?: number;
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @ExposeType(Number)
   limit?: number;
 }
 
