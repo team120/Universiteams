@@ -399,10 +399,29 @@ export const users = [
   },
   {
     id: 13,
-    name: 'Roberta Roma',
-    lastName: 'Marconi',
+    name: 'Silvia Elene',
+    lastName: 'Denaris',
     mail: 'user13@example.com',
     userAffiliations: [
+      {
+        id: 16,
+        researchDepartment: {
+          id: 1,
+          name: 'Ciencias Básicas',
+          abbreviation: 'CB',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Professor',
+      },
       {
         id: 15,
         researchDepartment: {
@@ -425,8 +444,8 @@ export const users = [
     ],
     interests: [
       {
-        id: 6,
-        name: 'Edtech',
+        id: 13,
+        name: 'Sistemas de información e informática',
       },
     ],
   },

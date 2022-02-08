@@ -181,12 +181,27 @@ export const projects = [
   },
   {
     id: 14,
-    name: 'Laboratorios de Innovación Pública, Abierta y Tecnológica para el Desarrollo de Ciudadanía Digital en el Ecosistema de un Estado Abierto',
+    name: 'Estudio de las Estructuras Conceptuales de la Data Science: Análisis, Generación y Simulación de Métodos y Técnicas para el Análisis de Datos Empresariales Desordenados',
     type: 'Formal',
     isDown: false,
     userCount: 1,
     creationDate: '2019-01-01T00:00:00.000Z',
     researchDepartments: [
+      {
+        id: 1,
+        name: 'Ciencias Básicas',
+        abbreviation: 'CB',
+        facility: {
+          id: 1,
+          name: 'Regional Rosario',
+          abbreviation: 'FRRo',
+          institution: {
+            id: 1,
+            name: 'Universidad Tecnológica Nacional',
+            abbreviation: 'UTN',
+          },
+        },
+      },
       {
         id: 2,
         name: 'Ingeniería en Sistemas',
@@ -205,8 +220,8 @@ export const projects = [
     ],
     interests: [
       {
-        id: 12,
-        name: 'Tecnologías de las organizaciones',
+        id: 13,
+        name: 'Sistemas de información e informática',
       },
     ],
     enrollments: [
@@ -215,8 +230,8 @@ export const projects = [
         role: 'Leader',
         user: {
           id: 13,
-          name: 'Roberta Roma',
-          lastName: 'Marconi',
+          name: 'Silvia Elene',
+          lastName: 'Denaris',
           mail: 'user13@example.com',
         },
       },
@@ -248,16 +263,16 @@ export const projects = [
     ],
     interests: [
       {
-        id: 15,
-        name: 'Contingencias',
+        id: 8,
+        name: 'Medio ambiente',
       },
       {
         id: 9,
         name: 'Desarrollo sustentable',
       },
       {
-        id: 8,
-        name: 'Medio ambiente',
+        id: 15,
+        name: 'Contingencias',
       },
     ],
     enrollments: [
@@ -309,16 +324,6 @@ export const projects = [
     ],
     enrollments: [
       {
-        id: 4,
-        role: 'Leader',
-        user: {
-          id: 3,
-          name: 'Marcos',
-          lastName: 'Sanchez',
-          mail: 'user3@example.com',
-        },
-      },
-      {
         id: 3,
         role: 'Admin',
         user: {
@@ -326,6 +331,16 @@ export const projects = [
           name: 'Carlos',
           lastName: 'Villa',
           mail: 'user2@example.com',
+        },
+      },
+      {
+        id: 4,
+        role: 'Leader',
+        user: {
+          id: 3,
+          name: 'Marcos',
+          lastName: 'Sanchez',
+          mail: 'user3@example.com',
         },
       },
     ],
@@ -399,12 +414,12 @@ export const projects = [
     ],
     interests: [
       {
-        id: 3,
-        name: 'Arduino',
-      },
-      {
         id: 2,
         name: 'IT Security',
+      },
+      {
+        id: 3,
+        name: 'Arduino',
       },
     ],
     enrollments: [

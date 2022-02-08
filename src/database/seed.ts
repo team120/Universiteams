@@ -556,18 +556,21 @@ export class Seed {
           }),
         ],
       }),
-      utnFrroIsiOpenStateData: this.projectRepo.create({
+      utnFrroIsiConceptualDataScience: this.projectRepo.create({
         id: projectIdGen.next(),
-        name: 'Laboratorios de Innovación Pública, Abierta y Tecnológica para el Desarrollo de Ciudadanía Digital en el Ecosistema de un Estado Abierto',
+        name: 'Estudio de las Estructuras Conceptuales de la Data Science: Análisis, Generación y Simulación de Métodos y Técnicas para el Análisis de Datos Empresariales Desordenados',
         type: ProjectType.Formal,
         creationDate: '2019-01-01T00:00:00.000Z',
-        researchDepartments: [researchDepartments.utnFrroIsi],
-        interests: [interests.orgTech],
+        researchDepartments: [
+          researchDepartments.utnFrroIsi,
+          researchDepartments.utnFrroBasicas,
+        ],
+        interests: [interests.infoSystems],
         referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
-            user: users.marconiRoberta,
+            user: users.denarisSilvia,
             role: ProjectRole.Leader,
           }),
         ],
@@ -802,18 +805,24 @@ export class Seed {
           }),
         ],
       }),
-      marconiRoberta: this.usersRepo.create({
+      denarisSilvia: this.usersRepo.create({
         id: userIdGen.next(),
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Roberta Roma',
-        lastName: 'Marconi',
-        interests: [interests.edTech],
+        name: 'Silvia Elene',
+        lastName: 'Denaris',
+        interests: [interests.infoSystems],
         userAffiliations: [
           this.userAffiliationRepo.create({
             id: affiliationIdGen.next(),
             researchDepartment: researchDepartments.utnFrroIsi,
+            departmentalId: randomDepartmentId(),
+            currentType: UserAffiliationType.Professor,
+          }),
+          this.userAffiliationRepo.create({
+            id: affiliationIdGen.next(),
+            researchDepartment: researchDepartments.utnFrroBasicas,
             departmentalId: randomDepartmentId(),
             currentType: UserAffiliationType.Professor,
           }),

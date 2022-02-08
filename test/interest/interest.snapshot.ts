@@ -40,16 +40,16 @@ export const interests = [
     name: 'Contingencias',
   },
   {
+    id: 13,
+    name: 'Sistemas de información e informática',
+  },
+  {
     id: 12,
     name: 'Tecnologías de las organizaciones',
   },
   {
     id: 5,
     name: 'Crypto Currency',
-  },
-  {
-    id: 13,
-    name: 'Sistemas de información e informática',
   },
   {
     id: 3,
