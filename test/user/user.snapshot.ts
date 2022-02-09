@@ -27,25 +27,25 @@ export const users = [
     ],
     interests: [
       {
-        id: 1,
+        id: 4,
         name: 'Data Science',
       },
       {
-        id: 4,
+        id: 7,
         name: 'Business Intelligence',
       },
     ],
   },
   {
     id: 2,
-    name: 'Carlos',
+    name: 'Camila',
     lastName: 'Villa',
     mail: 'user2@example.com',
     userAffiliations: [
       {
         id: 3,
         researchDepartment: {
-          id: 12,
+          id: 15,
           name: 'Ingeniería Electrónica',
           abbreviation: 'IE',
           facility: {
@@ -83,8 +83,20 @@ export const users = [
     ],
     interests: [
       {
-        id: 2,
+        id: 1,
+        name: 'Backend Development',
+      },
+      {
+        id: 5,
         name: 'IT Security',
+      },
+      {
+        id: 19,
+        name: 'Optimización (matemática)',
+      },
+      {
+        id: 11,
+        name: 'Medio ambiente',
       },
     ],
   },
@@ -116,7 +128,7 @@ export const users = [
     ],
     interests: [
       {
-        id: 6,
+        id: 9,
         name: 'Edtech',
       },
     ],
@@ -130,7 +142,7 @@ export const users = [
       {
         id: 7,
         researchDepartment: {
-          id: 5,
+          id: 7,
           name: 'Centro de Aplicaciones Informáticas y Modelado en Ingeniería',
           abbreviation: 'CAIMI',
           facility: {
@@ -144,12 +156,12 @@ export const users = [
             },
           },
         },
-        currentType: 'Professor',
+        currentType: 'Researcher',
       },
     ],
     interests: [
       {
-        id: 7,
+        id: 10,
         name: 'Ingeniería de procesos y de productos',
       },
     ],
@@ -161,9 +173,28 @@ export const users = [
     mail: 'user6@example.com',
     userAffiliations: [
       {
+        id: 9,
+        researchDepartment: {
+          id: 15,
+          name: 'Ingeniería Electrónica',
+          abbreviation: 'IE',
+          facility: {
+            id: 2,
+            name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+            abbreviation: 'FCEIA',
+            institution: {
+              id: 2,
+              name: 'Universidad Nacional de Rosario',
+              abbreviation: 'UNR',
+            },
+          },
+        },
+        currentType: 'Professor',
+      },
+      {
         id: 8,
         researchDepartment: {
-          id: 5,
+          id: 7,
           name: 'Centro de Aplicaciones Informáticas y Modelado en Ingeniería',
           abbreviation: 'CAIMI',
           facility: {
@@ -177,16 +208,16 @@ export const users = [
             },
           },
         },
-        currentType: 'Professor',
+        currentType: 'Researcher',
       },
     ],
     interests: [
       {
-        id: 8,
+        id: 11,
         name: 'Medio ambiente',
       },
       {
-        id: 9,
+        id: 12,
         name: 'Desarrollo sustentable',
       },
     ],
@@ -198,11 +229,11 @@ export const users = [
     mail: 'user7@example.com',
     userAffiliations: [
       {
-        id: 9,
+        id: 11,
         researchDepartment: {
-          id: 6,
-          name: 'Centro de Investigación y Desarrollo en Tecnología de Alimentos',
-          abbreviation: 'CIDTA',
+          id: 4,
+          name: 'Ingeniería Química',
+          abbreviation: 'IQ',
           facility: {
             id: 1,
             name: 'Regional Rosario',
@@ -216,10 +247,29 @@ export const users = [
         },
         currentType: 'Professor',
       },
+      {
+        id: 10,
+        researchDepartment: {
+          id: 8,
+          name: 'Centro de Investigación y Desarrollo en Tecnología de Alimentos',
+          abbreviation: 'CIDTA',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Researcher',
+      },
     ],
     interests: [
       {
-        id: 10,
+        id: 13,
         name: 'Tecnología de los alimentos',
       },
     ],
@@ -231,11 +281,11 @@ export const users = [
     mail: 'user8@example.com',
     userAffiliations: [
       {
-        id: 10,
+        id: 13,
         researchDepartment: {
-          id: 6,
-          name: 'Centro de Investigación y Desarrollo en Tecnología de Alimentos',
-          abbreviation: 'CIDTA',
+          id: 4,
+          name: 'Ingeniería Química',
+          abbreviation: 'IQ',
           facility: {
             id: 1,
             name: 'Regional Rosario',
@@ -249,10 +299,29 @@ export const users = [
         },
         currentType: 'Professor',
       },
+      {
+        id: 12,
+        researchDepartment: {
+          id: 8,
+          name: 'Centro de Investigación y Desarrollo en Tecnología de Alimentos',
+          abbreviation: 'CIDTA',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Researcher',
+      },
     ],
     interests: [
       {
-        id: 10,
+        id: 13,
         name: 'Tecnología de los alimentos',
       },
     ],
@@ -264,9 +333,28 @@ export const users = [
     mail: 'user9@example.com',
     userAffiliations: [
       {
-        id: 11,
+        id: 15,
         researchDepartment: {
-          id: 7,
+          id: 14,
+          name: 'Ingeniería Electrica',
+          abbreviation: 'IE',
+          facility: {
+            id: 2,
+            name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+            abbreviation: 'FCEIA',
+            institution: {
+              id: 2,
+              name: 'Universidad Nacional de Rosario',
+              abbreviation: 'UNR',
+            },
+          },
+        },
+        currentType: 'Professor',
+      },
+      {
+        id: 14,
+        researchDepartment: {
+          id: 9,
           name: 'Observatorio de Energía y Sustentabilidad',
           abbreviation: 'OES',
           facility: {
@@ -280,13 +368,17 @@ export const users = [
             },
           },
         },
-        currentType: 'Professor',
+        currentType: 'Researcher',
       },
     ],
     interests: [
       {
-        id: 11,
+        id: 14,
         name: 'Energia',
+      },
+      {
+        id: 11,
+        name: 'Medio ambiente',
       },
     ],
   },
@@ -297,9 +389,9 @@ export const users = [
     mail: 'user10@example.com',
     userAffiliations: [
       {
-        id: 12,
+        id: 16,
         researchDepartment: {
-          id: 5,
+          id: 7,
           name: 'Centro de Aplicaciones Informáticas y Modelado en Ingeniería',
           abbreviation: 'CAIMI',
           facility: {
@@ -313,12 +405,12 @@ export const users = [
             },
           },
         },
-        currentType: 'Professor',
+        currentType: 'Researcher',
       },
     ],
     interests: [
       {
-        id: 7,
+        id: 10,
         name: 'Ingeniería de procesos y de productos',
       },
     ],
@@ -330,9 +422,28 @@ export const users = [
     mail: 'user11@example.com',
     userAffiliations: [
       {
-        id: 13,
+        id: 18,
         researchDepartment: {
-          id: 8,
+          id: 2,
+          name: 'Ingeniería en Sistemas',
+          abbreviation: 'ISI',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Professor',
+      },
+      {
+        id: 17,
+        researchDepartment: {
+          id: 10,
           name: 'Centro de Investigación y Desarrollo en Tecnologías Especiales',
           abbreviation: 'CEDITE',
           facility: {
@@ -346,12 +457,12 @@ export const users = [
             },
           },
         },
-        currentType: 'Professor',
+        currentType: 'Researcher',
       },
     ],
     interests: [
       {
-        id: 6,
+        id: 9,
         name: 'Edtech',
       },
     ],
@@ -363,11 +474,11 @@ export const users = [
     mail: 'user12@example.com',
     userAffiliations: [
       {
-        id: 14,
+        id: 20,
         researchDepartment: {
-          id: 9,
-          name: 'Grupo de Estudios Sobre Energía',
-          abbreviation: 'GESE',
+          id: 6,
+          name: 'Ingeniería Mecánica',
+          abbreviation: 'IM',
           facility: {
             id: 1,
             name: 'Regional Rosario',
@@ -381,18 +492,37 @@ export const users = [
         },
         currentType: 'Professor',
       },
+      {
+        id: 19,
+        researchDepartment: {
+          id: 11,
+          name: 'Grupo de Estudios Sobre Energía',
+          abbreviation: 'GESE',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Researcher',
+      },
     ],
     interests: [
       {
-        id: 8,
+        id: 11,
         name: 'Medio ambiente',
       },
       {
-        id: 15,
+        id: 18,
         name: 'Contingencias',
       },
       {
-        id: 9,
+        id: 12,
         name: 'Desarrollo sustentable',
       },
     ],
@@ -404,7 +534,7 @@ export const users = [
     mail: 'user13@example.com',
     userAffiliations: [
       {
-        id: 16,
+        id: 22,
         researchDepartment: {
           id: 1,
           name: 'Ciencias Básicas',
@@ -423,7 +553,7 @@ export const users = [
         currentType: 'Professor',
       },
       {
-        id: 15,
+        id: 21,
         researchDepartment: {
           id: 2,
           name: 'Ingeniería en Sistemas',
@@ -444,8 +574,275 @@ export const users = [
     ],
     interests: [
       {
-        id: 13,
+        id: 16,
         name: 'Sistemas de información e informática',
+      },
+    ],
+  },
+  {
+    id: 14,
+    name: 'Mario',
+    lastName: 'Obregon',
+    mail: 'user14@example.com',
+    userAffiliations: [
+      {
+        id: 23,
+        researchDepartment: {
+          id: 16,
+          name: 'Ingeniería Mecánica',
+          abbreviation: 'IM',
+          facility: {
+            id: 2,
+            name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+            abbreviation: 'FCEIA',
+            institution: {
+              id: 2,
+              name: 'Universidad Nacional de Rosario',
+              abbreviation: 'UNR',
+            },
+          },
+        },
+        currentType: 'Professor',
+      },
+    ],
+    interests: [
+      {
+        id: 6,
+        name: 'Arduino',
+      },
+      {
+        id: 19,
+        name: 'Optimización (matemática)',
+      },
+      {
+        id: 12,
+        name: 'Desarrollo sustentable',
+      },
+    ],
+  },
+  {
+    id: 15,
+    name: 'Alessandro',
+    lastName: 'Troilo',
+    mail: 'user15@example.com',
+    userAffiliations: [
+      {
+        id: 24,
+        researchDepartment: {
+          id: 4,
+          name: 'Ingeniería Química',
+          abbreviation: 'IQ',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Student',
+      },
+    ],
+    interests: [
+      {
+        id: 4,
+        name: 'Data Science',
+      },
+      {
+        id: 11,
+        name: 'Medio ambiente',
+      },
+    ],
+  },
+  {
+    id: 16,
+    name: 'Lucia',
+    lastName: 'Brignoni',
+    mail: 'user16@example.com',
+    userAffiliations: [
+      {
+        id: 25,
+        researchDepartment: {
+          id: 2,
+          name: 'Ingeniería en Sistemas',
+          abbreviation: 'ISI',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Student',
+      },
+    ],
+    interests: [
+      {
+        id: 1,
+        name: 'Backend Development',
+      },
+      {
+        id: 2,
+        name: 'Frontend Development',
+      },
+    ],
+  },
+  {
+    id: 17,
+    name: 'Juan',
+    lastName: 'Dellepiane',
+    mail: 'user17@example.com',
+    userAffiliations: [
+      {
+        id: 26,
+        researchDepartment: {
+          id: 2,
+          name: 'Ingeniería en Sistemas',
+          abbreviation: 'ISI',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Student',
+      },
+    ],
+    interests: [
+      {
+        id: 9,
+        name: 'Edtech',
+      },
+      {
+        id: 4,
+        name: 'Data Science',
+      },
+      {
+        id: 1,
+        name: 'Backend Development',
+      },
+    ],
+  },
+  {
+    id: 18,
+    name: 'Hernan Juan Cruz',
+    lastName: 'Lizcovich',
+    mail: 'user18@example.com',
+    userAffiliations: [
+      {
+        id: 27,
+        researchDepartment: {
+          id: 6,
+          name: 'Ingeniería Mecánica',
+          abbreviation: 'IM',
+          facility: {
+            id: 1,
+            name: 'Regional Rosario',
+            abbreviation: 'FRRo',
+            institution: {
+              id: 1,
+              name: 'Universidad Tecnológica Nacional',
+              abbreviation: 'UTN',
+            },
+          },
+        },
+        currentType: 'Student',
+      },
+    ],
+    interests: [
+      {
+        id: 6,
+        name: 'Arduino',
+      },
+      {
+        id: 12,
+        name: 'Desarrollo sustentable',
+      },
+    ],
+  },
+  {
+    id: 19,
+    name: 'Pablo',
+    lastName: 'Alcazar',
+    mail: 'user19@example.com',
+    userAffiliations: [
+      {
+        id: 28,
+        researchDepartment: {
+          id: 14,
+          name: 'Ingeniería Electrica',
+          abbreviation: 'IE',
+          facility: {
+            id: 2,
+            name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+            abbreviation: 'FCEIA',
+            institution: {
+              id: 2,
+              name: 'Universidad Nacional de Rosario',
+              abbreviation: 'UNR',
+            },
+          },
+        },
+        currentType: 'Student',
+      },
+    ],
+    interests: [
+      {
+        id: 14,
+        name: 'Energia',
+      },
+      {
+        id: 11,
+        name: 'Medio ambiente',
+      },
+    ],
+  },
+  {
+    id: 20,
+    name: 'Inhof',
+    lastName: 'Camila',
+    mail: 'user20@example.com',
+    userAffiliations: [
+      {
+        id: 29,
+        researchDepartment: {
+          id: 14,
+          name: 'Ingeniería Electrica',
+          abbreviation: 'IE',
+          facility: {
+            id: 2,
+            name: 'Facultad de Ciencias Exactas, Ingeniería y Agrimensura',
+            abbreviation: 'FCEIA',
+            institution: {
+              id: 2,
+              name: 'Universidad Nacional de Rosario',
+              abbreviation: 'UNR',
+            },
+          },
+        },
+        currentType: 'Student',
+      },
+    ],
+    interests: [
+      {
+        id: 14,
+        name: 'Energia',
+      },
+      {
+        id: 18,
+        name: 'Contingencias',
       },
     ],
   },
@@ -458,7 +855,7 @@ export const users = [
       {
         id: 5,
         researchDepartment: {
-          id: 12,
+          id: 15,
           name: 'Ingeniería Electrónica',
           abbreviation: 'IE',
           facility: {

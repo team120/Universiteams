@@ -31,31 +31,41 @@ export const institutions = [
           },
           {
             id: 5,
+            name: 'Ingeniería Electrica',
+            abbreviation: 'IE',
+          },
+          {
+            id: 6,
+            name: 'Ingeniería Mecánica',
+            abbreviation: 'IM',
+          },
+          {
+            id: 7,
             name: 'Centro de Aplicaciones Informáticas y Modelado en Ingeniería',
             abbreviation: 'CAIMI',
           },
           {
-            id: 6,
+            id: 8,
             name: 'Centro de Investigación y Desarrollo en Tecnología de Alimentos',
             abbreviation: 'CIDTA',
           },
           {
-            id: 7,
+            id: 9,
             name: 'Observatorio de Energía y Sustentabilidad',
             abbreviation: 'OES',
           },
           {
-            id: 8,
+            id: 10,
             name: 'Centro de Investigación y Desarrollo en Tecnologías Especiales',
             abbreviation: 'CEDITE',
           },
           {
-            id: 9,
+            id: 11,
             name: 'Grupo de Estudios Sobre Energía',
             abbreviation: 'GESE',
           },
           {
-            id: 10,
+            id: 12,
             name: 'General',
             abbreviation: 'General',
           },
@@ -74,17 +84,27 @@ export const institutions = [
         abbreviation: 'FCEIA',
         researchDepartments: [
           {
-            id: 11,
+            id: 13,
             name: 'Ciencias Básicas',
             abbreviation: 'CB',
           },
           {
-            id: 12,
+            id: 14,
+            name: 'Ingeniería Electrica',
+            abbreviation: 'IE',
+          },
+          {
+            id: 15,
             name: 'Ingeniería Electrónica',
             abbreviation: 'IE',
           },
           {
-            id: 13,
+            id: 16,
+            name: 'Ingeniería Mecánica',
+            abbreviation: 'IM',
+          },
+          {
+            id: 17,
             name: 'General',
             abbreviation: 'General',
           },

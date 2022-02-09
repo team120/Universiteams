@@ -25,7 +25,7 @@ describe('Interest Actions (e2e)', () => {
         .get('/interests')
         .then((res) => {
           expect(res.status).toBe(200);
-          expect(res.body).toHaveLength(15);
+          expect(res.body).toHaveLength(19);
           expect(res.body).toEqual(interests);
         });
     });

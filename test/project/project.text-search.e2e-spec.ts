@@ -22,7 +22,7 @@ describe('Project Actions (e2e)', () => {
   describe('search projects by a general text search', () => {
     describe('when partially match some of their users', () => {
       it('should get the two existent projects', async () => {
-        const generalSearchText = 'carl vila';
+        const generalSearchText = 'cam vila';
         await request(app.getHttpServer())
           .get(`/projects?generalSearch=${generalSearchText}`)
           .then((res) => {
@@ -33,7 +33,7 @@ describe('Project Actions (e2e)', () => {
               res.body.projects[1].enrollments.filter(
                 (e) => e.role === 'Admin',
               )[0].user.name,
-            ).toEqual('Carlos');
+            ).toEqual('Camila');
           });
       });
     });
@@ -50,7 +50,7 @@ describe('Project Actions (e2e)', () => {
       });
     });
     describe('when multiple search terms are provided', () => {
-      it.each(['utn frro isi', 'uen frer asi', 'etn frro isa wqwqwqqw'])(
+      it.each(['utn frro isi', 'etn frer asi', 'etn frro isa wqwqwqqw'])(
         'should get all matching projects',
         async (generalSearchText: string) => {
           await request(app.getHttpServer())
@@ -59,8 +59,8 @@ describe('Project Actions (e2e)', () => {
             )
             .then((res) => {
               expect(res.status).toBe(200);
-              expect(res.body.projectCount).toBe(3);
-              expect(res.body.projects).toHaveLength(3);
+              expect(res.body.projectCount).toBe(5);
+              expect(res.body.projects).toHaveLength(5);
               if (generalSearchText !== 'utn frro isi') {
                 expect(res.body.suggestedSearchTerms[0]).toBe('utn frro isi');
               }

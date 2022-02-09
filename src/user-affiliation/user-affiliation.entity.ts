@@ -5,6 +5,7 @@ import { User } from '../user/user.entity';
 export enum UserAffiliationType {
   Student = 'Student',
   Professor = 'Professor',
+  Researcher = 'Researcher',
   Other = 'Other',
 }
 
