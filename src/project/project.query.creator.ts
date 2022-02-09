@@ -98,6 +98,7 @@ export class QueryCreator {
       .leftJoin('userAffiliation.researchDepartment', 'userResearchDepartment')
       .leftJoin('userResearchDepartment.facility', 'userFacility')
       .leftJoin('userFacility.institution', 'userInstitution');
+
     if (filters.institutionId) {
       relatedEntitiesJoinsQuery.andWhere(
         `userInstitution.id = :userInstitutionId`,
@@ -119,10 +120,15 @@ export class QueryCreator {
         type: filters.type,
       });
     }
-    if (filters.isDown) {
-      relatedEntitiesJoinsQuery.andWhere('project.isDown = :isDown', {
-        isDown: filters.isDown,
-      });
+    if (filters.isDown !== undefined) {
+      if (filters.isDown === false)
+        relatedEntitiesJoinsQuery.andWhere(
+          'COALESCE(project."endDate" >= now()::date, true)',
+        );
+      if (filters.isDown === true)
+        relatedEntitiesJoinsQuery.andWhere(
+          'COALESCE(project."endDate" < now()::date, false)',
+        );
     }
     if (filters.userId) {
       relatedEntitiesJoinsQuery.andWhere('user.id = :userId', {
@@ -130,9 +136,20 @@ export class QueryCreator {
       });
     }
     if (filters.dateFrom) {
-      relatedEntitiesJoinsQuery.andWhere('project.creationDate >= :dateFrom', {
-        dateFrom: filters.dateFrom.toISOString().split('T')[0],
-      });
+      relatedEntitiesJoinsQuery.andWhere(
+        'project."creationDate" BETWEEN :dateFrom AND now()::date',
+        {
+          dateFrom: filters.dateFrom,
+        },
+      );
+    }
+    if (filters.dateUntil) {
+      relatedEntitiesJoinsQuery.andWhere(
+        'COALESCE(project."endDate" < :dateUntil, true)',
+        {
+          dateUntil: filters.dateUntil,
+        },
+      );
     }
 
     return relatedEntitiesJoinsQuery;

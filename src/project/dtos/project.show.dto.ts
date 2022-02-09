@@ -7,18 +7,20 @@ import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 @Exclude()
 export class ProjectInListDto {
-  @Expose()
+  @ExposeType(Number)
   id: number;
   @Expose()
   name: string;
   @Expose()
   type: ProjectType;
-  @Expose()
-  isDown: boolean;
-  @Expose()
+  @ExposeType(Number)
   userCount: number;
-  @ExposeType(Date)
-  creationDate: Date;
+  @Expose()
+  creationDate: string;
+  @Expose()
+  endDate: string;
+  @ExposeType(Boolean)
+  isDown: boolean;
   @ExposeType(ResearchDepartmentShowDto)
   researchDepartments: ResearchDepartmentShowDto[];
   @ExposeType(InterestShowDto)

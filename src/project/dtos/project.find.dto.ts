@@ -1,6 +1,13 @@
 import { OmitType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  Min,
+} from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
@@ -22,7 +29,7 @@ export class ProjectFindDto {
   type?: ProjectType;
   @IsOptional()
   @IsBoolean()
-  @ParseOptionalBoolean()
+  @ParseOptionalBoolean({ defaultValue: false })
   @Expose()
   isDown?: boolean;
   @IsOptional()
@@ -37,8 +44,14 @@ export class ProjectFindDto {
   @IsNumber()
   @ExposeType(Number)
   userId?: number;
-  @ExposeType(Date)
-  dateFrom?: Date;
+  @IsOptional()
+  @IsDateString()
+  @Expose()
+  dateFrom?: string;
+  @IsOptional()
+  @IsDateString()
+  @Expose()
+  dateUntil?: string;
   @IsOptional()
   @IsEnum(SortByProperty)
   @Expose()

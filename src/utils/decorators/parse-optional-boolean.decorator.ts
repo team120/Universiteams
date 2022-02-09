@@ -1,20 +1,23 @@
 import { Transform, TransformFnParams } from 'class-transformer';
 
 const optionalBooleanMapper = new Map([
-  ['undefined', undefined],
   ['true', true],
   ['false', false],
 ]);
 
-export const parseOptionalBooleanFunc = (value: any): boolean | undefined => {
+export const parseOptionalBooleanFunc = (
+  value: any,
+  defaultValue?: boolean,
+): boolean | undefined => {
   const valueType = typeof value;
   if (valueType === 'boolean') return value;
-  if (valueType !== 'string') return undefined;
+  if (valueType !== 'string') return defaultValue ?? undefined;
 
-  return optionalBooleanMapper.get(value);
+  const rta = optionalBooleanMapper.get(value) ?? defaultValue;
+  return rta;
 };
 
-export const ParseOptionalBoolean = () =>
+export const ParseOptionalBoolean = (params?: { defaultValue: boolean }) =>
   Transform(({ value }: TransformFnParams): boolean => {
-    return parseOptionalBooleanFunc(value);
+    return parseOptionalBooleanFunc(value, params?.defaultValue);
   });

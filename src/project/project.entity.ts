@@ -2,6 +2,7 @@ import { Enrollment } from '../enrollment/enrolment.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -23,11 +24,13 @@ export class Project {
   @Column()
   name: string;
   @CreateDateColumn({ type: 'date' })
-  creationDate: Date;
+  creationDate: string;
+  @Column({ type: 'date', nullable: true })
+  endDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @Column()
   type: ProjectType;
-  @Column({ default: false })
-  isDown: boolean;
   @Column({ default: 'spanish' })
   language: 'spanish' | 'english';
   @Column({ default: 0 })
@@ -62,4 +65,12 @@ export class Project {
   })
   @JoinTable({ name: 'project_interest' })
   interests: Interest[];
+
+  get isDown() {
+    if (!this.endDate) return false;
+
+    const now = new Date();
+    const endingDate = new Date(this.endDate);
+    return endingDate < now;
+  }
 }
