@@ -1,21 +1,16 @@
 import { INestApplication } from '@nestjs/common';
-import { TestingModule, Test } from '@nestjs/testing';
 import * as request from 'supertest';
+import { createProjectTestingApp } from './project.e2e.module';
 import {
   projectGeolocationWithExtendedDta,
   projects,
 } from './project.snapshot';
-import { ProjectE2EModule } from './project.e2e.module';
 
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [ProjectE2EModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
+    app = await createProjectTestingApp();
     await app.init();
   });
 
@@ -112,22 +107,18 @@ describe('Project Actions (e2e)', () => {
             });
         });
       });
-      describe('current date plus a month', () => {
-        it('should get no projects', async () => {
-          const dateFrom = new Date();
-          const dateString = `${dateFrom.getFullYear()}-${(
-            dateFrom.getMonth() + 1
-          )
-            .toString()
-            .padStart(2, '0')}-${dateFrom
-            .getDay()
-            .toString()
-            .padStart(2, '0')}`;
+      describe('current date plus a month (future time)', () => {
+        it('should get no projects (physically impossible to get other result)', async () => {
+          const now = new Date();
+          const year = now.getFullYear().toString();
+          const month = (now.getMonth() + 1).toString().padStart(2, '0');
+          const day = now.getDay().toString().padStart(2, '0');
           await request(app.getHttpServer())
-            .get(`/projects?dateFrom=${dateString}`)
+            .get(`/projects?dateFrom=${year}-${month}-${day}`)
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(0);
+              expect(res.body.projectCount).toBe(0);
             });
         });
       });
@@ -279,6 +270,67 @@ describe('Project Actions (e2e)', () => {
               expect(res.body.projects[0].creationDate).toBe('2017-01-01');
               expect(res.body.projectCount).toBe(11);
             });
+        });
+      });
+    });
+    describe('by dateFrom and dateUntil', () => {
+      describe('when searching for projects with a duration of', () => {
+        const startingDate = '2019-01-01';
+        describe(`one years from ${startingDate}`, () => {
+          it.each([undefined, false])(
+            'should get no projects even when is down is set to false',
+            async (isDown?: boolean) => {
+              const dateUntil = '2021-01-01';
+              await request(app.getHttpServer())
+                .get(
+                  `/projects?dateFrom=${startingDate}&dateUntil=${dateUntil}&isDown=${isDown}&offset=0&limit=5`,
+                )
+                .then((res) => {
+                  expect(res.status).toBe(200);
+                  expect(res.body.projects).toHaveLength(0);
+                  expect(res.body.projectCount).toBe(0);
+                });
+            },
+          );
+        });
+        describe(`three years from ${startingDate}`, () => {
+          const dateUntil = '2023-01-01';
+          describe('without setting isDown or setting it to false', () => {
+            it.each([undefined, false])(
+              'should get two projects',
+              async (isDown?: boolean) => {
+                await request(app.getHttpServer())
+                  .get(
+                    `/projects?dateFrom=${startingDate}&dateUntil=${dateUntil}&isDown=${isDown}&offset=0&limit=5`,
+                  )
+                  .then((res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.projects).toHaveLength(2);
+                    expect(res.body.projectCount).toBe(2);
+                    expect(res.body.projects[0].name).toBe(
+                      'Perfeccionamiento de un Datalogger para Medición de Vientos con fines Energéticos',
+                    );
+                  });
+              },
+            );
+          });
+          describe('setting isDown to true', () => {
+            it('should get another two project', async () => {
+              await request(app.getHttpServer())
+                .get(
+                  `/projects?dateFrom=${startingDate}&dateUntil=${dateUntil}&isDown=true&offset=0&limit=5`,
+                )
+                .then((res) => {
+                  expect(res.status).toBe(200);
+                  expect(res.body.projects).toHaveLength(2);
+                  expect(res.body.projectCount).toBe(2);
+                  expect(res.body.projects[0].name).toBe(
+                    'Diseño Ergonométrico de un Sistema Multisensorial y Multimedial, para Salas Universitarias de Inclusión Académica',
+                  );
+                  expect(res.body.projects[0].endDate).toBe('2020-12-31');
+                });
+            });
+          });
         });
       });
     });

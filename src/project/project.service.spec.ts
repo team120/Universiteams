@@ -1,8 +1,11 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PinoLogger } from 'nestjs-pino';
+import { CURRENT_DATE_SERVICE } from '../utils/current-date';
+import { CurrentDateServiceMock } from '../utils/current-date.mock';
 import { DbException } from '../utils/exceptions/database.exception';
 import { SerializationModule } from '../utils/serialization/serialization.module';
+import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
 
@@ -11,11 +14,13 @@ describe('ProjectService', () => {
   const queryCreatorMock = {
     findOne: jest.fn(),
   };
+  const currentDateServiceMock = new CurrentDateServiceMock('2022-01-01');
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProjectService,
+        ProjectPropCompute,
         {
           provide: PinoLogger,
           useValue: { debug: jest.fn(), setContext: jest.fn() },
@@ -24,6 +29,7 @@ describe('ProjectService', () => {
           provide: QueryCreator,
           useValue: queryCreatorMock,
         },
+        { provide: CURRENT_DATE_SERVICE, useValue: currentDateServiceMock },
       ],
       imports: [SerializationModule],
     }).compile();

@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ProjectRole } from '../enrollment/enrolment.entity';
+import {
+  CURRENT_DATE_SERVICE,
+  ICurrentDateService,
+} from '../utils/current-date';
 import { DbException } from '../utils/exceptions/database.exception';
 import {
   ProjectFilters,
@@ -27,6 +31,8 @@ export class QueryCreator {
     private readonly projectRepository: Repository<Project>,
     private readonly uniqueWordsService: UniqueWordsService,
     private readonly logger: PinoLogger,
+    @Inject(CURRENT_DATE_SERVICE)
+    private readonly currentDate: ICurrentDateService,
   ) {
     this.logger.setContext(QueryCreator.name);
   }
@@ -45,7 +51,7 @@ export class QueryCreator {
       .concat(':*');
 
     searchQuery.where(
-      `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
+      `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, unaccent(:generalSearch))`,
       {
         generalSearch: fullTextSearchConversion,
       },
@@ -60,7 +66,11 @@ export class QueryCreator {
   ): Promise<[SelectQueryBuilder<Project>, string[]?]> {
     if (!filters.generalSearch) return [query, undefined];
 
-    const projectsCountNormalSearch = await query.getCount();
+    const projectsCountNormalSearch = await query
+      .getCount()
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
 
     if (projectsCountNormalSearch !== 0) return [query, undefined];
 
@@ -72,7 +82,7 @@ export class QueryCreator {
       .createQueryBuilder('project')
       .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
       .where(
-        `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, :generalSearch)`,
+        `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, unaccent(:generalSearch))`,
         {
           generalSearch: matchingWords[0].replace(/\s/g, ' & '),
         },
@@ -123,11 +133,17 @@ export class QueryCreator {
     if (filters.isDown !== undefined) {
       if (filters.isDown === false)
         relatedEntitiesJoinsQuery.andWhere(
-          'COALESCE(project."endDate" >= now()::date, true)',
+          'COALESCE(project."endDate" >= :currentDate, true)',
+          {
+            currentDate: this.currentDate.get(),
+          },
         );
       if (filters.isDown === true)
         relatedEntitiesJoinsQuery.andWhere(
-          'COALESCE(project."endDate" < now()::date, false)',
+          'COALESCE(project."endDate" < :currentDate, false)',
+          {
+            currentDate: this.currentDate.get(),
+          },
         );
     }
     if (filters.userId) {
@@ -137,20 +153,22 @@ export class QueryCreator {
     }
     if (filters.dateFrom) {
       relatedEntitiesJoinsQuery.andWhere(
-        'project."creationDate" BETWEEN :dateFrom AND now()::date',
+        'project."creationDate" BETWEEN :dateFrom AND :currentDate',
         {
           dateFrom: filters.dateFrom,
+          currentDate: this.currentDate.get(),
         },
       );
     }
     if (filters.dateUntil) {
       relatedEntitiesJoinsQuery.andWhere(
-        'COALESCE(project."endDate" < :dateUntil, true)',
+        'COALESCE(project."endDate" < :dateUntil, false)',
         {
           dateUntil: filters.dateUntil,
         },
       );
     }
+    this.logger.debug(relatedEntitiesJoinsQuery.getSql());
 
     return relatedEntitiesJoinsQuery;
   }
@@ -186,7 +204,11 @@ export class QueryCreator {
       .groupBy('project.id')
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
-    const projectCount = await subqueryProjectIds.getCount();
+    const projectCount = await subqueryProjectIds
+      .getCount()
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
 
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
@@ -238,12 +260,8 @@ export class QueryCreator {
       .leftJoinAndSelect('userFacility.institution', 'userInstitution')
       .leftJoinAndSelect('project.interests', 'interests')
       .where('project.id = :projectId', { projectId: id })
-      .getOne()
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
+      .getOne();
 
-    this.logger.debug(project);
     return project;
   }
 

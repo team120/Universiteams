@@ -1,17 +1,12 @@
 import { INestApplication } from '@nestjs/common';
-import { TestingModule, Test } from '@nestjs/testing';
 import * as request from 'supertest';
-import { ProjectE2EModule } from './project.e2e.module';
+import { createProjectTestingApp } from './project.e2e.module';
 
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [ProjectE2EModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
+    app = await createProjectTestingApp();
     await app.init();
   });
 
@@ -21,7 +16,7 @@ describe('Project Actions (e2e)', () => {
 
   describe('search projects by a general text search', () => {
     describe('when partially match some of their users', () => {
-      it('should get the two existent projects', async () => {
+      it('should get the two matching projects', async () => {
         const generalSearchText = 'cam vila';
         await request(app.getHttpServer())
           .get(`/projects?generalSearch=${generalSearchText}`)

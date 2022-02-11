@@ -1,5 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
+import {
+  CURRENT_DATE_SERVICE,
+  ICurrentDateService,
+} from '../utils/current-date';
 import { DbException } from '../utils/exceptions/database.exception';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import {
@@ -13,6 +17,7 @@ import {
   ProjectSingleDto,
   ProjectsResult,
 } from './dtos/project.show.dto';
+import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 
 @Injectable()
@@ -21,6 +26,9 @@ export class ProjectService {
     private readonly queryCreator: QueryCreator,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
+    private readonly propCompute: ProjectPropCompute,
+    @Inject(CURRENT_DATE_SERVICE)
+    private readonly currentDate: ICurrentDateService,
   ) {
     this.logger.setContext(ProjectService.name);
   }
@@ -63,7 +71,12 @@ export class ProjectService {
         orderByClause,
       );
 
-    const projects = await paginationAppliedQuery.getMany();
+    const projects = await paginationAppliedQuery
+      .getMany()
+      .then((projects) => projects?.map((p) => this.propCompute.addIsDown(p)))
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
 
     this.logger.debug('Map projects to dto');
     return {
@@ -77,9 +90,12 @@ export class ProjectService {
     this.logger.debug(
       'Find project with matching ids and their related department, users, user institution and department institution',
     );
-    const project = await this.queryCreator.findOne(id).catch((err: Error) => {
-      throw new DbException(err.message, err.stack);
-    });
+    const project = await this.queryCreator
+      .findOne(id)
+      .then((p) => this.propCompute.addIsDown(p))
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
 
     this.logger.debug(`Project ${project?.id} found`);
     if (!project) throw new NotFoundException();

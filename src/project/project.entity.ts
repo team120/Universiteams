@@ -65,12 +65,4 @@ export class Project {
   })
   @JoinTable({ name: 'project_interest' })
   interests: Interest[];
-
-  get isDown() {
-    if (!this.endDate) return false;
-
-    const now = new Date();
-    const endingDate = new Date(this.endDate);
-    return endingDate < now;
-  }
 }
