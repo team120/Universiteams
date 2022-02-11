@@ -4,8 +4,8 @@ export const projects = [
     name: 'Perfeccionamiento de un Datalogger para Medición de Vientos con fines Energéticos',
     type: 'Informal',
     userCount: 3,
-    creationDate: '2018-01-05',
-    endDate: null,
+    creationDate: '2020-01-05',
+    endDate: '2022-12-31',
     isDown: false,
     researchDepartments: [
       {
@@ -42,7 +42,7 @@ export const projects = [
     interests: [
       {
         id: 14,
-        name: 'Energia',
+        name: 'Energía',
       },
     ],
     enrollments: [
@@ -64,7 +64,7 @@ export const projects = [
     type: 'Formal',
     userCount: 1,
     creationDate: '2019-01-01',
-    endDate: null,
+    endDate: '2022-07-01',
     isDown: false,
     researchDepartments: [
       {
@@ -248,7 +248,7 @@ export const projects = [
     type: 'Formal',
     userCount: 3,
     creationDate: '2018-01-01',
-    endDate: null,
+    endDate: '2022-07-01',
     isDown: false,
     researchDepartments: [
       {
@@ -362,7 +362,7 @@ export const projects = [
     type: 'Informal',
     userCount: 3,
     creationDate: '2018-01-01',
-    endDate: null,
+    endDate: '2022-07-01',
     isDown: false,
     researchDepartments: [
       {
@@ -421,7 +421,7 @@ export const projects = [
     type: 'Informal',
     userCount: 3,
     creationDate: '2019-01-01',
-    endDate: null,
+    endDate: '2023-01-01',
     isDown: false,
     researchDepartments: [
       {
@@ -443,7 +443,7 @@ export const projects = [
     interests: [
       {
         id: 14,
-        name: 'Energia',
+        name: 'Energía',
       },
     ],
     enrollments: [

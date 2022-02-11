@@ -338,7 +338,7 @@ export class Seed {
       }),
       energy: this.interestRepo.create({
         id: idGen.next(),
-        name: 'Energia',
+        name: 'Energía',
         verified: true,
       }),
       orgTech: this.interestRepo.create({
@@ -442,7 +442,7 @@ export class Seed {
       }),
       utnFrroCaimiSustainableProcessStrategies: this.projectRepo.create({
         id: projectIdGen.next(),
-        name: 'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables.',
+        name: 'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables',
         type: ProjectType.Formal,
         creationDate: '2018-01-01',
         endDate: '2021-12-31',
@@ -462,6 +462,7 @@ export class Seed {
         name: 'Modelado Matemático y Optimización de Procesos Convencionales, No Convencionales e Híbridos para la Captura de Gases de Efecto Invernadero.',
         type: ProjectType.Formal,
         creationDate: '2018-01-01',
+        endDate: '2022-07-01',
         researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [
           interests.environment,
@@ -491,6 +492,7 @@ export class Seed {
         name: 'Desarrollo de Mapas de Preferencia para Mieles Monoflorales de la Región Fitogeográfica Pampeana como Estrategia para el Agregado de Valor y la Caracterización',
         type: ProjectType.Informal,
         creationDate: '2018-01-01',
+        endDate: '2022-07-01',
         researchDepartments: [
           researchDepartments.utnFrroIq,
           researchDepartments.utnFrroIsi,
@@ -533,7 +535,8 @@ export class Seed {
         id: projectIdGen.next(),
         name: 'Perfeccionamiento de un Datalogger para Medición de Vientos con fines Energéticos',
         type: ProjectType.Informal,
-        creationDate: '2018-01-05',
+        creationDate: '2020-01-05',
+        endDate: '2022-12-31',
         researchDepartments: [
           researchDepartments.utnFrroIc,
           researchDepartments.utnFrroIsi,
@@ -561,6 +564,7 @@ export class Seed {
         name: 'Estrategias de Modelado de Procesos bajo la Filosofía de Diseño Inherentemente Seguro',
         type: ProjectType.Formal,
         creationDate: '2019-01-01',
+        endDate: '2022-07-01',
         researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [interests.processEngineering],
         referenceOnly: true,
@@ -619,6 +623,7 @@ export class Seed {
         name: 'Medición de Rendimiento de Planta Fotovoltaica. Desarrollo de Aplicación de Cálculo',
         type: ProjectType.Informal,
         creationDate: '2019-01-01',
+        endDate: '2023-01-01',
         researchDepartments: [researchDepartments.unrFceiaElectrica],
         interests: [interests.energy],
         referenceOnly: true,

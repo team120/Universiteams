@@ -41,7 +41,7 @@ export const interests = [
   },
   {
     id: 14,
-    name: 'Energia',
+    name: 'Energía',
   },
   {
     id: 18,

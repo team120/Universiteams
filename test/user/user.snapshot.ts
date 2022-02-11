@@ -374,7 +374,7 @@ export const users = [
     interests: [
       {
         id: 14,
-        name: 'Energia',
+        name: 'Energía',
       },
       {
         id: 11,
@@ -801,7 +801,7 @@ export const users = [
     interests: [
       {
         id: 14,
-        name: 'Energia',
+        name: 'Energía',
       },
       {
         id: 11,
@@ -838,7 +838,7 @@ export const users = [
     interests: [
       {
         id: 14,
-        name: 'Energia',
+        name: 'Energía',
       },
       {
         id: 18,
