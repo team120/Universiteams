@@ -68,6 +68,30 @@ describe('Project Actions (e2e)', () => {
         },
       );
     });
+    describe('when multiple search terms that include accents and spelling mistakes are provided', () => {
+      it.each([
+        'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables',
+        'diseño óptimo de procesos sustentables',
+        'valorización de subproductos y la incorporación de energías renovables',
+        'valorizacion subpoductos energias renovables',
+      ])(
+        'should get the completed project "Estrategias para el diseño óptimo..."',
+        async (generalSearchText: string) => {
+          await request(app.getHttpServer())
+            .get(
+              `/projects?generalSearch=${generalSearchText}&isDown=true&offset=0&limit=5`,
+            )
+            .then((res) => {
+              expect(res.status).toBe(200);
+              expect(res.body.projectCount).toBe(1);
+              expect(res.body.projects).toHaveLength(1);
+              expect(res.body.projects[0].name).toBe(
+                'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables',
+              );
+            });
+        },
+      );
+    });
     describe('and additionally filtered by', () => {
       describe('dateFrom', () => {
         it('should get all projects that partially match their name and were started before dateFrom', async () => {
