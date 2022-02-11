@@ -90,8 +90,10 @@ export class ProjectService {
     this.logger.debug(
       'Find project with matching ids and their related department, users, user institution and department institution',
     );
-    const project = await this.queryCreator
-      .findOne(id)
+    const projectFindOneQuery = this.queryCreator.findOne(id);
+
+    const project = await projectFindOneQuery
+      .getOne()
       .then((p) => this.propCompute.addIsDown(p))
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);

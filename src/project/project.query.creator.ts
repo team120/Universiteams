@@ -237,8 +237,8 @@ export class QueryCreator {
     return [finalPaginatedQuery, projectCount];
   }
 
-  async findOne(id: number): Promise<Project> {
-    const project = await this.projectRepository
+  findOne(id: number): SelectQueryBuilder<Project> {
+    return this.projectRepository
       .createQueryBuilder('project')
       .innerJoinAndSelect('project.researchDepartments', 'researchDepartment')
       .innerJoinAndSelect(
@@ -259,10 +259,7 @@ export class QueryCreator {
       .leftJoinAndSelect('userResearchDepartment.facility', 'userFacility')
       .leftJoinAndSelect('userFacility.institution', 'userInstitution')
       .leftJoinAndSelect('project.interests', 'interests')
-      .where('project.id = :projectId', { projectId: id })
-      .getOne();
-
-    return project;
+      .where('project.id = :projectId', { projectId: id });
   }
 
   initialProjectQuery(): SelectQueryBuilder<Project> {
