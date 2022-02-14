@@ -11,11 +11,12 @@ import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
 import { UniqueWordsService } from './unique-words.service';
-import { UniqueWords } from './uniqueWords.entity';
+import { UniqueWords } from './unique-words.entity';
+import { StopWords } from '../database/stop-words.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Project, UniqueWords]),
+    TypeOrmModule.forFeature([Project, UniqueWords, StopWords]),
     SerializationModule,
   ],
   controllers: [ProjectController],

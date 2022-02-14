@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddFullTextSeach1590967789744 implements MigrationInterface {
+export class FullTextSeach1590967789744 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const tsVectorQuery = (params: {
       textSearchConfig:
