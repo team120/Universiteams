@@ -46,7 +46,7 @@ describe('Project Actions (e2e)', () => {
     });
     describe('when multiple search terms are provided', () => {
       it.each(['utn frro isi', 'etn frer asi', 'etn frro isa wqwqwqqw'])(
-        'should get all matching projects',
+        'should get all matching projects (inputValue %p)',
         async (generalSearchText: string) => {
           await request(app.getHttpServer())
             .get(
@@ -63,14 +63,36 @@ describe('Project Actions (e2e)', () => {
         },
       );
     });
-    describe('when multiple search terms that include accents and spelling mistakes are provided', () => {
+    describe('when multiple search terms that include accents are provided', () => {
       it.each([
         'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables',
         'diseño óptimo de procesos sustentables',
         'valorización de subproductos y la incorporación de energías renovables',
-        'valorizacion subpoductos energias renovables',
       ])(
-        'should get the completed project "Estrategias para el diseño óptimo..."',
+        'should get the completed project "Estrategias para el diseño óptimo..." (inputValue %p)',
+        async (generalSearchText: string) => {
+          await request(app.getHttpServer())
+            .get(
+              `/projects?generalSearch=${generalSearchText}&isDown=true&offset=0&limit=5`,
+            )
+            .then((res) => {
+              expect(res.status).toBe(200);
+              expect(res.body.projectCount).toBe(1);
+              expect(res.body.projects).toHaveLength(1);
+              expect(res.body.projects[0].name).toBe(
+                'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables',
+              );
+            });
+        },
+      );
+    });
+    describe('when multiple search terms that include spelling mistakes and accents are provided', () => {
+      it.each([
+        'valorización de subpoductos pora energias renovables',
+        'valoracion de subpoductos para energias renovables',
+        'valoracion de subpodutos inergias reniobables',
+      ])(
+        'should get the completed project "Estrategias para el diseño óptimo..." (inputValue %p)',
         async (generalSearchText: string) => {
           await request(app.getHttpServer())
             .get(

@@ -278,7 +278,7 @@ describe('Project Actions (e2e)', () => {
         const startingDate = '2019-01-01';
         describe(`one years from ${startingDate}`, () => {
           it.each([undefined, false])(
-            'should get no projects even when is down is set to false',
+            'should get no projects even when is down is set to false (inputValue %p)',
             async (isDown?: boolean) => {
               const dateUntil = '2021-01-01';
               await request(app.getHttpServer())
@@ -297,7 +297,7 @@ describe('Project Actions (e2e)', () => {
           const dateUntil = '2023-01-01';
           describe('without setting isDown or setting it to false', () => {
             it.each([undefined, false])(
-              'should get two projects',
+              'should get two projects (inputValue %p)',
               async (isDown?: boolean) => {
                 await request(app.getHttpServer())
                   .get(
