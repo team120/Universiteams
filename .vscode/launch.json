@@ -5,7 +5,7 @@
       {
         "type": "node",
         "request": "attach",
-        "name": "Debug: universiteams",
+        "name": "Debug App: universiteams",
         "remoteRoot": "/usr/src/app",
         "localRoot": "${workspaceFolder}",
         "protocol": "inspector",
@@ -13,6 +13,19 @@
         "restart": true,
         "address": "0.0.0.0",
         "skipFiles": ["<node_internals>/**"]
+      },
+      {
+        "type": "node",
+        "request": "attach",
+        "name": "Debug Tests: universiteams",
+        "remoteRoot": "/usr/src/app",
+        "localRoot": "${workspaceFolder}",
+        "protocol": "inspector",
+        "port": 9228,
+        "restart": true,
+        "address": "0.0.0.0",
+        "skipFiles": ["<node_internals>/**"],
+        "continueOnAttach": true,
       }
     ]
    }

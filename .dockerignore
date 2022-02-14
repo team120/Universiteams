@@ -1,6 +1,9 @@
 node_modules
 dist
 
+# Make
+Makefile
+
 # version control
 .git
 .github
@@ -9,7 +12,7 @@ dist
 # Docker configuration files
 Dockerfile
 .dockerignore
-docker-compose.yml
+docker-compose*.yml
 
 # Readme
 README.md

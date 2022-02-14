@@ -21,20 +21,31 @@ down:
 clean:
 	docker-compose down -v
 
-## wipe:  Stop and remove both containers and data volumes, then erase service images
+## wipe:  Erase universiteams service image
 wipe:
-	- docker-compose down -v
-	- docker image rm -f $(docker-compose images)
+	- docker-compose down
+	- docker image rm -f $(shell docker image ls -q "*/universiteams")
 
 .PHONY: test
 ## test:  Execute unit tests
 test:
-	docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run test
+	docker-compose -p test -f docker-compose.test.yml run --service-ports --rm --no-deps test npm run test
+
+.PHONY: test-dg
+## test-dg (test-debug):  Execute unit tests in debug mode
+test-dg:
+	docker-compose -p test -f docker-compose.test.yml run --service-ports --rm --no-deps test npm run test:debug
 
 .PHONY: e2e
 ## e2e:   Execute end to end tests
 e2e:
-	- docker-compose -p test -f docker-compose.test.yml run test npm run test:e2e
+	- docker-compose -p test -f docker-compose.test.yml run --service-ports test npm run test:e2e
+	- docker-compose -p test -f docker-compose.test.yml down -v
+
+.PHONY: e2e-dg
+## e2e-dg (e2e-debug):   Execute end to end tests in debug mode
+e2e-dg:
+	- docker-compose -p test -f docker-compose.test.yml run --service-ports test npm run test:e2e:debug
 	- docker-compose -p test -f docker-compose.test.yml down -v
 
 .PHONY: cov
