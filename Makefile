@@ -45,7 +45,7 @@ e2e:
 .PHONY: e2e-dg
 ## e2e-dg (e2e-debug):   Execute end to end tests in debug mode
 e2e-dg:
-	- docker-compose -p test -f docker-compose.test.yml run --service-ports test npm run test:e2e:debug
+	- docker-compose -p test -f docker-compose.test.yml run --service-ports test npm run test:e2e:debug --name="$(name)"
 	- docker-compose -p test -f docker-compose.test.yml down -v
 
 .PHONY: cov
