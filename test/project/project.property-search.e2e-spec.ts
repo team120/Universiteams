@@ -1,17 +1,24 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { Connection } from 'typeorm';
 import { createProjectTestingApp } from './project.e2e.module';
 import {
   projectGeolocationWithExtendedDta,
   projects,
 } from './project.snapshot';
 
+jest.useRealTimers();
+
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
+  let conn: Connection;
 
   beforeEach(async () => {
     app = await createProjectTestingApp();
     await app.init();
+
+    conn = app.get(Connection);
+    await conn.runMigrations();
   });
 
   afterEach(async () => {
@@ -103,7 +110,7 @@ describe('Project Actions (e2e)', () => {
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(1);
-              expect(res.body.projects[0].name).toBe('Universiteams');
+              expect(res.body.projects[0].name).toBe('Univers');
             });
         });
       });
