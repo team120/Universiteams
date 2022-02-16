@@ -42,9 +42,9 @@ export class FullTextSeach1590967789744 implements MigrationInterface {
       p.id`;
 
     await queryRunner.query(`
-      CREATE EXTENSION unaccent;
+      CREATE EXTENSION IF NOT EXISTS unaccent;
     
-      CREATE MATERIALIZED VIEW project_search_index AS
+      CREATE MATERIALIZED VIEW IF NOT EXISTS project_search_index AS
       ${tsVectorQuery({
         textSearchConfig: 'p.language::regconfig',
         includeGroupByIndex: true,
@@ -57,7 +57,7 @@ export class FullTextSeach1590967789744 implements MigrationInterface {
       CREATE UNIQUE INDEX IF NOT EXISTS project_search_idx
       ON project_search_index(id);
 
-      CREATE EXTENSION pg_trgm;
+      CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
       -- Dictionary and search configuration that includes SPANISH stop words but does not stem words
       CREATE TEXT SEARCH DICTIONARY spanish_simple_dict (
@@ -90,7 +90,7 @@ export class FullTextSeach1590967789744 implements MigrationInterface {
       $$ LANGUAGE plpgsql;
 
       -- Materialized view that contains every word (without stemming) indexed in a tsvector and ignoring stop words
-      CREATE MATERIALIZED VIEW unique_words AS
+      CREATE MATERIALIZED VIEW IF NOT EXISTS unique_words AS
       SELECT word FROM ts_stat($$
         ${tsVectorQuery({
           textSearchConfig: 'to_simple_searchconfig(p.language)',
@@ -109,18 +109,18 @@ export class FullTextSeach1590967789744 implements MigrationInterface {
       DROP MATERIALIZED VIEW project_search_index;
 
       -- Dictionary and search configuration that includes SPANISH stop words but does not stem words
-      DROP TEXT SEARCH DICTIONARY spanish_simple_dict;
       DROP TEXT SEARCH CONFIGURATION spanish_simple;
-
+      DROP TEXT SEARCH DICTIONARY spanish_simple_dict;
+      
       -- Dictionary and search configuration that includes ENGLISH stop words but does not stem words
-      DROP TEXT SEARCH DICTIONARY english_simple_dict;
       DROP TEXT SEARCH CONFIGURATION english_simple;
-
+      DROP TEXT SEARCH DICTIONARY english_simple_dict;
+      
       -- Function that maps traditional search configurations to simple non-stemmed no-stop-words configs
       DROP FUNCTION to_simple_searchconfig(character varying);
-
+      
       DROP MATERIALIZED VIEW unique_words;
-
+      
       DROP EXTENSION pg_trgm;
       DROP EXTENSION unaccent;
     `);
