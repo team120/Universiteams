@@ -110,7 +110,7 @@ describe('Project Actions (e2e)', () => {
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(1);
-              expect(res.body.projects[0].name).toBe('Univers');
+              expect(res.body.projects[0].name).toBe('Universiteams');
             });
         });
       });
