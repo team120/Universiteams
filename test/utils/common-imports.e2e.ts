@@ -19,7 +19,7 @@ export const commonImportsArray = [
       logging: false,
       entities: ['src/**/*.entity.ts'],
       migrations: ['src/database/migrations/*.ts'],
-      migrationsRun: true,
+      migrationsRun: false,
     }),
   }),
   LoggerModule.forRoot({

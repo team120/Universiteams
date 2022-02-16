@@ -1,16 +1,24 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { Connection } from 'typeorm';
 import { createProjectTestingApp } from './project.e2e.module';
 
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
+  let conn: Connection;
 
   beforeEach(async () => {
     app = await createProjectTestingApp();
     await app.init();
+
+    conn = app.get(Connection);
+    await conn.runMigrations();
   });
 
   afterEach(async () => {
+    for (let i = 0; i < conn.migrations.length; i++) {
+      await conn.undoLastMigration();
+    }
     await app.close();
   });
 
