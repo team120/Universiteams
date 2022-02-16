@@ -11,16 +11,34 @@ export class FullTextSeach1590967789744 implements MigrationInterface {
     }) => `
     SELECT
       ${params.includeGroupByIndex ? 'p.id,' : ''}
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(p.name, ''))) || 
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(p.name, ''))) || 
       to_tsvector(${params.textSearchConfig}, unaccent(coalesce(p.type, ''))) ||
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(string_agg(rd.name, ' '), ''))) ||
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(string_agg(rd.abbreviation, ' '), ''))) ||
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(string_agg(f.name, ' '), ''))) ||
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(string_agg(f.abbreviation, ' '), ''))) ||
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(string_agg(inst.name, ' '), ''))) ||
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(string_agg(inst.abbreviation, ' '), ''))) ||
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))) ||
-      to_tsvector(${params.textSearchConfig}, unaccent(coalesce(string_agg(inter.name, ' '), ''))) as document_with_weights
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(string_agg(rd.name, ' '), ''))) ||
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(string_agg(rd.abbreviation, ' '), ''))) ||
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(string_agg(f.name, ' '), ''))) ||
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(string_agg(f.abbreviation, ' '), ''))) ||
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(string_agg(inst.name, ' '), ''))) ||
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(string_agg(inst.abbreviation, ' '), ''))) ||
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))) ||
+      to_tsvector(${
+        params.textSearchConfig
+      }, unaccent(coalesce(string_agg(inter.name, ' '), ''))) as document_with_weights
     FROM project p
     INNER JOIN project_research_department prd
       ON p.id = prd."projectId"
