@@ -1,10 +1,4 @@
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
 
@@ -14,11 +8,11 @@ export class Interest {
   id: number;
   @Column()
   name: string;
-  @Column()
+  @Column({ default: 0 })
   projectRefsCounter: number;
-  @Column()
+  @Column({ default: 0 })
   userRefsCounter: number;
-  @Column()
+  @Column({ default: false })
   verified: boolean;
 
   @ManyToMany(() => Project, (project) => project.interests, {
@@ -26,7 +20,6 @@ export class Interest {
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
-  @JoinTable()
   projects: Project[];
 
   @ManyToMany(() => User, (user) => user.interests, {
@@ -34,6 +27,5 @@ export class Interest {
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
-  @JoinTable()
   users: User[];
 }

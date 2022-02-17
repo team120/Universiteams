@@ -1,5 +1,13 @@
 import { OmitType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  Min,
+} from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
@@ -9,38 +17,78 @@ export enum SortByProperty {
   researchDepartment = 'researchDepartment',
   facility = 'facility',
   creationDate = 'creationDate',
-  type = 'type',
 }
 
 @Exclude()
 export class ProjectFindDto {
   @Expose()
   generalSearch?: string;
+  @IsOptional()
+  @IsEnum(ProjectType)
   @Expose()
   type?: ProjectType;
+  @IsOptional()
+  @IsBoolean()
+  @ParseOptionalBoolean({ defaultValue: false })
   @Expose()
-  @ParseOptionalBoolean()
   isDown?: boolean;
-  @Expose()
+  @IsOptional()
+  @IsNumber()
+  @ExposeType(Number)
   researchDepartmentId?: number;
-  @Expose()
+  @IsOptional()
+  @IsNumber()
+  @ExposeType(Number)
   institutionId?: number;
-  @Expose()
+  @IsOptional()
+  @IsNumber()
+  @ExposeType(Number)
   userId?: number;
-  @ExposeType(Date)
-  dateFrom?: Date;
+  @IsOptional()
+  @IsDateString()
+  @Expose()
+  dateFrom?: string;
+  @IsOptional()
+  @IsDateString()
+  @Expose()
+  dateUntil?: string;
+  @IsOptional()
+  @IsEnum(SortByProperty)
   @Expose()
   sortBy?: SortByProperty;
-  @Expose()
+  @IsOptional()
+  @IsBoolean()
   @ParseOptionalBoolean()
+  @Expose()
   inAscendingOrder?: boolean;
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @ExposeType(Number)
+  offset?: number;
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @ExposeType(Number)
+  limit?: number;
 }
 
-const sortAttributes = ['sortBy', 'inAscendingOrder'] as const;
+@Exclude()
+export class ProjectFilters extends OmitType(ProjectFindDto, [
+  'sortBy',
+  'inAscendingOrder',
+  'limit',
+  'offset',
+]) {}
 
-export class ProjectFilters extends OmitType(ProjectFindDto, sortAttributes) {}
+@Exclude()
+export class ProjectSortAttributes extends PickType(ProjectFindDto, [
+  'sortBy',
+  'inAscendingOrder',
+]) {}
 
-export class ProjectSortAttributes extends PickType(
-  ProjectFindDto,
-  sortAttributes,
-) {}
+@Exclude()
+export class PaginationAttributes extends PickType(ProjectFindDto, [
+  'limit',
+  'offset',
+]) {}

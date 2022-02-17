@@ -9,6 +9,8 @@ export class Institution {
   name: string;
   @Column()
   abbreviation: string;
+  @Column({ nullable: true })
+  web: string;
 
   @OneToMany(() => Facility, (facility) => facility.institution, {
     nullable: false,

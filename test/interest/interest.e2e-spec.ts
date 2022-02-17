@@ -3,9 +3,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InterestE2EModule } from './interest.e2e.module';
 import * as request from 'supertest';
 import { interests } from './interest.snapshot';
+import { Connection } from 'typeorm';
 
 describe('Interest Actions (e2e)', () => {
   let app: INestApplication;
+  let conn: Connection;
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [InterestE2EModule],
@@ -13,6 +15,9 @@ describe('Interest Actions (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    conn = app.get(Connection);
+    await conn.runMigrations();
   });
 
   afterEach(async () => {
@@ -25,7 +30,7 @@ describe('Interest Actions (e2e)', () => {
         .get('/interests')
         .then((res) => {
           expect(res.status).toBe(200);
-          expect(res.body).toHaveLength(5);
+          expect(res.body).toHaveLength(19);
           expect(res.body).toEqual(interests);
         });
     });

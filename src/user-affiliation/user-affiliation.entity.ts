@@ -5,6 +5,7 @@ import { User } from '../user/user.entity';
 export enum UserAffiliationType {
   Student = 'Student',
   Professor = 'Professor',
+  Researcher = 'Researcher',
   Other = 'Other',
 }
 
@@ -32,8 +33,4 @@ export class UserAffiliation {
   departmentalId: string;
   @Column({ default: UserAffiliationType.Student })
   currentType: UserAffiliationType;
-  @Column({ nullable: true })
-  requestedType: UserAffiliationType;
-  @Column({ nullable: true })
-  lastVerification: Date;
 }

@@ -2,9 +2,10 @@ import { Enrollment } from '../enrollment/enrolment.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -23,17 +24,23 @@ export class Project {
   @Column()
   name: string;
   @CreateDateColumn({ type: 'date' })
-  creationDate: Date;
+  creationDate: string;
+  @Column({ type: 'date', nullable: true })
+  endDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @Column()
   type: ProjectType;
-  @Column({ default: false })
-  isDown: boolean;
   @Column({ default: 'spanish' })
   language: 'spanish' | 'english';
   @Column({ default: 0 })
   userCount: number;
+  @Column({ nullable: true })
+  web: string;
+  @Column({ default: false })
+  referenceOnly: boolean;
 
-  @ManyToOne(
+  @ManyToMany(
     () => ResearchDepartment,
     (researchDepartment) => researchDepartment.projects,
     {
@@ -41,7 +48,8 @@ export class Project {
       onUpdate: 'CASCADE',
     },
   )
-  researchDepartment: ResearchDepartment;
+  @JoinTable({ name: 'project_research_department' })
+  researchDepartments: ResearchDepartment[];
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {
     nullable: false,
@@ -55,5 +63,6 @@ export class Project {
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
+  @JoinTable({ name: 'project_interest' })
   interests: Interest[];
 }

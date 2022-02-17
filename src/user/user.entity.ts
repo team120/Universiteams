@@ -5,6 +5,7 @@ import {
   Entity,
   ManyToMany,
   OneToMany,
+  JoinTable,
 } from 'typeorm';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Interest } from '../interest/interest.entity';
@@ -51,5 +52,6 @@ export class User {
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
+  @JoinTable({ name: 'user_interest' })
   interests?: Interest[];
 }

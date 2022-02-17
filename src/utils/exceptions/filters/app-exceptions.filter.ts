@@ -4,8 +4,9 @@ import { PinoLogger } from 'nestjs-pino';
 
 @Catch()
 export class AppExceptionsFilter extends BaseExceptionFilter {
-  constructor(private logger: PinoLogger) {
+  constructor(private readonly logger: PinoLogger) {
     super();
+    this.logger.setContext(AppExceptionsFilter.name);
   }
 
   catch(exception: HttpException, host: ArgumentsHost) {
