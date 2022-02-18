@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
-import { DbException } from '../utils/exceptions/database.exception';
+import { DbException } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import {
   ProjectFilters,

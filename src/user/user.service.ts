@@ -5,7 +5,7 @@ import { EntityMapperService } from '../utils/serialization/entity-mapper.servic
 import { Repository } from 'typeorm';
 import { UserShowDto } from './dtos/user.show.dto';
 import { User } from './user.entity';
-import { DbException } from '../utils/exceptions/database.exception';
+import { DbException } from '../utils/exceptions/exceptions';
 
 @Injectable()
 export class UserService {

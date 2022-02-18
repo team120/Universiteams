@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PinoLogger } from 'nestjs-pino';
 import { CURRENT_DATE_SERVICE } from '../utils/current-date';
 import { CurrentDateServiceMock } from '../utils/current-date.mock';
-import { DbException } from '../utils/exceptions/database.exception';
+import { DbException } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';

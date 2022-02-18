@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { DbException } from '../utils/exceptions/database.exception';
+import { DbException } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { Interest } from './interest.entity';
 import { InterestService } from './interest.service';
