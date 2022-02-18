@@ -1,9 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
-import {
-  CURRENT_DATE_SERVICE,
-  ICurrentDateService,
-} from '../utils/current-date';
 import { DbException } from '../utils/exceptions/database.exception';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import {
@@ -27,8 +23,6 @@ export class ProjectService {
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
     private readonly propCompute: ProjectPropCompute,
-    @Inject(CURRENT_DATE_SERVICE)
-    private readonly currentDate: ICurrentDateService,
   ) {
     this.logger.setContext(ProjectService.name);
   }
