@@ -32,7 +32,7 @@ describe('Project Actions (e2e)', () => {
             expect(
               res.body.projects[1].enrollments.filter(
                 (e) => e.role === 'Admin',
-              )[0].user.name,
+              )[0].user.firstName,
             ).toEqual('Camila');
           });
       });

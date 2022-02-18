@@ -1,7 +1,7 @@
 export const users = [
   {
     id: 1,
-    name: 'Juan',
+    firstName: 'Juan',
     lastName: 'Rizzo',
     mail: 'user1@example.com',
     userAffiliations: [
@@ -38,7 +38,7 @@ export const users = [
   },
   {
     id: 2,
-    name: 'Camila',
+    firstName: 'Camila',
     lastName: 'Villa',
     mail: 'user2@example.com',
     userAffiliations: [
@@ -102,7 +102,7 @@ export const users = [
   },
   {
     id: 4,
-    name: 'Aldo Jose',
+    firstName: 'Aldo Jose',
     lastName: 'Fanaro',
     mail: 'user4@example.com',
     userAffiliations: [
@@ -135,7 +135,7 @@ export const users = [
   },
   {
     id: 5,
-    name: 'Julia Sol',
+    firstName: 'Julia Sol',
     lastName: 'Benia',
     mail: 'user5@example.com',
     userAffiliations: [
@@ -168,7 +168,7 @@ export const users = [
   },
   {
     id: 6,
-    name: 'Sebastian Fabricio',
+    firstName: 'Sebastian Fabricio',
     lastName: 'Muso',
     mail: 'user6@example.com',
     userAffiliations: [
@@ -224,7 +224,7 @@ export const users = [
   },
   {
     id: 7,
-    name: 'Marcela Camila',
+    firstName: 'Marcela Camila',
     lastName: 'Chiavoni',
     mail: 'user7@example.com',
     userAffiliations: [
@@ -276,7 +276,7 @@ export const users = [
   },
   {
     id: 8,
-    name: 'Rosa',
+    firstName: 'Rosa',
     lastName: 'Martinez',
     mail: 'user8@example.com',
     userAffiliations: [
@@ -328,7 +328,7 @@ export const users = [
   },
   {
     id: 9,
-    name: 'Pablo',
+    firstName: 'Pablo',
     lastName: 'Bernal',
     mail: 'user9@example.com',
     userAffiliations: [
@@ -384,7 +384,7 @@ export const users = [
   },
   {
     id: 10,
-    name: 'Nicola',
+    firstName: 'Nicola',
     lastName: 'Scania',
     mail: 'user10@example.com',
     userAffiliations: [
@@ -417,7 +417,7 @@ export const users = [
   },
   {
     id: 11,
-    name: 'Juan Luis',
+    firstName: 'Juan Luis',
     lastName: 'Alba',
     mail: 'user11@example.com',
     userAffiliations: [
@@ -469,7 +469,7 @@ export const users = [
   },
   {
     id: 12,
-    name: 'Edgardo Joaquin',
+    firstName: 'Edgardo Joaquin',
     lastName: 'Feder',
     mail: 'user12@example.com',
     userAffiliations: [
@@ -529,7 +529,7 @@ export const users = [
   },
   {
     id: 13,
-    name: 'Silvia Elene',
+    firstName: 'Silvia Elene',
     lastName: 'Denaris',
     mail: 'user13@example.com',
     userAffiliations: [
@@ -581,7 +581,7 @@ export const users = [
   },
   {
     id: 14,
-    name: 'Mario',
+    firstName: 'Mario',
     lastName: 'Obregon',
     mail: 'user14@example.com',
     userAffiliations: [
@@ -622,7 +622,7 @@ export const users = [
   },
   {
     id: 15,
-    name: 'Alessandro',
+    firstName: 'Alessandro',
     lastName: 'Troilo',
     mail: 'user15@example.com',
     userAffiliations: [
@@ -659,7 +659,7 @@ export const users = [
   },
   {
     id: 16,
-    name: 'Lucia',
+    firstName: 'Lucia',
     lastName: 'Brignoni',
     mail: 'user16@example.com',
     userAffiliations: [
@@ -696,7 +696,7 @@ export const users = [
   },
   {
     id: 17,
-    name: 'Juan',
+    firstName: 'Juan',
     lastName: 'Dellepiane',
     mail: 'user17@example.com',
     userAffiliations: [
@@ -737,7 +737,7 @@ export const users = [
   },
   {
     id: 18,
-    name: 'Hernan Juan Cruz',
+    firstName: 'Hernan Juan Cruz',
     lastName: 'Lizcovich',
     mail: 'user18@example.com',
     userAffiliations: [
@@ -774,7 +774,7 @@ export const users = [
   },
   {
     id: 19,
-    name: 'Pablo',
+    firstName: 'Pablo',
     lastName: 'Alcazar',
     mail: 'user19@example.com',
     userAffiliations: [
@@ -811,7 +811,7 @@ export const users = [
   },
   {
     id: 20,
-    name: 'Inhof',
+    firstName: 'Inhof',
     lastName: 'Camila',
     mail: 'user20@example.com',
     userAffiliations: [
@@ -848,7 +848,7 @@ export const users = [
   },
   {
     id: 3,
-    name: 'Marcos',
+    firstName: 'Marcos',
     lastName: 'Sanchez',
     mail: 'user3@example.com',
     userAffiliations: [

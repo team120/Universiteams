@@ -718,7 +718,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Juan',
+        firstName: 'Juan',
         lastName: 'Rizzo',
         interests: [interests.dataScience, interests.businessIntelligence],
         userAffiliations: [
@@ -734,7 +734,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Camila',
+        firstName: 'Camila',
         lastName: 'Villa',
         interests: [
           interests.backendDev,
@@ -762,7 +762,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Marcos',
+        firstName: 'Marcos',
         lastName: 'Sanchez',
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -783,7 +783,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Aldo Jose',
+        firstName: 'Aldo Jose',
         lastName: 'Fanaro',
         interests: [interests.edTech],
         userAffiliations: [
@@ -800,7 +800,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Julia Sol',
+        firstName: 'Julia Sol',
         lastName: 'Benia',
         interests: [interests.processEngineering],
         userAffiliations: [
@@ -817,7 +817,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Sebastian Fabricio',
+        firstName: 'Sebastian Fabricio',
         lastName: 'Muso',
         interests: [interests.environment, interests.sustainableDevelopment],
         userAffiliations: [
@@ -840,7 +840,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Marcela Camila',
+        firstName: 'Marcela Camila',
         lastName: 'Chiavoni',
         interests: [interests.foodTech],
         userAffiliations: [
@@ -863,7 +863,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Rosa',
+        firstName: 'Rosa',
         lastName: 'Martinez',
         interests: [interests.foodTech],
         userAffiliations: [
@@ -886,7 +886,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Pablo',
+        firstName: 'Pablo',
         lastName: 'Bernal',
         interests: [interests.energy, interests.environment],
         userAffiliations: [
@@ -909,7 +909,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Nicola',
+        firstName: 'Nicola',
         lastName: 'Scania',
         interests: [interests.processEngineering],
         userAffiliations: [
@@ -926,7 +926,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Juan Luis',
+        firstName: 'Juan Luis',
         lastName: 'Alba',
         interests: [interests.edTech],
         userAffiliations: [
@@ -949,7 +949,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Edgardo Joaquin',
+        firstName: 'Edgardo Joaquin',
         lastName: 'Feder',
         interests: [
           interests.environment,
@@ -976,7 +976,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Silvia Elene',
+        firstName: 'Silvia Elene',
         lastName: 'Denaris',
         interests: [interests.infoSystems],
         userAffiliations: [
@@ -999,7 +999,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Mario',
+        firstName: 'Mario',
         lastName: 'Obregon',
         interests: [
           interests.arduino,
@@ -1020,7 +1020,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Alessandro',
+        firstName: 'Alessandro',
         lastName: 'Troilo',
         interests: [interests.dataScience, interests.environment],
         userAffiliations: [
@@ -1036,7 +1036,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Lucia',
+        firstName: 'Lucia',
         lastName: 'Brignoni',
         interests: [interests.backendDev, interests.frontendDev],
         userAffiliations: [
@@ -1052,7 +1052,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Juan',
+        firstName: 'Juan',
         lastName: 'Dellepiane',
         interests: [
           interests.edTech,
@@ -1072,7 +1072,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Hernan Juan Cruz',
+        firstName: 'Hernan Juan Cruz',
         lastName: 'Lizcovich',
         interests: [interests.arduino, interests.sustainableDevelopment],
         userAffiliations: [
@@ -1088,7 +1088,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Pablo',
+        firstName: 'Pablo',
         lastName: 'Alcazar',
         interests: [interests.energy, interests.environment],
         userAffiliations: [
@@ -1104,7 +1104,7 @@ export class Seed {
         mail: `user${numGenMockUsers.next()}@example.com`,
         isMailVerified: true,
         password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Inhof',
+        firstName: 'Inhof',
         lastName: 'Camila',
         interests: [interests.energy, interests.contingencies],
         userAffiliations: [

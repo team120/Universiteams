@@ -7,7 +7,7 @@ export class UserShowDto {
   @Expose()
   id: number;
   @Expose()
-  name: string;
+  firstName: string;
   @Expose()
   lastName: string;
   @Expose()

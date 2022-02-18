@@ -35,7 +35,7 @@ export class FullTextSeach1590967789744 implements MigrationInterface {
       }, unaccent(coalesce(string_agg(inst.abbreviation, ' '), ''))) ||
       to_tsvector(${
         params.textSearchConfig
-      }, unaccent(coalesce(string_agg(usr.name || ' ' || usr."lastName", ' '), ''))) ||
+      }, unaccent(coalesce(string_agg(usr."firstName" || ' ' || usr."lastName", ' '), ''))) ||
       to_tsvector(${
         params.textSearchConfig
       }, unaccent(coalesce(string_agg(inter.name, ' '), ''))) as document_with_weights
