@@ -10,6 +10,7 @@ services:
       POSTGRES_DB: postgrestest
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
+      JWT_SECRET: "jwt_test_secret"
     working_dir: /usr/src/app
     volumes:
       - ./src:/usr/src/app/src
