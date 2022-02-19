@@ -22,7 +22,7 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const user = await this.userRepo
       .findOne({ email: loginDto.email })
-      .catch((e) => {
+      .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
     if (!user) throw new Unauthorized('User not found');

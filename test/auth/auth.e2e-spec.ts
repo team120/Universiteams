@@ -27,7 +27,7 @@ describe('auth', () => {
           .then((res) => {
             expect(res.statusCode).toBe(201);
             expect(res.body.accessToken).toMatch(/Bearer\s\w+/gm);
-            expect(res.body.mail).toBe('user1@example.com');
+            expect(res.body.email).toBe('user1@example.com');
             expect(res.body.id).toBe(1);
             expect(res.body.firstName).toBe('Juan');
             expect(res.body.lastName).toBe('Rizzo');

@@ -15,13 +15,11 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ unique: true })
-  mail: string;
+  email: string;
   @Column({ default: false })
   isMailVerified: boolean;
   @Column({ nullable: true })
   password: string;
-  @Column({ nullable: true })
-  dni: string;
   @Column()
   firstName: string;
   @Column()
