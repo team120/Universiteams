@@ -14,3 +14,10 @@ export class Unauthorized extends HttpException {
     this.message = messageToLog;
   }
 }
+
+export class BadRequest extends HttpException {
+  constructor(validationMessage: string, messageToLog?: string) {
+    super(validationMessage, HttpStatus.BAD_REQUEST);
+    this.message = messageToLog ?? validationMessage;
+  }
+}
