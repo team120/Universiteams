@@ -6,7 +6,7 @@ import { LoginDto } from './dtos/login.dto';
 import * as argon2 from 'argon2';
 import * as jwt from 'jsonwebtoken';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
-import { LoggedUserDto } from './dtos/logged-user.dto';
+import { LoggedUserShowDto } from './dtos/logged-user.show.dto';
 import {
   BadRequest,
   DbException,
@@ -14,6 +14,7 @@ import {
 } from '../utils/exceptions/exceptions';
 import { ConfigService } from '@nestjs/config';
 import { RegisterDto } from './dtos/register.dto';
+import { TokenPayload } from './dtos/token';
 
 @Injectable()
 export class AuthService {
@@ -60,13 +61,13 @@ export class AuthService {
   }
 
   private generateToken(user: User) {
-    const tokenPayload = {
+    const tokenPayload: TokenPayload = {
       id: user.id,
       user: `${user.firstName} ${user.lastName}`,
       email: user.email,
     };
 
-    return this.entityMapper.mapValue(LoggedUserDto, {
+    return this.entityMapper.mapValue(LoggedUserShowDto, {
       ...user,
       accessToken: `Bearer ${jwt.sign(
         tokenPayload,

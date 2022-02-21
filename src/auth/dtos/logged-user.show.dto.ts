@@ -1,7 +1,8 @@
+import { OmitType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
-export class LoggedUserDto {
+export class LoggedUserShowDto {
   @Expose()
   id: number;
   @Expose()
@@ -15,3 +16,9 @@ export class LoggedUserDto {
   @Expose()
   refreshToken: string;
 }
+
+@Exclude()
+export class EmbeddedUserInResponse extends OmitType(LoggedUserShowDto, [
+  'accessToken',
+  'refreshToken',
+]) {}

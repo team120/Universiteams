@@ -15,6 +15,7 @@ async function bootstrap() {
     .setTitle('Universiteams API')
     .setDescription('Universiteams: Pro Scientific Dissemination ')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

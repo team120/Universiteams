@@ -26,6 +26,66 @@ describe('Project Actions (e2e)', () => {
     await app.close();
   });
 
+  describe('Bookmark', () => {
+    describe('when token', () => {
+      describe('is not sent', () => {
+        it('should return Unauthorized', async () => {
+          await request(app.getHttpServer())
+            .post('/projects/bookmark/1')
+            .then((res) => {
+              expect(res.status).toBe(401);
+              expect(res.body.message).toBe('Unauthorized');
+            });
+        });
+      });
+      describe('is not a valid jwt', () => {
+        it.each([
+          '',
+          ' ',
+          'Bearer eJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlciI6Ikp1YW4gUml6em8iLCJlbWFpbCI1wbGUuY29tIiwiaWF0IjoxNjQ1NDgxMjAwLCJleHAiOjE2NDU0ODIxMDB9.4IMEns6VuUJhYz_kgCn1PbMX_cAD_t2sfVXPQIHNqlk',
+        ])('should return Unauthorized', async (token: string) => {
+          await request(app.getHttpServer())
+            .post('/projects/bookmark/1')
+            .set('Authorization', token)
+            .then((res) => {
+              expect(res.status).toBe(401);
+              expect(res.body.message).toBe('Unauthorized');
+            });
+        });
+      });
+      describe('is expired', () => {
+        it('should return Unauthorized', async () => {
+          await request(app.getHttpServer())
+            .post('/projects/bookmark/1')
+            .set(
+              'Authorization',
+              'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlciI6Ikp1YW4gUml6em8iLCJlbWFpbCI6InVzZXIxQGV4YW1wbGUuY29tIiwiaWF0IjoxNjQ1NDgxMjAwLCJleHAiOjE2NDU0ODIxMDB9.4IMEns6VuUJhYz_kgCn1PbMX_cAD_t2sfVXPQIHNqlk',
+            )
+            .then((res) => {
+              expect(res.status).toBe(401);
+              expect(res.body.message).toBe('Unauthorized');
+            });
+        });
+      });
+      describe('is valid', () => {
+        it('should return x', async () => {
+          const token = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({ email: 'user1@example.com', password: 'password1' })
+            .then((res) => res.body.accessToken);
+
+          await request(app.getHttpServer())
+            .post('/projects/bookmark/1')
+            .set('Authorization', token)
+            .then((res) => {
+              expect(res.status).toBe(201);
+              expect(res.body).toEqual({ id: 1 });
+            });
+        });
+      });
+    });
+  });
+
   describe('Get one', () => {
     it('should return ID not found if it does not match any id on DB', async () => {
       const id = 100;
