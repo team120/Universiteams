@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { addMonths, formatISO, subMonths } from 'date-fns';
 import * as request from 'supertest';
 import { Connection } from 'typeorm';
 import { createProjectTestingApp } from './project.e2e.module';
@@ -103,10 +104,13 @@ describe('Project Actions (e2e)', () => {
     describe('dateFrom is sent', () => {
       describe('less than a year', () => {
         it('should get the universiteams project only', async () => {
-          const dateFrom = new Date('2021-03-16');
-          dateFrom.setMonth(dateFrom.getMonth() - 8);
+          const dateFrom = subMonths(new Date('2021-03-16'), 8);
           await request(app.getHttpServer())
-            .get(`/projects?dateFrom=${dateFrom.toISOString()}`)
+            .get(
+              `/projects?dateFrom=${formatISO(dateFrom, {
+                representation: 'date',
+              })}`,
+            )
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(1);
@@ -116,12 +120,13 @@ describe('Project Actions (e2e)', () => {
       });
       describe('current date plus a month (future time)', () => {
         it('should get no projects (physically impossible to get other result)', async () => {
-          const now = new Date();
-          const year = now.getFullYear().toString();
-          const month = (now.getMonth() + 1).toString().padStart(2, '0');
-          const day = now.getDay().toString().padStart(2, '0');
+          const aMonthInTheFuture = addMonths(new Date(), 1);
           await request(app.getHttpServer())
-            .get(`/projects?dateFrom=${year}-${month}-${day}`)
+            .get(
+              `/projects?dateFrom=${formatISO(aMonthInTheFuture, {
+                representation: 'date',
+              })}`,
+            )
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(0);
