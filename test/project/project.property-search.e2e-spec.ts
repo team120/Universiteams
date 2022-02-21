@@ -286,6 +286,23 @@ describe('Project Actions (e2e)', () => {
       });
     });
     describe('by dateFrom and dateUntil', () => {
+      describe('when dateUntil is before dateFrom', () => {
+        it('should get a validation error response (bad request)', async () => {
+          await request(app.getHttpServer())
+            .get(
+              `/projects?dateFrom=2021-01-02&dateUntil=2021-01-01&offset=0&limit=5`,
+            )
+            .then((res) => {
+              expect(res.status).toBe(400);
+              expect(res.body.message).toEqual([
+                'dateUntil is not after dateFrom',
+              ]);
+              expect(res.body.error).toBe('Bad Request');
+              expect(res.body.projects).not.toBeDefined();
+              expect(res.body.projectCount).not.toBeDefined();
+            });
+        });
+      });
       describe('when searching for projects with a duration of', () => {
         const startingDate = '2019-01-01';
         describe(`one years from ${startingDate}`, () => {
