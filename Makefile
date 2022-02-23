@@ -15,7 +15,8 @@ up:
 
 ## down:  Tear down enviroment
 down:
-	docker-compose down
+	- docker-compose down
+	- sudo rimraf dist
 
 ## clean:  Stop and remove both containers and data volumes
 clean:
