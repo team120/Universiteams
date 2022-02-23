@@ -14,10 +14,11 @@ import { UniqueWordsService } from './unique-words.service';
 import { UniqueWords } from './unique-words.entity';
 import { StopWords } from '../database/stop-words.entity';
 import { AuthModule } from '../auth/auth.module';
+import { Bookmark } from '../bookmark/bookmark.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Project, UniqueWords, StopWords]),
+    TypeOrmModule.forFeature([Project, UniqueWords, StopWords, Bookmark]),
     SerializationModule,
     AuthModule,
   ],

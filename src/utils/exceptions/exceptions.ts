@@ -8,6 +8,13 @@ export class DbException extends HttpException {
   }
 }
 
+export class NotFound extends HttpException {
+  constructor(validationMessage: string, messageToLog?: string) {
+    super(validationMessage, HttpStatus.NOT_FOUND);
+    this.message = messageToLog ?? validationMessage;
+  }
+}
+
 export class Unauthorized extends HttpException {
   constructor(messageToLog?: string) {
     super('Unauthorized', HttpStatus.UNAUTHORIZED);

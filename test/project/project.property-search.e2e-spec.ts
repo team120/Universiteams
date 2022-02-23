@@ -2,6 +2,8 @@ import { INestApplication } from '@nestjs/common';
 import { addMonths, formatISO, subMonths } from 'date-fns';
 import * as request from 'supertest';
 import { Connection } from 'typeorm';
+import { LoggedUserShowDto } from '../../src/auth/dtos/logged-user.show.dto';
+import { Bookmark } from '../../src/bookmark/bookmark.entity';
 import { createProjectTestingApp } from './project.e2e.module';
 import {
   projectGeolocationWithExtendedDta,
@@ -68,19 +70,50 @@ describe('Project Actions (e2e)', () => {
         });
       });
       describe('is valid', () => {
-        it('should return x', async () => {
-          const token = await request(app.getHttpServer())
+        let tokenResult: LoggedUserShowDto;
+        beforeEach(async () => {
+          tokenResult = await request(app.getHttpServer())
             .post('/auth/login')
             .send({ email: 'user1@example.com', password: 'password1' })
-            .then((res) => res.body.accessToken);
+            .then((res) => res.body);
+        });
+        describe("and the project hasn't been already bookmarked by user", () => {
+          it('should return x', async () => {
+            const res = await request(app.getHttpServer())
+              .post('/projects/bookmark/1')
+              .set('Authorization', tokenResult.accessToken);
+            expect(res.status).toBe(201);
 
-          await request(app.getHttpServer())
-            .post('/projects/bookmark/1')
-            .set('Authorization', token)
-            .then((res) => {
-              expect(res.status).toBe(201);
-              expect(res.body).toEqual({ id: 1 });
-            });
+            const bookmark = await conn
+              .getRepository(Bookmark)
+              .findOne({ projectId: 1, userId: tokenResult.id });
+            expect(bookmark.projectId).toBeDefined();
+          });
+        });
+        describe('and the project has been already bookmarked by user', () => {
+          it('should return x', async () => {
+            await request(app.getHttpServer())
+              .post('/projects/bookmark/1')
+              .set('Authorization', tokenResult.accessToken);
+
+            const secondBookmarkTryRes = await request(app.getHttpServer())
+              .post('/projects/bookmark/1')
+              .set('Authorization', tokenResult.accessToken);
+            expect(secondBookmarkTryRes.status).toBe(400);
+            expect(secondBookmarkTryRes.body.message).toBe(
+              'This project has been already bookmarked by this user',
+            );
+
+            const bookmarkCount = await conn
+              .getRepository(Bookmark)
+              .count({ projectId: 1, userId: tokenResult.id });
+            expect(bookmarkCount).toBe(1);
+          });
+        });
+        afterEach(async () => {
+          await conn
+            .getRepository(Bookmark)
+            .delete({ projectId: 1, userId: tokenResult.id });
         });
       });
     });
@@ -93,7 +126,7 @@ describe('Project Actions (e2e)', () => {
         .get(`/projects/${id}`)
         .then((res) => {
           expect(res.status).toBe(404);
-          expect(res.body.message).toBe(`Not Found`);
+          expect(res.body.message).toBe('Id does not match with any project');
         });
     });
     it('should get the specified geolocation project with their associated users', async () => {
