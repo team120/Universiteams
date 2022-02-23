@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Interest } from '../interest/interest.entity';
+import { Bookmark } from '../bookmark/bookmark.entity';
 
 @Entity()
 export class User {
@@ -42,4 +43,7 @@ export class User {
   })
   @JoinTable({ name: 'user_interest' })
   interests?: Interest[];
+
+  @OneToMany(() => Bookmark, (bookmark) => bookmark.user)
+  bookmarks: Bookmark[];
 }

@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { ResearchDepartment } from '../research-department/research-department.entity';
 import { Interest } from '../interest/interest.entity';
+import { Bookmark } from '../bookmark/bookmark.entity';
 
 export enum ProjectType {
   Informal = 'Informal',
@@ -65,4 +66,11 @@ export class Project {
   })
   @JoinTable({ name: 'project_interest' })
   interests: Interest[];
+
+  @OneToMany(() => Bookmark, (bookmark) => bookmark.project, {
+    nullable: true,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
+  bookmarks: Bookmark[];
 }
