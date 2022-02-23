@@ -34,8 +34,6 @@ export class Project {
   type: ProjectType;
   @Column({ default: 'spanish' })
   language: 'spanish' | 'english';
-  @Column({ default: 0 })
-  userCount: number;
   @Column({ nullable: true })
   web: string;
   @Column({ default: false })
@@ -52,6 +50,8 @@ export class Project {
   @JoinTable({ name: 'project_research_department' })
   researchDepartments: ResearchDepartment[];
 
+  @Column({ default: 0 })
+  userCount: number;
   @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {
     nullable: false,
     cascade: ['insert', 'update'],
@@ -67,6 +67,8 @@ export class Project {
   @JoinTable({ name: 'project_interest' })
   interests: Interest[];
 
+  @Column({ default: 0 })
+  bookmarkCount: number;
   @OneToMany(() => Bookmark, (bookmark) => bookmark.project, {
     nullable: true,
     cascade: ['insert', 'update'],

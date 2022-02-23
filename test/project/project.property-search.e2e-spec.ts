@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { Connection } from 'typeorm';
 import { LoggedUserShowDto } from '../../src/auth/dtos/logged-user.show.dto';
 import { Bookmark } from '../../src/bookmark/bookmark.entity';
+import { Project } from '../../src/project/project.entity';
 import { createProjectTestingApp } from './project.e2e.module';
 import {
   projectGeolocationWithExtendedDta,
@@ -69,7 +70,8 @@ describe('Project Actions (e2e)', () => {
             });
         });
       });
-      describe('is valid', () => {
+      describe('is valid and the project', () => {
+        const projectId = 1;
         let tokenResult: LoggedUserShowDto;
         beforeEach(async () => {
           tokenResult = await request(app.getHttpServer())
@@ -77,27 +79,27 @@ describe('Project Actions (e2e)', () => {
             .send({ email: 'user1@example.com', password: 'password1' })
             .then((res) => res.body);
         });
-        describe("and the project hasn't been already bookmarked by user", () => {
-          it('should return x', async () => {
+        describe("hasn't been already bookmarked by user", () => {
+          it('should return status code 201 and the bookmark should be reflected in db', async () => {
             const res = await request(app.getHttpServer())
-              .post('/projects/bookmark/1')
+              .post(`/projects/bookmark/${projectId}`)
               .set('Authorization', tokenResult.accessToken);
             expect(res.status).toBe(201);
 
             const bookmark = await conn
               .getRepository(Bookmark)
-              .findOne({ projectId: 1, userId: tokenResult.id });
+              .findOne({ projectId: projectId, userId: tokenResult.id });
             expect(bookmark.projectId).toBeDefined();
           });
         });
-        describe('and the project has been already bookmarked by user', () => {
-          it('should return x', async () => {
+        describe('has been already bookmarked by user', () => {
+          it('should return status code 201 and the bookmark should be reflected in db', async () => {
             await request(app.getHttpServer())
-              .post('/projects/bookmark/1')
+              .post(`/projects/bookmark/${projectId}`)
               .set('Authorization', tokenResult.accessToken);
 
             const secondBookmarkTryRes = await request(app.getHttpServer())
-              .post('/projects/bookmark/1')
+              .post(`/projects/bookmark/${projectId}`)
               .set('Authorization', tokenResult.accessToken);
             expect(secondBookmarkTryRes.status).toBe(400);
             expect(secondBookmarkTryRes.body.message).toBe(
@@ -106,14 +108,20 @@ describe('Project Actions (e2e)', () => {
 
             const bookmarkCount = await conn
               .getRepository(Bookmark)
-              .count({ projectId: 1, userId: tokenResult.id });
+              .count({ projectId: projectId, userId: tokenResult.id });
             expect(bookmarkCount).toBe(1);
           });
         });
         afterEach(async () => {
+          const project = await conn.getRepository(Project).findOne(projectId);
+          expect(project.bookmarkCount).toBe(1);
+
           await conn
             .getRepository(Bookmark)
-            .delete({ projectId: 1, userId: tokenResult.id });
+            .delete({ projectId: projectId, userId: tokenResult.id });
+          await conn
+            .getRepository(Project)
+            .update(projectId, { bookmarkCount: project.bookmarkCount - 1 });
         });
       });
     });

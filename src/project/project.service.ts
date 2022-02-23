@@ -134,9 +134,19 @@ export class ProjectService {
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
-
     this.logger.debug(
       `Project#${project.id} successfully bookmarked by user#${user.id}`,
+    );
+
+    await this.projectRepository
+      .update(project.id, {
+        bookmarkCount: project.bookmarkCount + 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully increased its bookmark count`,
     );
   }
 }
