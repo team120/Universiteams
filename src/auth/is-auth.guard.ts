@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmbeddedUserInResponse } from './dtos/logged-user.show.dto';
+import { RequestWithUser } from '../utils/request-with-user';
 
 @Injectable()
 export class IsAuthGuard implements CanActivate {
@@ -19,7 +20,7 @@ export class IsAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext) {
-    const request = context.switchToHttp().getRequest();
+    const request: RequestWithUser = context.switchToHttp().getRequest();
 
     const fullInputToken: string | undefined = request.get('Authorization');
     if (!fullInputToken) throw new Unauthorized('Token not provided');
@@ -32,7 +33,10 @@ export class IsAuthGuard implements CanActivate {
     if (!user)
       throw new Unauthorized("Token's associated id doesn't match any user");
 
-    request.user = this.entityMapper.mapValue(EmbeddedUserInResponse, user);
+    request.currentUser = this.entityMapper.mapValue(
+      EmbeddedUserInResponse,
+      user,
+    );
 
     return true;
   }
