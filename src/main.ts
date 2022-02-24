@@ -15,9 +15,14 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Universiteams API')
-    .setDescription('Universiteams: Pro Scientific Dissemination ')
+    .setDescription(
+      'Universiteams: Pro Scientific Dissemination' +
+        '\n\n' +
+        '\tTo get access and refresh token cookies (http-only same-site) use login or register endpoints.' +
+        '\n\n' +
+        '\tYour browser will place them in SetCookie headers automatically. (withCredential: true)',
+    )
     .setVersion('1.0')
-    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -25,6 +30,7 @@ async function bootstrap() {
     swaggerOptions: {
       persistAuthorization: true,
       displayRequestDuration: true,
+      withCredentials: true,
     },
   };
 
