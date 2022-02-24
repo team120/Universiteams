@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
-import { EmbeddedUserInResponse } from '../auth/dtos/logged-user.show.dto';
+import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { Bookmark } from '../bookmark/bookmark.entity';
 import {
   BadRequest,
@@ -113,7 +113,7 @@ export class ProjectService {
     return this.entityMapper.mapValue(ProjectSingleDto, project);
   }
 
-  async bookmark(id: number, user: EmbeddedUserInResponse) {
+  async bookmark(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne(id);
     if (!project) throw new NotFound('Id does not match with any project');
 

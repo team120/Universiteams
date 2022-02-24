@@ -6,7 +6,7 @@ import { LoginDto } from './dtos/login.dto';
 import * as argon2 from 'argon2';
 import * as jwt from 'jsonwebtoken';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
-import { LoggedUserShowDto } from './dtos/logged-user.show.dto';
+import { CurrentUserDto } from './dtos/current-user.dto';
 import {
   BadRequest,
   DbException,
@@ -67,7 +67,7 @@ export class AuthService {
       email: user.email,
     };
 
-    return this.entityMapper.mapValue(LoggedUserShowDto, {
+    return this.entityMapper.mapValue(CurrentUserDto, {
       ...user,
       accessToken: `Bearer ${jwt.sign(
         tokenPayload,
@@ -76,6 +76,7 @@ export class AuthService {
           expiresIn: '15m',
         },
       )}`,
+      accessTokenExpiration: 15,
     });
   }
 }

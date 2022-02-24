@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { EmbeddedUserInResponse } from '../auth/dtos/logged-user.show.dto';
+import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 
 export interface RequestWithUser extends Request {
-  currentUser: EmbeddedUserInResponse;
+  currentUser: CurrentUserWithoutTokens;
 }
