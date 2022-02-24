@@ -7,7 +7,7 @@ import { TokenDecoded } from './dtos/token';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EmbeddedUserInResponse } from './dtos/logged-user.show.dto';
+import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
 import { RequestWithUser } from '../utils/request-with-user';
 
 @Injectable()
@@ -22,7 +22,8 @@ export class IsAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request: RequestWithUser = context.switchToHttp().getRequest();
 
-    const fullInputToken: string | undefined = request.get('Authorization');
+    if (!request.cookies) throw new Unauthorized('Cookie not provided');
+    const fullInputToken: string | undefined = request.cookies['accessToken'];
     if (!fullInputToken) throw new Unauthorized('Token not provided');
 
     const tokenWithoutPrefix = fullInputToken.replace('Bearer ', '');
@@ -34,7 +35,7 @@ export class IsAuthGuard implements CanActivate {
       throw new Unauthorized("Token's associated id doesn't match any user");
 
     request.currentUser = this.entityMapper.mapValue(
-      EmbeddedUserInResponse,
+      CurrentUserWithoutTokens,
       user,
     );
 

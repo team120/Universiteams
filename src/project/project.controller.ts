@@ -8,7 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { IsAuthGuard } from '../auth/is-auth.guard';
 import { RequestWithUser } from '../utils/request-with-user';
 import { AppValidationPipe } from '../utils/validation.pipe';
@@ -34,7 +34,7 @@ export class ProjectController {
   }
 
   @UseGuards(IsAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @Post('bookmark/:id')
   async bookmark(
     @Req() request: RequestWithUser,
