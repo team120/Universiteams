@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { Connection, DeepPartial } from 'typeorm';
 import { User } from '../../src/user/user.entity';
 import { RegisterDto } from '../../src/auth/dtos/register.dto';
+import * as setCookieParser from 'set-cookie-parser';
 
 describe('auth', () => {
   let app: INestApplication;
@@ -23,18 +24,24 @@ describe('auth', () => {
   describe('login', () => {
     describe('when supplied credentials are valid', () => {
       it('should return an auth token', async () => {
-        await request(app.getHttpServer())
+        const res = await request(app.getHttpServer())
           .post('/auth/login')
-          .send({ email: 'user1@example.com', password: 'password1' })
-          .then((res) => {
-            expect(res.statusCode).toBe(201);
-            expect(res.body.accessToken).toMatch(/Bearer\s\w+/gm);
-            expect(res.body.email).toBe('user1@example.com');
-            expect(res.body.id).toBe(1);
-            expect(res.body.firstName).toBe('Juan');
-            expect(res.body.lastName).toBe('Rizzo');
-            expect(res.body.password).not.toBeDefined();
-          });
+          .send({ email: 'user1@example.com', password: 'password1' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.email).toBe('user1@example.com');
+        expect(res.body.id).toBe(1);
+        expect(res.body.firstName).toBe('Juan');
+        expect(res.body.lastName).toBe('Rizzo');
+        expect(res.body.password).not.toBeDefined();
+
+        const accessTokenCookie = setCookieParser.parse(
+          res.header['set-cookie'][0],
+        )[0];
+
+        expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
+        expect(accessTokenCookie.httpOnly).toBe(true);
+        expect(accessTokenCookie.sameSite).toBe('Strict');
       });
     });
     describe('when supplied email is not valid', () => {
@@ -76,7 +83,7 @@ describe('auth', () => {
   });
 
   describe('register', () => {
-    const validUserToBeInserted = (
+    const validRegistrationToBeSaved = (
       modifiedUserProps?: DeepPartial<RegisterDto>,
     ) => ({
       email: 'user100@example.com',
@@ -85,7 +92,7 @@ describe('auth', () => {
       password: 'Password#54',
       ...modifiedUserProps,
     });
-    const validRegistrationNotToBeInserted = (
+    const validRegistrationNotToBeSaved = (
       modifiedUserProps?: DeepPartial<RegisterDto>,
     ) => ({
       email: 'user70@example.com',
@@ -95,33 +102,44 @@ describe('auth', () => {
       ...modifiedUserProps,
     });
     describe('when supplied credentials are valid', () => {
+      let insertedUserId: number;
       it('should save a new user and return an auth token', async () => {
-        const registrationAttempt = validUserToBeInserted();
-        await request(app.getHttpServer())
+        const registrationAttempt = validRegistrationToBeSaved();
+        const res = await request(app.getHttpServer())
           .post('/auth/register')
-          .send(registrationAttempt)
-          .then(async (res) => {
-            expect(res.statusCode).toBe(201);
-            expect(res.body.accessToken).toMatch(/Bearer\s\w+/gm);
-            expect(res.body.email).toBe(registrationAttempt.email);
-            expect(res.body.id).toBeDefined();
-            expect(res.body.firstName).toBe(registrationAttempt.firstName);
-            expect(res.body.lastName).toBe(registrationAttempt.lastName);
-            expect(res.body.password).not.toBeDefined();
+          .send(registrationAttempt);
+        insertedUserId = res.body.id;
 
-            const insertedUser = await conn
-              .getRepository(User)
-              .findOne(res.body.id);
-            await conn.getRepository(User).delete(insertedUser.id);
-            expect(insertedUser).toBeDefined();
-            expect(insertedUser.email).toBe(registrationAttempt.email);
-            expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
-          });
+        expect(res.status).toBe(201);
+        expect(res.body.email).toBe(registrationAttempt.email);
+        expect(res.body.id).toBeDefined();
+        expect(res.body.firstName).toBe(registrationAttempt.firstName);
+        expect(res.body.lastName).toBe(registrationAttempt.lastName);
+        expect(res.body.password).not.toBeDefined();
+
+        const accessTokenCookie = setCookieParser.parse(
+          res.header['set-cookie'][0],
+        )[0];
+
+        expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
+        expect(accessTokenCookie.httpOnly).toBe(true);
+        expect(accessTokenCookie.sameSite).toBe('Strict');
+
+        const insertedUser = await conn
+          .getRepository(User)
+          .findOne(insertedUserId);
+        expect(insertedUser).toBeDefined();
+        expect(insertedUser.email).toBe(registrationAttempt.email);
+        expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
+      });
+
+      afterEach(async () => {
+        await conn.getRepository(User).delete(insertedUserId);
       });
     });
     describe('when supplied email, firstName and lastName are not valid', () => {
       it('should return a validation error result (bad request)', async () => {
-        const registrationAttempt = validRegistrationNotToBeInserted({
+        const registrationAttempt = validRegistrationNotToBeSaved({
           email: 'userexample.com',
           firstName: 'C',
           lastName: 'K',
@@ -151,7 +169,7 @@ describe('auth', () => {
     describe('when supplied password lacks ', () => {
       describe('uppercase characters, numbers and symbols and is less than 8 character long', () => {
         it('should return a validation error result (bad request)', async () => {
-          const registrationAttempt = validRegistrationNotToBeInserted({
+          const registrationAttempt = validRegistrationNotToBeSaved({
             password: 'pass',
           });
           await request(app.getHttpServer())
@@ -177,7 +195,7 @@ describe('auth', () => {
 
       describe('numbers and symbols', () => {
         it('should return a validation error result (bad request)', async () => {
-          const registrationAttempt = validRegistrationNotToBeInserted({
+          const registrationAttempt = validRegistrationNotToBeSaved({
             password: 'Password',
           });
           await request(app.getHttpServer())
@@ -199,7 +217,7 @@ describe('auth', () => {
       });
       describe('symbols and email is invalid', () => {
         it('should return a validation error result (bad request)', async () => {
-          const registrationAttempt = validRegistrationNotToBeInserted({
+          const registrationAttempt = validRegistrationNotToBeSaved({
             email: 'notAnEmail@.com',
             password: 'Password12',
           });
@@ -225,7 +243,7 @@ describe('auth', () => {
 
     describe('when that email is already taken', () => {
       it('should return bad request', async () => {
-        const registrationAttempt = validUserToBeInserted({
+        const registrationAttempt = validRegistrationToBeSaved({
           email: 'user1@example.com',
         });
         await request(app.getHttpServer())
