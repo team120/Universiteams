@@ -8,7 +8,8 @@ describe('Project Actions (e2e)', () => {
   let conn: Connection;
 
   beforeEach(async () => {
-    app = await createProjectTestingApp();
+    const testingAppCreationResult = await createProjectTestingApp();
+    app = testingAppCreationResult.app;
     await app.init();
 
     conn = app.get(Connection);
