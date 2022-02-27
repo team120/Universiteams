@@ -1,6 +1,5 @@
 import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { addMinutes } from 'date-fns';
 import { Response } from 'express';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { AppValidationPipe } from '../utils/validation.pipe';
@@ -11,12 +10,14 @@ import {
 } from './dtos/current-user.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RegisterDto } from './dtos/register.dto';
+import { TokenService } from './token.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly tokenService: TokenService,
     private readonly entityMapper: EntityMapperService,
   ) {}
 
@@ -50,15 +51,11 @@ export class AuthController {
   private populateResponse(
     response: Response<any, Record<string, any>>,
     statusCode: number,
-    loggedUser: CurrentUserDto,
+    currentUser: CurrentUserDto,
   ) {
-    response.cookie('accessToken', loggedUser.accessToken, {
-      expires: addMinutes(new Date(), loggedUser.accessTokenExpiration),
-      httpOnly: true,
-      sameSite: 'strict',
-    });
+    this.tokenService.appendTokenCookies(response, currentUser);
     response
       .status(statusCode)
-      .json(this.entityMapper.mapValue(CurrentUserWithoutTokens, loggedUser));
+      .json(this.entityMapper.mapValue(CurrentUserWithoutTokens, currentUser));
   }
 }
