@@ -178,10 +178,10 @@ describe('auth', () => {
             .then(async (res) => {
               expect(res.status).toBe(400);
               expect(res.body.message).toContain(
-                'password must include at least: one uppercase alphabetic character, one number, one non-alphanumeric character (#,$,%,etc)',
+                'password must be longer than or equal to 8 characters',
               );
               expect(res.body.message).toContain(
-                'password must be longer than or equal to 8 characters',
+                'password must include at least: one uppercase alphabetic character, one number, one non-alphanumeric character (#,$,%,etc)',
               );
               expect(res.body.accessToken).not.toBeDefined();
 
