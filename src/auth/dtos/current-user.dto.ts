@@ -1,6 +1,5 @@
 import { OmitType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 @Exclude()
 export class CurrentUserDto {
@@ -12,12 +11,8 @@ export class CurrentUserDto {
   lastName: string;
   @Expose()
   email: string;
-  @ExposeType(Number)
-  accessTokenExpiration: number;
   @Expose()
   accessToken: string;
-  @ExposeType(Number)
-  refreshTokenExpiration: number;
   @Expose()
   refreshToken: string;
 }
@@ -25,7 +20,5 @@ export class CurrentUserDto {
 @Exclude()
 export class CurrentUserWithoutTokens extends OmitType(CurrentUserDto, [
   'accessToken',
-  'accessTokenExpiration',
   'refreshToken',
-  'refreshTokenExpiration',
 ]) {}

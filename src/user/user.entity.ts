@@ -6,6 +6,7 @@ import {
   ManyToMany,
   OneToMany,
   JoinTable,
+  Generated,
 } from 'typeorm';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Interest } from '../interest/interest.entity';
@@ -25,6 +26,9 @@ export class User {
   firstName: string;
   @Column()
   lastName: string;
+  @Column({ unique: true })
+  @Generated('uuid')
+  refreshTokenSecret: string;
 
   @OneToMany(() => UserAffiliation, (userAffiliation) => userAffiliation.user, {
     nullable: false,
