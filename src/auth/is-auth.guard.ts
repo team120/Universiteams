@@ -1,55 +1,49 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
-import { ConfigService } from '@nestjs/config';
 import { Unauthorized } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
-import { TokenDecoded } from './dtos/token';
-import { Repository } from 'typeorm';
-import { User } from '../user/user.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
 import { RequestWithUser } from '../utils/request-with-user';
+import { Response } from 'express';
+import { IsAuthService } from './is-auth.service';
 
 @Injectable()
 export class IsAuthGuard implements CanActivate {
   constructor(
-    private readonly configService: ConfigService,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private readonly isAuthCheck: IsAuthService,
     private readonly entityMapper: EntityMapperService,
   ) {}
 
   async canActivate(context: ExecutionContext) {
-    const request: RequestWithUser = context.switchToHttp().getRequest();
+    const httpContext = context.switchToHttp();
+    const request: RequestWithUser = httpContext.getRequest();
+    const response: Response = httpContext.getResponse();
 
     if (!request.cookies) throw new Unauthorized('Cookie not provided');
-    const fullInputToken: string | undefined = request.cookies['accessToken'];
-    if (!fullInputToken) throw new Unauthorized('Token not provided');
+    const l = request.cookies['refreshToken'];
+    const accessToken: string | undefined = request.cookies[
+      'accessToken'
+    ]?.replace('Bearer ', '');
 
-    const tokenWithoutPrefix = fullInputToken.replace('Bearer ', '');
+    const accessTokenVerificationResult =
+      await this.isAuthCheck.verifyAccessToken(accessToken);
 
-    const decodedToken = this.checkAndDecodeToken(tokenWithoutPrefix);
+    if (!accessTokenVerificationResult.isValid) {
+      const refreshToken: string | undefined = request.cookies[
+        'refreshToken'
+      ]?.replace('Bearer ', '');
 
-    const user = await this.userRepo.findOne(decodedToken.id);
-    if (!user)
-      throw new Unauthorized("Token's associated id doesn't match any user");
+      this.isAuthCheck.appendNewTokensIfRefreshTokenIsValid(
+        refreshToken,
+        accessTokenVerificationResult.user,
+        response,
+      );
+    }
 
     request.currentUser = this.entityMapper.mapValue(
       CurrentUserWithoutTokens,
-      user,
+      accessTokenVerificationResult.user,
     );
 
     return true;
-  }
-
-  private checkAndDecodeToken(token: string): TokenDecoded {
-    try {
-      return this.entityMapper.mapValue(
-        TokenDecoded,
-        jwt.verify(token, this.configService.get('JWT_SECRET')),
-      );
-    } catch {
-      throw new Unauthorized(`Token is not valid (${token})`);
-    }
   }
 }
