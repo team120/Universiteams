@@ -1,17 +1,46 @@
 import { INestApplication } from '@nestjs/common';
-import { createAuthTestApp } from './auth.e2e-module';
 import * as request from 'supertest';
 import { Connection, DeepPartial } from 'typeorm';
 import { User } from '../../src/user/user.entity';
 import { RegisterDto } from '../../src/auth/dtos/register.dto';
 import * as setCookieParser from 'set-cookie-parser';
+import { EmailService, IEmailService } from '../../src/email/email.service';
+import { createAuthTestModule } from './auth.e2e-module';
+import { CurrentUserDto } from '../../src/auth/dtos/current-user.dto';
+import { VerificationEmailTokenService } from '../../src/email/verification-email-token.service';
+import * as cookieParser from 'cookie-parser';
+import { TokenExpirationTimes } from '../../src/utils/token-expiration/token-expiration-times';
+import { TokenExpirationTimesFake } from '../utils/token-expiration-times.fake';
 
 describe('auth', () => {
   let app: INestApplication;
   let conn: Connection;
+  const emailServiceMock: IEmailService = {
+    sendVerificationEmail: jest.fn(),
+  };
+  const tokenExpirationTimesTesting = new TokenExpirationTimesFake({
+    accessToken: {
+      value: 15,
+      dimension: 'minutes',
+    },
+    refreshToken: { value: 7, dimension: 'days' },
+    emailVerificationToken: {
+      value: 30,
+      dimension: 'minutes',
+    },
+  });
 
   beforeEach(async () => {
-    app = await createAuthTestApp();
+    const module = await createAuthTestModule()
+      .overrideProvider(EmailService)
+      .useValue(emailServiceMock)
+      .overrideProvider(TokenExpirationTimes)
+      .useValue(tokenExpirationTimesTesting)
+      .compile();
+
+    app = module.createNestApplication();
+
+    app.use(cookieParser());
     await app.init();
 
     conn = app.get(Connection);
@@ -109,6 +138,8 @@ describe('auth', () => {
           .post('/auth/register')
           .send(registrationAttempt);
         insertedUserId = res.body.id;
+
+        expect(emailServiceMock.sendVerificationEmail).toHaveBeenCalledTimes(1);
 
         expect(res.status).toBe(201);
         expect(res.body.email).toBe(registrationAttempt.email);
@@ -259,6 +290,99 @@ describe('auth', () => {
               .count({ email: registrationAttempt.email });
             expect(usersInDbWithThatEmail).toBe(1);
           });
+      });
+    });
+  });
+
+  describe('verify email', () => {
+    let loginResult: CurrentUserDto;
+    let accessTokenCookie: string;
+    let refreshTokenCookie: string;
+    beforeEach(async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: 'user1@example.com', password: 'password1' });
+
+      loginResult = res.body;
+      accessTokenCookie = res.header['set-cookie'][0];
+      refreshTokenCookie = res.header['set-cookie'][1];
+    });
+    describe('when a valid email verification token is provided', () => {
+      it('should set isEmailVerified to true', async () => {
+        const verificationEmailTokenService = app.get(
+          VerificationEmailTokenService,
+        );
+        const verificationTokenInUrl = verificationEmailTokenService
+          .generateVerificationUrl(loginResult as any)
+          .split('token=')[1];
+
+        const res = await request(app.getHttpServer())
+          .post('/auth/verify-email')
+          .set('Cookie', `${accessTokenCookie}; ${refreshTokenCookie}`)
+          .send({ verificationToken: verificationTokenInUrl });
+
+        expect(res.status).toBe(200);
+
+        const user = await conn.getRepository(User).findOne(loginResult.id);
+        expect(user.isMailVerified).toBe(true);
+      });
+      afterEach(async () => {
+        await conn
+          .getRepository(User)
+          .update(loginResult.id, { isMailVerified: false });
+      });
+    });
+    describe('when an invalid email verification token is provided', () => {
+      describe("since it isn't a jwt string", () => {
+        it('should return BadRequest (verificationToken must be a jwt string)', async () => {
+          const res = await request(app.getHttpServer())
+            .post('/auth/verify-email')
+            .set('Cookie', `${accessTokenCookie}; ${refreshTokenCookie}`)
+            .send({
+              verificationToken:
+                'hkjhqehiewhqnkj//kdasssssssowqheiuoqwh.qewehqio',
+            });
+
+          expect(res.status).toBe(400);
+          expect(res.body.message[0]).toBe(
+            'verificationToken must be a jwt string',
+          );
+        });
+      });
+      describe("since the user didn't visit this endpoint on time, so the verification token in url expired", () => {
+        beforeEach(() => {
+          tokenExpirationTimesTesting.set({
+            emailVerificationToken: {
+              value: 0,
+              dimension: 'seconds',
+            },
+          });
+        });
+        it('should return Unauthorized', async () => {
+          const verificationEmailTokenService = app.get(
+            VerificationEmailTokenService,
+          );
+          const verificationTokenInUrl = verificationEmailTokenService
+            .generateVerificationUrl(loginResult as any)
+            .split('token=')[1];
+
+          const res = await request(app.getHttpServer())
+            .post('/auth/verify-email')
+            .set('Cookie', `${accessTokenCookie}; ${refreshTokenCookie}`)
+            .send({
+              verificationToken: verificationTokenInUrl,
+            });
+
+          expect(res.status).toBe(401);
+          expect(res.body.message).toBe('Unauthorized');
+        });
+        afterEach(() => {
+          tokenExpirationTimesTesting.restore();
+        });
+      });
+      afterEach(async () => {
+        const user = await conn.getRepository(User).findOne(loginResult.id);
+        expect(user.isMailVerified).toBe(false);
       });
     });
   });

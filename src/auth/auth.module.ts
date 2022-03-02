@@ -7,14 +7,16 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { IsAuthService } from './is-auth.service';
 import { IsAuthGuard } from './is-auth.guard';
-import { TokenExpirationTimes } from './token-expiration-times';
 import { TokenService } from './token.service';
+import { EmailModule } from '../email/email.module';
+import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration-times';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     SerializationModule,
     ConfigModule,
+    EmailModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -25,11 +27,11 @@ import { TokenService } from './token.service';
     {
       provide: TokenExpirationTimes,
       useValue: new TokenExpirationTimes({
-        accessTokenExpiration: {
+        accessToken: {
           value: 15,
           dimension: 'minutes',
         },
-        refreshTokenExpiration: { value: 7, dimension: 'days' },
+        refreshToken: { value: 7, dimension: 'days' },
       }),
     },
   ],

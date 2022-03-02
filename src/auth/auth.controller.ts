@@ -1,6 +1,15 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { RequestWithUser } from '../utils/request-with-user';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { AuthService } from './auth.service';
@@ -10,6 +19,8 @@ import {
 } from './dtos/current-user.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RegisterDto } from './dtos/register.dto';
+import { VerifyDto } from './dtos/verify.dto';
+import { IsAuthGuard } from './is-auth.guard';
 import { TokenService } from './token.service';
 
 @ApiTags('auth')
@@ -46,6 +57,16 @@ export class AuthController {
   ) {
     const registeredUser = await this.authService.register(registerDto);
     this.populateResponse(response, 201, registeredUser);
+  }
+
+  @UseGuards(IsAuthGuard)
+  @Post('verify-email')
+  @HttpCode(200)
+  async verifyEmail(
+    @Body(AppValidationPipe) verifyDto: VerifyDto,
+    @Req() request: RequestWithUser,
+  ) {
+    await this.authService.verifyEmail(verifyDto, request.currentUser);
   }
 
   private populateResponse(

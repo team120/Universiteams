@@ -11,6 +11,10 @@ import {
 } from '../utils/exceptions/exceptions';
 import { RegisterDto } from './dtos/register.dto';
 import { TokenService } from './token.service';
+import { EmailService } from '../email/email.service';
+import { VerifyDto } from './dtos/verify.dto';
+import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
+import { VerificationEmailTokenService } from '../email/verification-email-token.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +22,8 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly tokenService: TokenService,
+    private readonly emailService: EmailService,
+    private readonly verificationEmailToken: VerificationEmailTokenService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -52,6 +58,21 @@ export class AuthService {
         throw new DbException(e.message, e.stack);
       });
 
+    await this.emailService.sendVerificationEmail(insertedUser);
+
     return this.tokenService.generateTokens(insertedUser);
+  }
+
+  async verifyEmail(
+    verifyDto: VerifyDto,
+    currentUser: CurrentUserWithoutTokens,
+  ) {
+    const decodedToken = this.verificationEmailToken.checkToken(
+      verifyDto.verificationToken,
+    );
+    if (decodedToken.id !== currentUser.id)
+      throw new Unauthorized('Current user id does not match verification url');
+
+    await this.userRepo.update(currentUser.id, { isMailVerified: true });
   }
 }
