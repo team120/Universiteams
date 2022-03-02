@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AuthModule } from './auth/auth.module';
     UserModule,
     DatabaseModule,
     AuthModule,
+    EmailModule,
   ],
   controllers: [AppController],
 })
