@@ -1,4 +1,4 @@
-import { TokenExpirationTimes } from './token-expiration-times';
+import { AcceptedTokens, TokenExpirationTimes } from './token-expiration-times';
 
 describe('TokenExpirationTimes', () => {
   describe('getAccessTokenExpirationShortVersion', () => {
@@ -18,16 +18,20 @@ describe('TokenExpirationTimes', () => {
           expectedShortVersion: string,
         ) => {
           const tokenExpirationTimes = new TokenExpirationTimes({
-            accessTokenExpiration: {
+            accessToken: {
               value: value,
               dimension: dimension,
             },
-            refreshTokenExpiration: { value: value, dimension: dimension },
+            refreshToken: { value: value, dimension: dimension },
           });
           const shortExpirationAccessToken =
-            tokenExpirationTimes.getAccessTokenExpirationShortVersion();
+            tokenExpirationTimes.getTokenExpirationShortVersion(
+              AcceptedTokens.AccessToken,
+            );
           const shortExpirationRefreshToken =
-            tokenExpirationTimes.getRefreshTokenExpirationShortVersion();
+            tokenExpirationTimes.getTokenExpirationShortVersion(
+              AcceptedTokens.RefreshToken,
+            );
 
           expect(shortExpirationAccessToken).toBe(expectedShortVersion);
           expect(shortExpirationRefreshToken).toBe(expectedShortVersion);

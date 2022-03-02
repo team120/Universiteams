@@ -9,7 +9,11 @@ import { Response } from 'express';
 import { add } from 'date-fns';
 import { Injectable } from '@nestjs/common';
 import { Unauthorized } from '../utils/exceptions/exceptions';
-import { TokenExpirationTimes } from './token-expiration-times';
+import { PinoLogger } from 'nestjs-pino';
+import {
+  AcceptedTokens,
+  TokenExpirationTimes,
+} from '../utils/token-expiration/token-expiration-times';
 
 @Injectable()
 export class TokenService {
@@ -17,7 +21,10 @@ export class TokenService {
     private readonly entityMapper: EntityMapperService,
     private readonly configService: ConfigService,
     private readonly tokenExpirationTimes: TokenExpirationTimes,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(TokenService.name);
+  }
 
   generateTokens(user: User) {
     const tokenPayload: TokenPayload = {
@@ -32,8 +39,9 @@ export class TokenService {
         tokenPayload,
         this.configService.get(SecretsVaultKeys.ACCESS_TOKEN),
         {
-          expiresIn:
-            this.tokenExpirationTimes.getAccessTokenExpirationShortVersion(),
+          expiresIn: this.tokenExpirationTimes.getTokenExpirationShortVersion(
+            AcceptedTokens.AccessToken,
+          ),
         },
       )}`,
       refreshToken: `Bearer ${jwt.sign(
@@ -41,8 +49,9 @@ export class TokenService {
         this.configService.get(SecretsVaultKeys.REFRESH_TOKEN) +
           user.refreshTokenSecret,
         {
-          expiresIn:
-            this.tokenExpirationTimes.getRefreshTokenExpirationShortVersion(),
+          expiresIn: this.tokenExpirationTimes.getTokenExpirationShortVersion(
+            AcceptedTokens.RefreshToken,
+          ),
         },
       )}`,
     });
@@ -65,8 +74,11 @@ export class TokenService {
         isValid: true,
       };
     } catch (err) {
+      this.logger.error(err);
+
       if (!(err instanceof jwt.TokenExpiredError))
         throw new Unauthorized('Access token incorrectly formatted');
+
       const token = this.entityMapper.mapValue(
         TokenDecoded,
         jwt.decode(
@@ -106,7 +118,8 @@ export class TokenService {
       return {
         isValid: true,
       };
-    } catch {
+    } catch (err) {
+      this.logger.error(err);
       return {
         isValid: false,
         errorMessage: 'Refresh token is invalid',
@@ -123,7 +136,9 @@ export class TokenService {
     response.cookie('refreshToken', currentUser.refreshToken, {
       expires: add(
         new Date(),
-        this.tokenExpirationTimes.getRefreshTokenExpirationInDurationFormat(),
+        this.tokenExpirationTimes.getTokenExpirationInDurationFormat(
+          AcceptedTokens.RefreshToken,
+        ),
       ),
       httpOnly: true,
       sameSite: 'strict',

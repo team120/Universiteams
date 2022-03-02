@@ -1,20 +1,18 @@
 import { Test } from '@nestjs/testing';
-import {
-  ExpirationTime,
-  TokenExpirationTimes,
-} from '../../src/auth/token-expiration-times';
 import { ProjectModule } from '../../src/project/project.module';
 import { CURRENT_DATE_SERVICE } from '../../src/utils/current-date';
+import { TokenExpirationTimes } from '../../src/utils/token-expiration/token-expiration-times';
 import { commonImportsArray } from '../utils/common-imports.e2e';
 import { CurrentDateE2EMock } from '../utils/current-date.e2e-mock';
+import { TokenExpirationTimesFake } from '../utils/token-expiration-times.fake';
 
 export const createProjectTestingApp = async () => {
-  const tokenExpirationTimesTesting = new TokenExpirationTimesTesting({
-    accessTokenExpiration: {
+  const tokenExpirationTimesTesting = new TokenExpirationTimesFake({
+    accessToken: {
       value: 15,
       dimension: 'minutes',
     },
-    refreshTokenExpiration: { value: 7, dimension: 'days' },
+    refreshToken: { value: 7, dimension: 'days' },
   });
 
   const moduleFixture = await Test.createTestingModule({
@@ -31,34 +29,3 @@ export const createProjectTestingApp = async () => {
     tokenExpirationTimesTesting: tokenExpirationTimesTesting,
   };
 };
-
-export class TokenExpirationTimesTesting extends TokenExpirationTimes {
-  private readonly originalParams: {
-    accessTokenExpiration: ExpirationTime;
-    refreshTokenExpiration: ExpirationTime;
-  };
-
-  constructor(params: {
-    accessTokenExpiration: ExpirationTime;
-    refreshTokenExpiration: ExpirationTime;
-  }) {
-    super(params);
-    this.originalParams = params;
-  }
-
-  set(params: {
-    accessTokenExpiration?: ExpirationTime;
-    refreshTokenExpiration?: ExpirationTime;
-  }) {
-    this.accessTokenExpiration =
-      params.accessTokenExpiration ?? this.originalParams.accessTokenExpiration;
-    this.refreshTokenExpiration =
-      params.refreshTokenExpiration ??
-      this.originalParams.refreshTokenExpiration;
-  }
-
-  restore() {
-    this.accessTokenExpiration = this.originalParams.accessTokenExpiration;
-    this.refreshTokenExpiration = this.originalParams.refreshTokenExpiration;
-  }
-}

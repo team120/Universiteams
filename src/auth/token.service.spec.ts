@@ -5,8 +5,9 @@ import { TokenService } from './token.service';
 import * as jwt from 'jsonwebtoken';
 import { SecretsVaultKeys } from '../utils/secrets';
 import { Unauthorized } from '../utils/exceptions/exceptions';
-import { TokenExpirationTimes } from './token-expiration-times';
 import { User } from '../user/user.entity';
+import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration-times';
+import { PinoLogger } from 'nestjs-pino';
 
 describe('Token service', () => {
   let service: TokenService;
@@ -20,6 +21,13 @@ describe('Token service', () => {
         {
           provide: TokenExpirationTimes,
           useValue: jest.fn(),
+        },
+        {
+          provide: PinoLogger,
+          useValue: {
+            error: jest.fn(),
+            setContext: jest.fn(),
+          },
         },
       ],
     }).compile();

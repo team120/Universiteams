@@ -5,23 +5,21 @@ import { Connection } from 'typeorm';
 import { CurrentUserDto } from '../../src/auth/dtos/current-user.dto';
 import { Bookmark } from '../../src/bookmark/bookmark.entity';
 import { Project } from '../../src/project/project.entity';
-import {
-  createProjectTestingApp,
-  TokenExpirationTimesTesting,
-} from './project.e2e.module';
+import { createProjectTestingApp } from './project.e2e.module';
 import {
   projectGeolocationWithExtendedDta,
   projects,
 } from './project.snapshot';
 import * as cookieParser from 'cookie-parser';
 import * as setCookieParser from 'set-cookie-parser';
+import { TokenExpirationTimesFake } from '../utils/token-expiration-times.fake';
 
 jest.useRealTimers();
 
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
   let conn: Connection;
-  let tokenExpirationTimes: TokenExpirationTimesTesting;
+  let tokenExpirationTimes: TokenExpirationTimesFake;
 
   beforeEach(async () => {
     const testingAppCreationResult = await createProjectTestingApp();
@@ -75,7 +73,7 @@ describe('Project Actions (e2e)', () => {
 
         beforeEach(async () => {
           tokenExpirationTimes.set({
-            accessTokenExpiration: { value: 0, dimension: 'seconds' },
+            accessToken: { value: 0, dimension: 'seconds' },
           });
 
           const res = await request(app.getHttpServer())
@@ -142,7 +140,7 @@ describe('Project Actions (e2e)', () => {
               let expiredRefreshTokenCookie: string;
               beforeEach(async () => {
                 tokenExpirationTimes.set({
-                  refreshTokenExpiration: { value: 0, dimension: 'seconds' },
+                  refreshToken: { value: 0, dimension: 'seconds' },
                 });
 
                 const res = await request(app.getHttpServer())
