@@ -16,10 +16,8 @@ export class IsAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const httpContext = context.switchToHttp();
     const request: RequestWithUser = httpContext.getRequest();
-    const response: Response = httpContext.getResponse();
 
     if (!request.cookies) throw new Unauthorized('Cookie not provided');
-    const l = request.cookies['refreshToken'];
     const accessToken: string | undefined = request.cookies[
       'accessToken'
     ]?.replace('Bearer ', '');
@@ -28,6 +26,7 @@ export class IsAuthGuard implements CanActivate {
       await this.isAuthCheck.verifyAccessToken(accessToken);
 
     if (!accessTokenVerificationResult.isValid) {
+      const response: Response = httpContext.getResponse();
       const refreshToken: string | undefined = request.cookies[
         'refreshToken'
       ]?.replace('Bearer ', '');
