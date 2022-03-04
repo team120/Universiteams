@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PinoLogger } from 'nestjs-pino';
 import { SecretsVaultKeys } from '../utils/secrets';
 import { User } from '../user/user.entity';
 import { VerificationEmailTokenService } from './verification-email-token.service';
@@ -31,7 +30,6 @@ export class EmailService {
     private readonly emailSenders: Map<string, IEmailSender>,
     private readonly verificationEmailToken: VerificationEmailTokenService,
     private readonly config: ConfigService,
-    private readonly logger: PinoLogger,
   ) {}
 
   async sendVerificationEmail(user: User) {
@@ -39,7 +37,7 @@ export class EmailService {
       this.verificationEmailToken.generateVerificationUrl(user);
 
     const message: EmailMessage = {
-      from: `Universe <${this.config.get(SecretsVaultKeys.EMAIL_USER)}>`,
+      from: `Alejandro <${this.config.get(SecretsVaultKeys.EMAIL_USER)}>`,
       to: `${user.firstName} ${user.lastName} <${user.email}>`,
       subject: 'Please confirm your email',
       text:
@@ -56,8 +54,8 @@ export class EmailService {
 
     try {
       await this.emailSenders.get('nodemailer').sendMail(message);
-    } catch (err) {
-      this.logger.error(err);
+    } catch {
+      await this.emailSenders.get('sendgrid').sendMail(message);
     }
   }
 }

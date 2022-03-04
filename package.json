@@ -29,6 +29,7 @@
     "@nestjs/schedule": "^1.0.2",
     "@nestjs/swagger": "^5.0.9",
     "@nestjs/typeorm": "^8.0.2",
+    "@sendgrid/mail": "^7.6.1",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/nodemailer": "^6.4.4",
     "argon2": "^0.28.2",

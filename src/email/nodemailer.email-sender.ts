@@ -28,6 +28,10 @@ export class NodemailerEmailSender implements IEmailSender {
       const result = await transporter.sendMail(emailMessage);
       this.logger.info(nodemailer.getTestMessageUrl(result).toString());
     } catch (err) {
+      this.logger.error(
+        err as Error,
+        `Nodemailer failed to send this email ${emailMessage.subject} ${emailMessage.to}`,
+      );
       throw err;
     }
   }

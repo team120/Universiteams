@@ -4,6 +4,7 @@ import { SerializationModule } from '../utils/serialization/serialization.module
 import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration-times';
 import { EmailService, EMAIL_SENDERS, IEmailSender } from './email.service';
 import { NodemailerEmailSender } from './nodemailer.email-sender';
+import { SendGridEmailSender } from './sendgrid.email-sender';
 import { VerificationEmailTokenService } from './verification-email-token.service';
 
 @Module({
@@ -12,6 +13,7 @@ import { VerificationEmailTokenService } from './verification-email-token.servic
     EmailService,
     VerificationEmailTokenService,
     NodemailerEmailSender,
+    SendGridEmailSender,
     {
       provide: TokenExpirationTimes,
       useValue: new TokenExpirationTimes({
@@ -26,7 +28,7 @@ import { VerificationEmailTokenService } from './verification-email-token.servic
             emailSenderMap.set(emailSender.name, emailSender),
           new Map<string, IEmailSender>(),
         ),
-      inject: [NodemailerEmailSender],
+      inject: [NodemailerEmailSender, SendGridEmailSender],
     },
   ],
   exports: [EmailService, VerificationEmailTokenService],
