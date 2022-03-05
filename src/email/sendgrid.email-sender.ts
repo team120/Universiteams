@@ -7,7 +7,6 @@ import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class SendGridEmailSender implements IEmailSender {
-  name = 'sendgrid';
   private readonly sendGridApi = sendgrid;
 
   constructor(config: ConfigService, private readonly logger: PinoLogger) {

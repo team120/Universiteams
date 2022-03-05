@@ -3,6 +3,7 @@ import { SecretsVaultKeys } from '../utils/secrets';
 import { User } from '../user/user.entity';
 import { VerificationEmailTokenService } from './verification-email-token.service';
 import { ConfigService } from '@nestjs/config';
+import { PinoLogger } from 'nestjs-pino';
 
 export interface EmailMessage {
   from: string;
@@ -12,12 +13,10 @@ export interface EmailMessage {
   html: string;
 }
 
+export const EMAIL_SENDERS = 'EMAIL_SENDERS';
 export interface IEmailSender {
-  name: string;
   sendMail(emailMessage: EmailMessage): Promise<void>;
 }
-
-export const EMAIL_SENDERS = 'EMAIL_SENDERS';
 
 export interface IEmailService {
   sendVerificationEmail(user: User): Promise<void>;
@@ -27,8 +26,9 @@ export interface IEmailService {
 export class EmailService {
   constructor(
     @Inject(EMAIL_SENDERS)
-    private readonly emailSenders: Map<string, IEmailSender>,
+    private readonly emailSenders: Array<IEmailSender>,
     private readonly verificationEmailToken: VerificationEmailTokenService,
+    private readonly logger: PinoLogger,
     private readonly config: ConfigService,
   ) {}
 
@@ -52,10 +52,25 @@ export class EmailService {
         '</p>',
     };
 
+    let senderIndex = 0;
     try {
-      await this.emailSenders.get('nodemailer').sendMail(message);
+      await this.emailSenders[senderIndex].sendMail(message);
     } catch {
-      await this.emailSenders.get('sendgrid').sendMail(message);
+      await this.fallbackEmailSend(++senderIndex, message);
+    }
+  }
+
+  async fallbackEmailSend(senderIndex: number, message: EmailMessage) {
+    if (this.emailSenders[senderIndex] === undefined) {
+      this.logger.info(
+        `Email ${message.subject} ${message.to} could not be sent since no more email senders are available`,
+      );
+      return;
+    }
+    try {
+      await this.emailSenders[senderIndex].sendMail(message);
+    } catch {
+      await this.fallbackEmailSend(++senderIndex, message);
     }
   }
 }

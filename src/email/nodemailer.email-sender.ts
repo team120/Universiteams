@@ -5,8 +5,6 @@ import { IEmailSender, EmailMessage } from './email.service';
 
 @Injectable()
 export class NodemailerEmailSender implements IEmailSender {
-  name = 'nodemailer';
-
   constructor(private readonly logger: PinoLogger) {
     this.logger.setContext(NodemailerEmailSender.name);
   }

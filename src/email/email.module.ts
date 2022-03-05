@@ -22,13 +22,8 @@ import { VerificationEmailTokenService } from './verification-email-token.servic
     },
     {
       provide: EMAIL_SENDERS,
-      useFactory: (...emailSenders: IEmailSender[]) =>
-        emailSenders.reduce(
-          (emailSenderMap, emailSender) =>
-            emailSenderMap.set(emailSender.name, emailSender),
-          new Map<string, IEmailSender>(),
-        ),
-      inject: [NodemailerEmailSender, SendGridEmailSender],
+      useFactory: (...emailSenders: IEmailSender[]) => emailSenders,
+      inject: [SendGridEmailSender, NodemailerEmailSender],
     },
   ],
   exports: [EmailService, VerificationEmailTokenService],
