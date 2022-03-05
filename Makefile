@@ -20,7 +20,8 @@ down:
 
 ## clean:  Stop and remove both containers and data volumes
 clean:
-	docker-compose down -v
+	- docker-compose down -v
+	- sudo rimraf dist
 
 ## wipe:  Erase universiteams service image
 wipe:
