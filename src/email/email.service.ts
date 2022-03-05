@@ -6,8 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
 
 export interface EmailMessage {
-  from: string;
-  to: string;
+  from: { name: string; email: string };
+  to: { name: string; email: string };
   subject: string;
   text: string;
   html: string;
@@ -37,8 +37,11 @@ export class EmailService {
       this.verificationEmailToken.generateVerificationUrl(user);
 
     const message: EmailMessage = {
-      from: `Alejandro <${this.config.get(SecretsVaultKeys.EMAIL_USER)}>`,
-      to: `${user.firstName} ${user.lastName} <${user.email}>`,
+      from: {
+        email: `${this.config.get(SecretsVaultKeys.EMAIL_USER)}`,
+        name: 'Alejandro',
+      },
+      to: { email: user.email, name: `${user.firstName} ${user.lastName}` },
       subject: 'Please confirm your email',
       text:
         `Hello ${user.firstName},` +
@@ -63,7 +66,7 @@ export class EmailService {
   async fallbackEmailSend(senderIndex: number, message: EmailMessage) {
     if (this.emailSenders[senderIndex] === undefined) {
       this.logger.info(
-        `Email ${message.subject} ${message.to} could not be sent since no more email senders are available`,
+        `Email ${message.subject} ${message.to.email} could not be sent since no more email senders are available`,
       );
       return;
     }

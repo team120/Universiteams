@@ -5,6 +5,7 @@ import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration
 import { EmailService, EMAIL_SENDERS, IEmailSender } from './email.service';
 import { NodemailerEmailSender } from './nodemailer.email-sender';
 import { SendGridEmailSender } from './sendgrid.email-sender';
+import { SendInBlueEmailSender } from './sendinblue.email-sender';
 import { VerificationEmailTokenService } from './verification-email-token.service';
 
 @Module({
@@ -14,6 +15,7 @@ import { VerificationEmailTokenService } from './verification-email-token.servic
     VerificationEmailTokenService,
     NodemailerEmailSender,
     SendGridEmailSender,
+    SendInBlueEmailSender,
     {
       provide: TokenExpirationTimes,
       useValue: new TokenExpirationTimes({
@@ -23,7 +25,11 @@ import { VerificationEmailTokenService } from './verification-email-token.servic
     {
       provide: EMAIL_SENDERS,
       useFactory: (...emailSenders: IEmailSender[]) => emailSenders,
-      inject: [SendGridEmailSender, NodemailerEmailSender],
+      inject: [
+        SendInBlueEmailSender,
+        SendGridEmailSender,
+        NodemailerEmailSender,
+      ],
     },
   ],
   exports: [EmailService, VerificationEmailTokenService],

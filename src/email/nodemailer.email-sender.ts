@@ -22,13 +22,21 @@ export class NodemailerEmailSender implements IEmailSender {
       },
     });
 
+    const message: nodemailer.SendMailOptions = {
+      from: `${emailMessage.from.name} <${emailMessage.from.email}>`,
+      to: `${emailMessage.to.name} <${emailMessage.to.email}>`,
+      subject: emailMessage.subject,
+      text: emailMessage.text,
+      html: emailMessage.html,
+    };
+
     try {
-      const result = await transporter.sendMail(emailMessage);
+      const result = await transporter.sendMail(message);
       this.logger.info(nodemailer.getTestMessageUrl(result).toString());
     } catch (err) {
       this.logger.error(
         err as Error,
-        `Nodemailer failed to send this email ${emailMessage.subject} ${emailMessage.to}`,
+        `Nodemailer failed to send this email ${emailMessage.subject} ${emailMessage.to.email}`,
       );
       throw err;
     }
