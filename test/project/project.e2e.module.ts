@@ -1,4 +1,7 @@
 import { Test } from '@nestjs/testing';
+import { NodemailerEmailSender } from '../../src/email/nodemailer.email-sender';
+import { SendGridEmailSender } from '../../src/email/sendgrid.email-sender';
+import { SendInBlueEmailSender } from '../../src/email/sendinblue.email-sender';
 import { ProjectModule } from '../../src/project/project.module';
 import { CURRENT_DATE_SERVICE } from '../../src/utils/current-date';
 import { TokenExpirationTimes } from '../../src/utils/token-expiration/token-expiration-times';
@@ -18,6 +21,12 @@ export const createProjectTestingApp = async () => {
   const moduleFixture = await Test.createTestingModule({
     imports: [...commonImportsArray, ProjectModule],
   })
+    .overrideProvider(SendGridEmailSender)
+    .useValue({})
+    .overrideProvider(SendInBlueEmailSender)
+    .useValue({})
+    .overrideProvider(NodemailerEmailSender)
+    .useValue({})
     .overrideProvider(CURRENT_DATE_SERVICE)
     .useValue(new CurrentDateE2EMock())
     .overrideProvider(TokenExpirationTimes)

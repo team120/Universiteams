@@ -11,6 +11,9 @@ import { VerificationEmailTokenService } from '../../src/email/verification-emai
 import * as cookieParser from 'cookie-parser';
 import { TokenExpirationTimes } from '../../src/utils/token-expiration/token-expiration-times';
 import { TokenExpirationTimesFake } from '../utils/token-expiration-times.fake';
+import { SendGridEmailSender } from '../../src/email/sendgrid.email-sender';
+import { SendInBlueEmailSender } from '../../src/email/sendinblue.email-sender';
+import { NodemailerEmailSender } from '../../src/email/nodemailer.email-sender';
 
 describe('auth', () => {
   let app: INestApplication;
@@ -32,6 +35,12 @@ describe('auth', () => {
 
   beforeEach(async () => {
     const module = await createAuthTestModule()
+      .overrideProvider(SendGridEmailSender)
+      .useValue({})
+      .overrideProvider(SendInBlueEmailSender)
+      .useValue({})
+      .overrideProvider(NodemailerEmailSender)
+      .useValue({})
       .overrideProvider(EmailService)
       .useValue(emailServiceMock)
       .overrideProvider(TokenExpirationTimes)
