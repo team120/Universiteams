@@ -15,6 +15,7 @@ import { EmailService } from '../email/email.service';
 import { VerifyDto } from './dtos/verify.dto';
 import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
 import { VerificationEmailTokenService } from '../email/verification-email-token.service';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
     private readonly verificationEmailToken: VerificationEmailTokenService,
+    private readonly logger: PinoLogger,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -58,7 +60,11 @@ export class AuthService {
         throw new DbException(e.message, e.stack);
       });
 
-    await this.emailService.sendVerificationEmail(insertedUser);
+    await this.emailService
+      .sendVerificationEmail(insertedUser)
+      .catch((err: Error) => {
+        this.logger.error(err, err.message);
+      });
 
     return this.tokenService.generateTokens(insertedUser);
   }

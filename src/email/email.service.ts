@@ -3,7 +3,7 @@ import { SecretsVaultKeys } from '../utils/secrets';
 import { User } from '../user/user.entity';
 import { VerificationEmailTokenService } from './verification-email-token.service';
 import { ConfigService } from '@nestjs/config';
-import { PinoLogger } from 'nestjs-pino';
+import { EmailException } from '../utils/exceptions/exceptions';
 
 export interface EmailMessage {
   from: { name: string; email: string };
@@ -28,7 +28,6 @@ export class EmailService {
     @Inject(EMAIL_SENDERS)
     private readonly emailSenders: Array<IEmailSender>,
     private readonly verificationEmailToken: VerificationEmailTokenService,
-    private readonly logger: PinoLogger,
     private readonly config: ConfigService,
   ) {}
 
@@ -65,15 +64,14 @@ export class EmailService {
 
   async fallbackEmailSend(senderIndex: number, message: EmailMessage) {
     if (this.emailSenders[senderIndex] === undefined) {
-      this.logger.info(
+      throw new EmailException(
         `Email ${message.subject} ${message.to.email} could not be sent since no more email senders are available`,
       );
-      return;
     }
     try {
       await this.emailSenders[senderIndex].sendMail(message);
     } catch {
-      await this.fallbackEmailSend(++senderIndex, message);
+      return this.fallbackEmailSend(++senderIndex, message);
     }
   }
 }
