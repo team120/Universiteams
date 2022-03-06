@@ -4,11 +4,7 @@ import { Connection, DeepPartial } from 'typeorm';
 import { User } from '../../src/user/user.entity';
 import { RegisterDto } from '../../src/auth/dtos/register.dto';
 import * as setCookieParser from 'set-cookie-parser';
-import {
-  EmailMessage,
-  EMAIL_SENDERS,
-  IEmailSender,
-} from '../../src/email/email.service';
+import { EmailMessage, EMAIL_SENDERS } from '../../src/email/email.service';
 import { createAuthTestModule } from './auth.e2e-module';
 import { CurrentUserDto } from '../../src/auth/dtos/current-user.dto';
 import { VerificationEmailTokenService } from '../../src/email/verification-email-token.service';
@@ -22,9 +18,17 @@ import { NodemailerEmailSender } from '../../src/email/nodemailer.email-sender';
 describe('auth', () => {
   let app: INestApplication;
   let conn: Connection;
-  const emailSenderMock: IEmailSender = {
-    sendMail: jest.fn(),
-  };
+  const emailSendersMock = [
+    {
+      sendMail: jest.fn(),
+    },
+    {
+      sendMail: jest.fn(),
+    },
+    {
+      sendMail: jest.fn(),
+    },
+  ];
   const tokenExpirationTimesTesting = new TokenExpirationTimesFake({
     accessToken: {
       value: 15,
@@ -46,7 +50,7 @@ describe('auth', () => {
       .overrideProvider(NodemailerEmailSender)
       .useValue({})
       .overrideProvider(EMAIL_SENDERS)
-      .useValue([emailSenderMock])
+      .useValue(emailSendersMock)
       .overrideProvider(TokenExpirationTimes)
       .useValue(tokenExpirationTimesTesting)
       .compile();
@@ -60,6 +64,9 @@ describe('auth', () => {
     await conn.runMigrations();
   });
   afterEach(async () => {
+    for (const emailSenderMock of emailSendersMock) {
+      emailSenderMock.sendMail.mockReset();
+    }
     await app.close();
   });
 
@@ -145,47 +152,93 @@ describe('auth', () => {
     });
     describe('when supplied credentials are valid', () => {
       let insertedUserId: number;
-      it('should save a new user and return an auth token', async () => {
-        const registrationAttempt = validRegistrationToBeSaved();
-        const res = await request(app.getHttpServer())
-          .post('/auth/register')
-          .send(registrationAttempt);
-        insertedUserId = res.body.id;
+      describe('and email verification is correctly handled by first email sender', () => {
+        beforeEach(() => {
+          emailSendersMock[0].sendMail.mockReturnValue({});
+        });
+        it('should save a new user and return an auth token', async () => {
+          const registrationAttempt = validRegistrationToBeSaved();
+          const res = await request(app.getHttpServer())
+            .post('/auth/register')
+            .send(registrationAttempt);
+          insertedUserId = res.body.id;
 
-        expect(emailSenderMock.sendMail).toHaveBeenCalledTimes(1);
-        expect(emailSenderMock.sendMail).toHaveBeenCalledWith(
-          expect.objectContaining({
-            to: {
-              email: registrationAttempt.email,
-              name: `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
-            },
-            subject: 'Please confirm your email',
-            text: expect.not.stringContaining('link="undefined"'),
-            html: expect.not.stringContaining('href="undefined"'),
-          } as Partial<EmailMessage>),
-        );
+          expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
+          expect(emailSendersMock[0].sendMail).toHaveBeenCalledWith(
+            expect.objectContaining({
+              to: {
+                email: registrationAttempt.email,
+                name: `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
+              },
+              subject: 'Please confirm your email',
+              text: expect.not.stringContaining('link="undefined"'),
+              html: expect.not.stringContaining('href="undefined"'),
+            } as Partial<EmailMessage>),
+          );
+          expect(emailSendersMock[1].sendMail).toHaveBeenCalledTimes(0);
+          expect(emailSendersMock[2].sendMail).toHaveBeenCalledTimes(0);
 
-        expect(res.status).toBe(201);
-        expect(res.body.email).toBe(registrationAttempt.email);
-        expect(res.body.id).toBeDefined();
-        expect(res.body.firstName).toBe(registrationAttempt.firstName);
-        expect(res.body.lastName).toBe(registrationAttempt.lastName);
-        expect(res.body.password).not.toBeDefined();
+          expect(res.status).toBe(201);
+          expect(res.body.email).toBe(registrationAttempt.email);
+          expect(res.body.id).toBeDefined();
+          expect(res.body.firstName).toBe(registrationAttempt.firstName);
+          expect(res.body.lastName).toBe(registrationAttempt.lastName);
+          expect(res.body.password).not.toBeDefined();
 
-        const accessTokenCookie = setCookieParser.parse(
-          res.header['set-cookie'][0],
-        )[0];
+          const accessTokenCookie = setCookieParser.parse(
+            res.header['set-cookie'][0],
+          )[0];
 
-        expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
-        expect(accessTokenCookie.httpOnly).toBe(true);
-        expect(accessTokenCookie.sameSite).toBe('Strict');
+          expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
+          expect(accessTokenCookie.httpOnly).toBe(true);
+          expect(accessTokenCookie.sameSite).toBe('Strict');
 
-        const insertedUser = await conn
-          .getRepository(User)
-          .findOne(insertedUserId);
-        expect(insertedUser).toBeDefined();
-        expect(insertedUser.email).toBe(registrationAttempt.email);
-        expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
+          const insertedUser = await conn
+            .getRepository(User)
+            .findOne(insertedUserId);
+          expect(insertedUser).toBeDefined();
+          expect(insertedUser.email).toBe(registrationAttempt.email);
+          expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
+        });
+      });
+      describe('and email verification is incorrectly handled by first email sender', () => {
+        beforeEach(() => {
+          emailSendersMock[0].sendMail.mockRejectedValue({});
+          emailSendersMock[1].sendMail.mockResolvedValue({});
+        });
+        it('should save a new user and return an auth token, while relying on second email sender for email verification', async () => {
+          const registrationAttempt = validRegistrationToBeSaved();
+          const res = await request(app.getHttpServer())
+            .post('/auth/register')
+            .send(registrationAttempt);
+          insertedUserId = res.body.id;
+
+          expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
+          expect(emailSendersMock[1].sendMail).toHaveBeenCalledTimes(1);
+          expect(emailSendersMock[2].sendMail).toHaveBeenCalledTimes(0);
+
+          expect(res.status).toBe(201);
+          expect(res.body.email).toBe(registrationAttempt.email);
+          expect(res.body.id).toBeDefined();
+          expect(res.body.firstName).toBe(registrationAttempt.firstName);
+          expect(res.body.lastName).toBe(registrationAttempt.lastName);
+          expect(res.body.password).not.toBeDefined();
+
+          const accessTokenCookie = setCookieParser.parse(
+            res.header['set-cookie'][0],
+          )[0];
+
+          expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
+          expect(accessTokenCookie.httpOnly).toBe(true);
+          expect(accessTokenCookie.sameSite).toBe('Strict');
+
+          const insertedUser = await conn
+            .getRepository(User)
+            .findOne(insertedUserId);
+          expect(insertedUser).toBeDefined();
+          expect(insertedUser.email).toBe(registrationAttempt.email);
+          expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
+        });
       });
 
       afterEach(async () => {
