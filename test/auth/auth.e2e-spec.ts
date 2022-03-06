@@ -4,7 +4,11 @@ import { Connection, DeepPartial } from 'typeorm';
 import { User } from '../../src/user/user.entity';
 import { RegisterDto } from '../../src/auth/dtos/register.dto';
 import * as setCookieParser from 'set-cookie-parser';
-import { EmailService, IEmailService } from '../../src/email/email.service';
+import {
+  EmailMessage,
+  EMAIL_SENDERS,
+  IEmailSender,
+} from '../../src/email/email.service';
 import { createAuthTestModule } from './auth.e2e-module';
 import { CurrentUserDto } from '../../src/auth/dtos/current-user.dto';
 import { VerificationEmailTokenService } from '../../src/email/verification-email-token.service';
@@ -18,8 +22,8 @@ import { NodemailerEmailSender } from '../../src/email/nodemailer.email-sender';
 describe('auth', () => {
   let app: INestApplication;
   let conn: Connection;
-  const emailServiceMock: IEmailService = {
-    sendVerificationEmail: jest.fn(),
+  const emailSenderMock: IEmailSender = {
+    sendMail: jest.fn(),
   };
   const tokenExpirationTimesTesting = new TokenExpirationTimesFake({
     accessToken: {
@@ -41,8 +45,8 @@ describe('auth', () => {
       .useValue({})
       .overrideProvider(NodemailerEmailSender)
       .useValue({})
-      .overrideProvider(EmailService)
-      .useValue(emailServiceMock)
+      .overrideProvider(EMAIL_SENDERS)
+      .useValue([emailSenderMock])
       .overrideProvider(TokenExpirationTimes)
       .useValue(tokenExpirationTimesTesting)
       .compile();
@@ -148,7 +152,18 @@ describe('auth', () => {
           .send(registrationAttempt);
         insertedUserId = res.body.id;
 
-        expect(emailServiceMock.sendVerificationEmail).toHaveBeenCalledTimes(1);
+        expect(emailSenderMock.sendMail).toHaveBeenCalledTimes(1);
+        expect(emailSenderMock.sendMail).toHaveBeenCalledWith(
+          expect.objectContaining({
+            to: {
+              email: registrationAttempt.email,
+              name: `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
+            },
+            subject: 'Please confirm your email',
+            text: expect.not.stringContaining('link="undefined"'),
+            html: expect.not.stringContaining('href="undefined"'),
+          } as Partial<EmailMessage>),
+        );
 
         expect(res.status).toBe(201);
         expect(res.body.email).toBe(registrationAttempt.email);
