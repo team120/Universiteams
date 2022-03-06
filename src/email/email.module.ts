@@ -26,8 +26,8 @@ import { VerificationEmailTokenService } from './verification-email-token.servic
       provide: EMAIL_SENDERS,
       useFactory: (...emailSenders: IEmailSender[]) => emailSenders,
       inject: [
-        SendInBlueEmailSender,
         SendGridEmailSender,
+        SendInBlueEmailSender,
         NodemailerEmailSender,
       ],
     },
