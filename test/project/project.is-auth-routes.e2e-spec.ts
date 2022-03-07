@@ -40,7 +40,7 @@ describe('Project Actions (e2e)', () => {
         beforeEach(async () => {
           const res = await request(app.getHttpServer())
             .post('/auth/login')
-            .send({ email: 'user1@example.com', password: 'password1' });
+            .send({ email: 'user1@example.com', password: 'Password_1' });
           loginResult = res.body;
           accessTokenCookie = res.header['set-cookie'][0];
         });
@@ -127,7 +127,7 @@ describe('Project Actions (e2e)', () => {
 
           const res = await request(app.getHttpServer())
             .post('/auth/login')
-            .send({ email: 'user1@example.com', password: 'password1' });
+            .send({ email: 'user1@example.com', password: 'Password_1' });
           loginResult = res.body;
           expiredAccessTokenCookie = res.header['set-cookie'][0];
           validRefreshTokenCookie = res.header['set-cookie'][1];
@@ -194,7 +194,7 @@ describe('Project Actions (e2e)', () => {
 
                 const res = await request(app.getHttpServer())
                   .post('/auth/login')
-                  .send({ email: 'user1@example.com', password: 'password1' });
+                  .send({ email: 'user1@example.com', password: 'Password_1' });
                 expiredRefreshTokenCookie = res.header['set-cookie'][1];
 
                 tokenExpirationTimes.restore();

@@ -75,7 +75,7 @@ describe('auth', () => {
       it('should return an auth token', async () => {
         const res = await request(app.getHttpServer())
           .post('/auth/login')
-          .send({ email: 'user1@example.com', password: 'password1' });
+          .send({ email: 'user1@example.com', password: 'Password_1' });
 
         expect(res.status).toBe(200);
         expect(res.body.email).toBe('user1@example.com');
@@ -97,7 +97,7 @@ describe('auth', () => {
       it('should return a validation error', async () => {
         await request(app.getHttpServer())
           .post('/auth/login')
-          .send({ email: 'user1', password: 'password1' })
+          .send({ email: 'user1', password: 'Password_1' })
           .then((res) => {
             expect(res.status).toBe(400);
             expect(res.body.message[0]).toBe('email must be an email');
@@ -109,7 +109,7 @@ describe('auth', () => {
       it('should return unauthorized without revealing more details', async () => {
         await request(app.getHttpServer())
           .post('/auth/login')
-          .send({ email: 'user10045654@example.com', password: 'password1' })
+          .send({ email: 'user10045654@example.com', password: 'Password_1' })
           .then((res) => {
             expect(res.status).toBe(401);
             expect(res.body.message).toBe('Unauthorized');
@@ -366,7 +366,7 @@ describe('auth', () => {
         it('should return a validation error result (bad request)', async () => {
           const registrationAttempt = validRegistrationNotToBeSaved({
             email: 'notAnEmail@.com',
-            password: 'Password12',
+            password: 'Password87',
           });
           await request(app.getHttpServer())
             .post('/auth/register')
@@ -424,7 +424,7 @@ describe('auth', () => {
 
       const res = await request(app.getHttpServer()).post('/auth/login').send({
         email: email,
-        password: 'password16',
+        password: 'Password_16',
       });
 
       loginResult = res.body;
@@ -676,7 +676,7 @@ describe('auth', () => {
             .post('/auth/reset-password')
             .send({
               email: email,
-              password: 'Password1',
+              password: 'Password87',
               verificationToken: 'asasoheqjleqlhkjqelkhjHOJkljh',
             });
 
