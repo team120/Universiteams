@@ -43,7 +43,10 @@ export class AuthController {
     @Res() response: Response,
   ) {
     const loggedUser = await this.authService.login(loginDto);
-    this.populateResponse(response, 200, loggedUser);
+    this.tokenService.appendTokenCookies(response, loggedUser);
+    response
+      .status(200)
+      .json(this.entityMapper.mapValue(CurrentUserWithoutTokens, loggedUser));
   }
 
   @ApiCreatedResponse({
@@ -56,7 +59,9 @@ export class AuthController {
     @Res() response: Response,
   ) {
     const registeredUser = await this.authService.register(registerDto);
-    this.populateResponse(response, 201, registeredUser);
+
+    this.tokenService.appendTokenCookies(response, registeredUser.user);
+    response.status(201).json(registeredUser);
   }
 
   @UseGuards(IsAuthGuard)
