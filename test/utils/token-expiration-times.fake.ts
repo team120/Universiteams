@@ -6,15 +6,18 @@ import {
 } from '../../src/utils/token-expiration/token-expiration-times';
 
 export class TokenExpirationTimesFake implements ITokenExpirationTimes {
-  private readonly originalParams: Partial<
+  private tokenExpirations: Partial<
     { [key in AcceptedTokens]: ExpirationTime }
-  >;
-  tokenExpirations: Partial<{ [key in AcceptedTokens]: ExpirationTime }>;
+  > = {};
 
-  constructor(params: Partial<{ [key in AcceptedTokens]: ExpirationTime }>) {
-    this.originalParams = params;
-    this.tokenExpirations = params;
+  constructor(
+    private readonly originalParams: Partial<
+      { [key in AcceptedTokens]: ExpirationTime }
+    >,
+  ) {
+    Object.assign(this.tokenExpirations, originalParams);
   }
+
   getTokenExpirationShortVersion(key: AcceptedTokens): string {
     const tokenExpirationTimes = new TokenExpirationTimes(
       this.tokenExpirations,
@@ -37,6 +40,6 @@ export class TokenExpirationTimesFake implements ITokenExpirationTimes {
   }
 
   restore() {
-    this.tokenExpirations = this.originalParams;
+    Object.assign(this.tokenExpirations, this.originalParams);
   }
 }

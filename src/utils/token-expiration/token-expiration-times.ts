@@ -23,7 +23,7 @@ export enum AcceptedTokens {
   EmailVerificationToken = 'emailVerificationToken',
 }
 export class TokenExpirationTimes implements ITokenExpirationTimes {
-  constructor(protected readonly expirationTokenTimes: ExpirationsMap) {}
+  constructor(private readonly expirationTokenTimes: ExpirationsMap) {}
 
   private timeScalesMappings = {
     days: 'd',
