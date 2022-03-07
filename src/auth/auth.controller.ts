@@ -13,10 +13,11 @@ import { RequestWithUser } from '../utils/request-with-user';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { AuthService } from './auth.service';
+import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
 import {
-  CurrentUserWithoutTokens,
-  CurrentUserDto,
-} from './dtos/current-user.dto';
+  ForgetPasswordDto,
+  ResetPasswordDto,
+} from './dtos/forget-password.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RegisterDto } from './dtos/register.dto';
 import { VerifyDto } from './dtos/verify.dto';
@@ -74,14 +75,26 @@ export class AuthController {
     await this.authService.verifyEmail(verifyDto, request.currentUser);
   }
 
-  private populateResponse(
-    response: Response<any, Record<string, any>>,
-    statusCode: number,
-    currentUser: CurrentUserDto,
+  @ApiOkResponse({
+    description: 'Sends a forget password email',
+  })
+  @Post('forgot-password')
+  @HttpCode(200)
+  async forgotPassword(
+    @Body(AppValidationPipe) forgetPasswordDto: ForgetPasswordDto,
   ) {
-    this.tokenService.appendTokenCookies(response, currentUser);
-    response
-      .status(statusCode)
-      .json(this.entityMapper.mapValue(CurrentUserWithoutTokens, currentUser));
+    await this.authService.forgotPassword(forgetPasswordDto);
+  }
+
+  @ApiOkResponse({
+    description:
+      'Replaces password of the user embedded in email verification token with the provided one',
+  })
+  @Post('reset-password')
+  @HttpCode(200)
+  async resetPassword(
+    @Body(AppValidationPipe) resetPasswordDto: ResetPasswordDto,
+  ) {
+    await this.authService.resetPassword(resetPasswordDto);
   }
 }

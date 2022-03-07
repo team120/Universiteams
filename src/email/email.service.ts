@@ -57,6 +57,32 @@ export class EmailService {
     await this.sendEmail(message);
   }
 
+  async sendForgetPasswordEmail(user: User) {
+    const verificationLink =
+      this.verificationEmailToken.generateForgetPasswordUrl(user);
+
+    const message: EmailMessage = {
+      from: {
+        email: `${this.config.get(SecretsVaultKeys.EMAIL_USER)}`,
+        name: 'Alejandro',
+      },
+      to: { email: user.email, name: `${user.firstName} ${user.lastName}` },
+      subject: 'Forgot your password? We can help.',
+      text:
+        `Hello ${user.firstName},` +
+        'Forgot your password? No worries, we’ve got you covered. Click the link below to reset your password.' +
+        `link="${verificationLink}" Set new password`,
+      html:
+        `<h1>Hello ${user.firstName},</h1>` +
+        '<p>Forgot your password? No worries, we’ve got you covered. Click the link below to reset your password.</p>' +
+        '<p style="text-align:center">' +
+        `<a href="${verificationLink}" style="background-color:#32c766;color:white;padding:15px 32px;text-decoration:none;padding:15px 32px;display:inline-block;font-size:16px;border-radius:7px">Set new password</a>` +
+        '</p>',
+    };
+
+    await this.sendEmail(message);
+  }
+
   private async sendEmail(message: EmailMessage) {
     let senderIndex = 0;
     try {

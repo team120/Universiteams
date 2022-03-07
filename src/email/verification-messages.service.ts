@@ -10,6 +10,7 @@ import {
   AcceptedTokens,
   TokenExpirationTimes,
 } from '../utils/token-expiration/token-expiration-times';
+import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 
 @Injectable()
 export class VerificationMessagesService {
@@ -28,8 +29,19 @@ export class VerificationMessagesService {
     );
   }
 
+  generateForgetPasswordUrl(user: CurrentUserWithoutTokens) {
+    return this.generateVerificationUrl(
+      user,
+      AcceptedTokens.EmailVerificationToken,
+      this.config.get(
+        SecretsVaultKeys.FORGET_PASSWORD_VERIFICATION_LINK_SECRET,
+      ),
+      'http://localhost:5000/account/reset-password',
+    );
+  }
+
   private generateVerificationUrl(
-    user: User,
+    user: CurrentUserWithoutTokens,
     expirationTimeOfToken: AcceptedTokens,
     secret: string,
     baseUrl: string,
@@ -53,6 +65,15 @@ export class VerificationMessagesService {
     return this.checkVerificationToken(
       verificationToken,
       this.config.get(SecretsVaultKeys.EMAIL_VERIFICATION_LINK_SECRET),
+    );
+  }
+
+  checkForgetPasswordToken(verificationToken: string) {
+    return this.checkVerificationToken(
+      verificationToken,
+      this.config.get(
+        SecretsVaultKeys.FORGET_PASSWORD_VERIFICATION_LINK_SECRET,
+      ),
     );
   }
 

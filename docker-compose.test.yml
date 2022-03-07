@@ -12,7 +12,8 @@ services:
       POSTGRES_PASSWORD: admin
       ACCESS_TOKEN_SECRET: "access_token_test_secret"
       REFRESH_TOKEN_SECRET: "refresh_token_test_secret"
-      VERIFICATION_LINK_SECRET: "verification_link_secret"
+      EMAIL_VERIFICATION_LINK_SECRET: "verification_link_secret"
+      FORGET_PASSWORD_VERIFICATION_LINK_SECRET: "forget_password_verification_link_secret"
       EMAIL_USER: "universe@example.com"
       EMAIL_CONFIRMATION_URL: "http://localhost:5000/account/verify"
     working_dir: /usr/src/app

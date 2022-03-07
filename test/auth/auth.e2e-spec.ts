@@ -415,9 +415,17 @@ describe('auth', () => {
     let accessTokenCookie: string;
     let refreshTokenCookie: string;
     beforeEach(async () => {
-      const res = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ email: 'user1@example.com', password: 'password1' });
+      const email = 'user16@example.com';
+      const userWithoutEmailVerified = await conn
+        .getRepository(User)
+        .findOne({ email: email, isEmailVerified: false });
+      if (!userWithoutEmailVerified)
+        throw new Error('User has already verified its email');
+
+      const res = await request(app.getHttpServer()).post('/auth/login').send({
+        email: email,
+        password: 'password16',
+      });
 
       loginResult = res.body;
       accessTokenCookie = res.header['set-cookie'][0];
@@ -498,8 +506,210 @@ describe('auth', () => {
       });
       afterEach(async () => {
         const user = await conn.getRepository(User).findOne(loginResult.id);
-        expect(user.isMailVerified).toBe(false);
+        expect(user.isEmailVerified).toBe(false);
       });
     });
+  });
+
+  describe('forgot password', () => {
+    describe('when email address is valid and has been verified', () => {
+      beforeEach(() => {
+        emailSendersMock[0].sendMail.mockResolvedValue({});
+      });
+      it('should return OK and send a forgot password email', async () => {
+        const res = await request(app.getHttpServer())
+          .post('/auth/forgot-password')
+          .send({
+            email: 'user1@example.com',
+          });
+
+        expect(emailSendersMock[0].sendMail).toBeCalledTimes(1);
+        expect(emailSendersMock[1].sendMail).toBeCalledTimes(0);
+
+        expect(res.status).toBe(200);
+      });
+    });
+    describe('when email address is invalid', () => {
+      it.each(['user16example.com', '@example.com'])(
+        'should return BadRequest',
+        async (email: string) => {
+          const res = await request(app.getHttpServer())
+            .post('/auth/forgot-password')
+            .send({
+              email: email,
+            });
+
+          expect(res.status).toBe(400);
+          expect(res.body.message).toEqual(['email must be an email']);
+        },
+      );
+    });
+    describe('when email address is either not a verified email or is not associated with a personal user account', () => {
+      it.each(['user16@example.com', 'user70@example.com'])(
+        'should return BadRequest',
+        async (email: string) => {
+          const res = await request(app.getHttpServer())
+            .post('/auth/forgot-password')
+            .send({
+              email: email,
+            });
+
+          expect(res.status).toBe(400);
+          expect(res.body.message).toBe(
+            'That address is either not a verified email or is not associated with a personal user account',
+          );
+        },
+      );
+    });
+  });
+
+  describe('reset password', () => {
+    const verifiedUserEmail = 'user1@example.com';
+    describe('when email address is valid and has been verified', () => {
+      let verifiedUser: User;
+      beforeEach(async () => {
+        verifiedUser = await conn
+          .getRepository(User)
+          .findOne({ email: verifiedUserEmail });
+      });
+      describe('and is equal to the email address stored in verification token', () => {
+        it('should return OK and update password', async () => {
+          const verificationEmailTokenService = app.get(
+            VerificationMessagesService,
+          );
+          const verificationTokenInUrl = verificationEmailTokenService
+            .generateForgetPasswordUrl(verifiedUser)
+            .split('token=')[1];
+
+          const res = await request(app.getHttpServer())
+            .post('/auth/reset-password')
+            .send({
+              email: verifiedUserEmail,
+              password: 'Password_14',
+              verificationToken: verificationTokenInUrl,
+            });
+
+          expect(res.status).toBe(200);
+
+          const verifiedUserWithNewPassword = await conn
+            .getRepository(User)
+            .findOne({ email: verifiedUserEmail });
+
+          expect(verifiedUserWithNewPassword.password).not.toBe(
+            verifiedUser.password,
+          );
+        });
+        afterEach(async () => {
+          await conn
+            .getRepository(User)
+            .update(verifiedUser.id, { password: verifiedUser.password });
+        });
+      });
+
+      describe('and is not equal to the email address stored in verification token', () => {
+        it('should return Unauthorized', async () => {
+          const verificationEmailTokenService = app.get(
+            VerificationMessagesService,
+          );
+          const verificationTokenInUrl = verificationEmailTokenService
+            .generateForgetPasswordUrl({
+              ...verifiedUser,
+              email: 'other@example.com',
+            })
+            .split('token=')[1];
+
+          const res = await request(app.getHttpServer())
+            .post('/auth/reset-password')
+            .send({
+              email: verifiedUserEmail,
+              password: 'Password_14',
+              verificationToken: verificationTokenInUrl,
+            });
+
+          expect(res.status).toBe(401);
+          expect(res.body.message).toBe('Unauthorized');
+        });
+      });
+
+      describe('but verification token is expired', () => {
+        beforeEach(() => {
+          tokenExpirationTimesTesting.set({
+            emailVerificationToken: {
+              value: 0,
+              dimension: 'seconds',
+            },
+          });
+        });
+        it('should return Unauthorized', async () => {
+          const verificationEmailTokenService = app.get(
+            VerificationMessagesService,
+          );
+          const verificationTokenInUrl = verificationEmailTokenService
+            .generateForgetPasswordUrl({
+              ...verifiedUser,
+              email: 'other@example.com',
+            })
+            .split('token=')[1];
+
+          const res = await request(app.getHttpServer())
+            .post('/auth/reset-password')
+            .send({
+              email: verifiedUserEmail,
+              password: 'Password_14',
+              verificationToken: verificationTokenInUrl,
+            });
+
+          expect(res.status).toBe(401);
+          expect(res.body.message).toBe('Unauthorized');
+        });
+        afterEach(() => {
+          tokenExpirationTimesTesting.restore();
+        });
+      });
+    });
+
+    describe('when email address and password are invalid', () => {
+      it.each(['user16example.com', '@example.com'])(
+        'should return BadRequest',
+        async (email: string) => {
+          const res = await request(app.getHttpServer())
+            .post('/auth/reset-password')
+            .send({
+              email: email,
+              password: 'Password1',
+              verificationToken: 'asasoheqjleqlhkjqelkhjHOJkljh',
+            });
+
+          expect(res.status).toBe(400);
+          expect(res.body.message).toContain('email must be an email');
+          expect(res.body.message).toContain(
+            'password must include at least: one non-alphanumeric character (#,$,%,etc)',
+          );
+          expect(res.body.message).toContain(
+            'verificationToken must be a jwt string',
+          );
+        },
+      );
+    });
+  });
+  describe('when email address is either not a verified email or is not associated with a personal user account', () => {
+    it.each(['user16@example.com', 'user70@example.com'])(
+      'should return BadRequest',
+      async (email: string) => {
+        const res = await request(app.getHttpServer())
+          .post('/auth/reset-password')
+          .send({
+            email: email,
+            password: 'Password_14',
+            verificationToken:
+              'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE2NDY2MjcxNjYsImV4cCI6MTY0NjYyNzE2OCwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.Fg5lSJFvnV3CYf9Hsi4o6m56HbqgXvAsgwpxxKGXfgM',
+          });
+
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe(
+          'That address is either not a verified email or is not associated with a personal user account',
+        );
+      },
+    );
   });
 });
