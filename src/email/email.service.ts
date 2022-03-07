@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { SecretsVaultKeys } from '../utils/secrets';
 import { User } from '../user/user.entity';
-import { VerificationEmailTokenService } from './verification-email-token.service';
+import { VerificationMessagesService } from './verification-messages.service';
 import { ConfigService } from '@nestjs/config';
 import { EmailException } from '../utils/exceptions/exceptions';
 
@@ -27,13 +27,13 @@ export class EmailService {
   constructor(
     @Inject(EMAIL_SENDERS)
     private readonly emailSenders: Array<IEmailSender>,
-    private readonly verificationEmailToken: VerificationEmailTokenService,
+    private readonly verificationEmailToken: VerificationMessagesService,
     private readonly config: ConfigService,
   ) {}
 
   async sendVerificationEmail(user: User) {
     const verificationLink =
-      this.verificationEmailToken.generateVerificationUrl(user);
+      this.verificationEmailToken.generateVerifyEmailUrl(user);
 
     const message: EmailMessage = {
       from: {
@@ -44,7 +44,7 @@ export class EmailService {
       subject: 'Please confirm your email',
       text:
         `Hello ${user.firstName},` +
-        "Welcome to Universi. We are excited to have you on-board and there's just one step to verify if it's actually your e-mail address:</p>" +
+        "Welcome to Universi. We are excited to have you on-board and there's just one step to verify if it's actually your e-mail address:" +
         `link="${verificationLink}" Confirm Account`,
       html:
         `<h1>Hello ${user.firstName},</h1>` +
@@ -54,6 +54,10 @@ export class EmailService {
         '</p>',
     };
 
+    await this.sendEmail(message);
+  }
+
+  private async sendEmail(message: EmailMessage) {
     let senderIndex = 0;
     try {
       await this.emailSenders[senderIndex].sendMail(message);

@@ -6,13 +6,13 @@ import { EmailService, EMAIL_SENDERS, IEmailSender } from './email.service';
 import { NodemailerEmailSender } from './nodemailer.email-sender';
 import { SendGridEmailSender } from './sendgrid.email-sender';
 import { SendInBlueEmailSender } from './sendinblue.email-sender';
-import { VerificationEmailTokenService } from './verification-email-token.service';
+import { VerificationMessagesService } from './verification-messages.service';
 
 @Module({
   imports: [ConfigModule, SerializationModule],
   providers: [
     EmailService,
-    VerificationEmailTokenService,
+    VerificationMessagesService,
     NodemailerEmailSender,
     SendGridEmailSender,
     SendInBlueEmailSender,
@@ -32,6 +32,6 @@ import { VerificationEmailTokenService } from './verification-email-token.servic
       ],
     },
   ],
-  exports: [EmailService, VerificationEmailTokenService],
+  exports: [EmailService, VerificationMessagesService],
 })
 export class EmailModule {}

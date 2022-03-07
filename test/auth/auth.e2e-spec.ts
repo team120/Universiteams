@@ -7,7 +7,7 @@ import * as setCookieParser from 'set-cookie-parser';
 import { EmailMessage, EMAIL_SENDERS } from '../../src/email/email.service';
 import { createAuthTestModule } from './auth.e2e-module';
 import { CurrentUserDto } from '../../src/auth/dtos/current-user.dto';
-import { VerificationEmailTokenService } from '../../src/email/verification-email-token.service';
+import { VerificationMessagesService } from '../../src/email/verification-messages.service';
 import * as cookieParser from 'cookie-parser';
 import { TokenExpirationTimes } from '../../src/utils/token-expiration/token-expiration-times';
 import { TokenExpirationTimesFake } from '../utils/token-expiration-times.fake';
@@ -426,10 +426,10 @@ describe('auth', () => {
     describe('when a valid email verification token is provided', () => {
       it('should set isEmailVerified to true', async () => {
         const verificationEmailTokenService = app.get(
-          VerificationEmailTokenService,
+          VerificationMessagesService,
         );
         const verificationTokenInUrl = verificationEmailTokenService
-          .generateVerificationUrl(loginResult as any)
+          .generateVerifyEmailUrl(loginResult as any)
           .split('token=')[1];
 
         const res = await request(app.getHttpServer())
@@ -476,10 +476,10 @@ describe('auth', () => {
         });
         it('should return Unauthorized', async () => {
           const verificationEmailTokenService = app.get(
-            VerificationEmailTokenService,
+            VerificationMessagesService,
           );
           const verificationTokenInUrl = verificationEmailTokenService
-            .generateVerificationUrl(loginResult as any)
+            .generateVerifyEmailUrl(loginResult as any)
             .split('token=')[1];
 
           const res = await request(app.getHttpServer())

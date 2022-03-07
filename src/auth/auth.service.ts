@@ -14,7 +14,7 @@ import { TokenService } from './token.service';
 import { EmailService } from '../email/email.service';
 import { VerifyDto } from './dtos/verify.dto';
 import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
-import { VerificationEmailTokenService } from '../email/verification-email-token.service';
+import { VerificationMessagesService } from '../email/verification-messages.service';
 import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class AuthService {
     private readonly userRepo: Repository<User>,
     private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
-    private readonly verificationEmailToken: VerificationEmailTokenService,
+    private readonly verificationEmailToken: VerificationMessagesService,
     private readonly logger: PinoLogger,
   ) {}
 
@@ -80,12 +80,16 @@ export class AuthService {
     verifyDto: VerifyDto,
     currentUser: CurrentUserWithoutTokens,
   ) {
-    const decodedToken = this.verificationEmailToken.checkToken(
+    const decodedToken = this.verificationEmailToken.checkVerifyEmailToken(
       verifyDto.verificationToken,
     );
     if (decodedToken.id !== currentUser.id)
       throw new Unauthorized('Current user id does not match verification url');
 
-    await this.userRepo.update(currentUser.id, { isMailVerified: true });
+    await this.userRepo
+      .update(currentUser.id, { isMailVerified: true })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
   }
 }

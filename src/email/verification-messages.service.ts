@@ -12,41 +12,55 @@ import {
 } from '../utils/token-expiration/token-expiration-times';
 
 @Injectable()
-export class VerificationEmailTokenService {
+export class VerificationMessagesService {
   constructor(
     private readonly tokenExpirationTimes: TokenExpirationTimes,
     private readonly config: ConfigService,
     private readonly entityMapper: EntityMapperService,
   ) {}
 
-  generateVerificationUrl(user: User) {
+  generateVerifyEmailUrl(user: User) {
+    return this.generateVerificationUrl(
+      user,
+      AcceptedTokens.EmailVerificationToken,
+      this.config.get(SecretsVaultKeys.EMAIL_VERIFICATION_LINK_SECRET),
+      'http://localhost:5000/account/verify',
+    );
+  }
+
+  private generateVerificationUrl(
+    user: User,
+    expirationTimeOfToken: AcceptedTokens,
+    secret: string,
+    baseUrl: string,
+  ) {
     const tokenPayload: TokenPayload = {
       id: user.id,
       user: `${user.firstName} ${user.lastName}`,
       email: user.email,
     };
     const expiration = this.tokenExpirationTimes.getTokenExpirationShortVersion(
-      AcceptedTokens.EmailVerificationToken,
+      expirationTimeOfToken,
     );
-    const jwtVerification: string = jwt.sign(
-      tokenPayload,
-      this.config.get(SecretsVaultKeys.VERIFICATION_LINK_SECRET),
-      {
-        expiresIn: expiration,
-      },
-    );
+    const jwtVerification: string = jwt.sign(tokenPayload, secret, {
+      expiresIn: expiration,
+    });
 
-    return `http://localhost:5000/account/verify?token=${jwtVerification}`;
+    return `${baseUrl}?token=${jwtVerification}`;
   }
 
-  checkToken(verificationToken: string) {
+  checkVerifyEmailToken(verificationToken: string) {
+    return this.checkVerificationToken(
+      verificationToken,
+      this.config.get(SecretsVaultKeys.EMAIL_VERIFICATION_LINK_SECRET),
+    );
+  }
+
+  private checkVerificationToken(verificationToken: string, secret: string) {
     try {
       return this.entityMapper.mapValue(
         TokenDecoded,
-        jwt.verify(
-          verificationToken,
-          this.config.get(SecretsVaultKeys.VERIFICATION_LINK_SECRET),
-        ),
+        jwt.verify(verificationToken, secret),
       );
     } catch (err) {
       throw new Unauthorized(err);

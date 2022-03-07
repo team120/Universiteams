@@ -4,7 +4,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { User } from '../user/user.entity';
 import { EmailException } from '../utils/exceptions/exceptions';
 import { EmailService, EMAIL_SENDERS } from './email.service';
-import { VerificationEmailTokenService } from './verification-email-token.service';
+import { VerificationMessagesService } from './verification-messages.service';
 
 describe('Email service', () => {
   let service: EmailService;
@@ -19,7 +19,7 @@ describe('Email service', () => {
         EmailService,
         { provide: EMAIL_SENDERS, useValue: emailSendersMock },
         {
-          provide: VerificationEmailTokenService,
+          provide: VerificationMessagesService,
           useValue: verificationEmailTokenServiceMock,
         },
         {
