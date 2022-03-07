@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
-import { IsAuthGuard } from '../auth/is-auth.guard';
+import { IsEmailVerifiedGuard } from '../auth/is-email-verified.guard';
 import { RequestWithUser } from '../utils/request-with-user';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { ProjectFindDto } from './dtos/project.find.dto';
@@ -33,7 +33,7 @@ export class ProjectController {
     return this.projectService.findOne(projectId);
   }
 
-  @UseGuards(IsAuthGuard)
+  @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Post('bookmark/:id')
   async bookmark(

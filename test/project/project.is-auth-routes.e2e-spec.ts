@@ -33,60 +33,89 @@ describe('Project Actions (e2e)', () => {
 
   describe('Bookmark', () => {
     describe('when token', () => {
-      describe('is valid and the project: ', () => {
+      describe('is valid', () => {
         const projectId = 1;
-        let loginResult: CurrentUserDto;
-        let accessTokenCookie: string;
-        beforeEach(async () => {
-          const res = await request(app.getHttpServer())
-            .post('/auth/login')
-            .send({ email: 'user1@example.com', password: 'Password_1' });
-          loginResult = res.body;
-          accessTokenCookie = res.header['set-cookie'][0];
+        describe('and the project: ', () => {
+          let loginResult: CurrentUserDto;
+          let accessTokenCookie: string;
+          beforeEach(async () => {
+            const res = await request(app.getHttpServer())
+              .post('/auth/login')
+              .send({ email: 'user1@example.com', password: 'Password_1' });
+            loginResult = res.body;
+            accessTokenCookie = res.header['set-cookie'][0];
+          });
+          describe("hasn't been already bookmarked by user", () => {
+            it('should return status code 201 and the bookmark should be reflected in db', async () => {
+              const res = await request(app.getHttpServer())
+                .post(`/projects/bookmark/${projectId}`)
+                .set('Cookie', accessTokenCookie);
+              expect(res.status).toBe(201);
+
+              const bookmark = await conn
+                .getRepository(Bookmark)
+                .findOne({ projectId: projectId, userId: loginResult.id });
+              expect(bookmark.projectId).toBeDefined();
+            });
+          });
+          describe('has been already bookmarked by user', () => {
+            it('should return status code 201 and the bookmark should be reflected in db', async () => {
+              await request(app.getHttpServer())
+                .post(`/projects/bookmark/${projectId}`)
+                .set('Cookie', accessTokenCookie);
+
+              const secondBookmarkTryRes = await request(app.getHttpServer())
+                .post(`/projects/bookmark/${projectId}`)
+                .set('Cookie', accessTokenCookie);
+              expect(secondBookmarkTryRes.status).toBe(400);
+              expect(secondBookmarkTryRes.body.message).toBe(
+                'This project has been already bookmarked by this user',
+              );
+
+              const bookmarkCount = await conn
+                .getRepository(Bookmark)
+                .count({ projectId: projectId, userId: loginResult.id });
+              expect(bookmarkCount).toBe(1);
+            });
+          });
+          afterEach(async () => {
+            const project = await conn
+              .getRepository(Project)
+              .findOne(projectId);
+            expect(project.bookmarkCount).toBe(1);
+
+            await conn
+              .getRepository(Bookmark)
+              .delete({ projectId: projectId, userId: loginResult.id });
+            await conn
+              .getRepository(Project)
+              .update(projectId, { bookmarkCount: project.bookmarkCount - 1 });
+          });
         });
-        describe("hasn't been already bookmarked by user", () => {
-          it('should return status code 201 and the bookmark should be reflected in db', async () => {
+        describe("but the user hasn't verified its email", () => {
+          let loginResult: CurrentUserDto;
+          let accessTokenCookie: string;
+          beforeEach(async () => {
+            const res = await request(app.getHttpServer())
+              .post('/auth/login')
+              .send({ email: 'user16@example.com', password: 'Password_16' });
+            loginResult = res.body;
+            accessTokenCookie = res.header['set-cookie'][0];
+          });
+          it('should return Unauthorized', async () => {
             const res = await request(app.getHttpServer())
               .post(`/projects/bookmark/${projectId}`)
               .set('Cookie', accessTokenCookie);
-            expect(res.status).toBe(201);
 
+            expect(res.status).toBe(401);
+            expect(res.body.message).toBe('Unauthorized');
+          });
+          afterEach(async () => {
             const bookmark = await conn
               .getRepository(Bookmark)
               .findOne({ projectId: projectId, userId: loginResult.id });
-            expect(bookmark.projectId).toBeDefined();
+            expect(bookmark).not.toBeDefined();
           });
-        });
-        describe('has been already bookmarked by user', () => {
-          it('should return status code 201 and the bookmark should be reflected in db', async () => {
-            await request(app.getHttpServer())
-              .post(`/projects/bookmark/${projectId}`)
-              .set('Cookie', accessTokenCookie);
-
-            const secondBookmarkTryRes = await request(app.getHttpServer())
-              .post(`/projects/bookmark/${projectId}`)
-              .set('Cookie', accessTokenCookie);
-            expect(secondBookmarkTryRes.status).toBe(400);
-            expect(secondBookmarkTryRes.body.message).toBe(
-              'This project has been already bookmarked by this user',
-            );
-
-            const bookmarkCount = await conn
-              .getRepository(Bookmark)
-              .count({ projectId: projectId, userId: loginResult.id });
-            expect(bookmarkCount).toBe(1);
-          });
-        });
-        afterEach(async () => {
-          const project = await conn.getRepository(Project).findOne(projectId);
-          expect(project.bookmarkCount).toBe(1);
-
-          await conn
-            .getRepository(Bookmark)
-            .delete({ projectId: projectId, userId: loginResult.id });
-          await conn
-            .getRepository(Project)
-            .update(projectId, { bookmarkCount: project.bookmarkCount - 1 });
         });
       });
       describe('is not sent', () => {
@@ -116,64 +145,116 @@ describe('Project Actions (e2e)', () => {
       });
       describe('is expired', () => {
         const projectId = 1;
-        let loginResult: CurrentUserDto;
-        let expiredAccessTokenCookie: string;
-        let validRefreshTokenCookie: string;
-
-        beforeEach(async () => {
-          tokenExpirationTimes.set({
-            accessToken: { value: 0, dimension: 'seconds' },
-          });
-
-          const res = await request(app.getHttpServer())
-            .post('/auth/login')
-            .send({ email: 'user1@example.com', password: 'Password_1' });
-          loginResult = res.body;
-          expiredAccessTokenCookie = res.header['set-cookie'][0];
-          validRefreshTokenCookie = res.header['set-cookie'][1];
-
-          tokenExpirationTimes.restore();
-        });
         describe('and refresh token: ', () => {
           describe('is valid', () => {
-            it('should bookmark the project and provide fresh tokens as response cookies', async () => {
-              const res = await request(app.getHttpServer())
-                .post(`/projects/bookmark/${projectId}`)
-                .set(
-                  'Cookie',
-                  `${validRefreshTokenCookie}; ${expiredAccessTokenCookie}`,
-                );
+            describe('and the user has previously verified its email', () => {
+              let loginResult: CurrentUserDto;
+              let expiredAccessTokenCookie: string;
+              let validRefreshTokenCookie: string;
 
-              expect(res.status).toBe(201);
+              beforeEach(async () => {
+                tokenExpirationTimes.set({
+                  accessToken: { value: 0, dimension: 'seconds' },
+                });
 
-              const bookmark = await conn
-                .getRepository(Bookmark)
-                .findOne({ projectId: projectId, userId: loginResult.id });
-              expect(bookmark.projectId).toBeDefined();
+                const res = await request(app.getHttpServer())
+                  .post('/auth/login')
+                  .send({ email: 'user1@example.com', password: 'Password_1' });
+                loginResult = res.body;
+                expiredAccessTokenCookie = res.header['set-cookie'][0];
+                validRefreshTokenCookie = res.header['set-cookie'][1];
 
-              const newAccessTokenCookie = setCookieParser.parse(
-                res.header['set-cookie'][0],
-              )[0];
+                tokenExpirationTimes.restore();
+              });
+              it('should bookmark the project and provide fresh tokens as response cookies', async () => {
+                const res = await request(app.getHttpServer())
+                  .post(`/projects/bookmark/${projectId}`)
+                  .set(
+                    'Cookie',
+                    `${validRefreshTokenCookie}; ${expiredAccessTokenCookie}`,
+                  );
 
-              expect(newAccessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
-              expect(newAccessTokenCookie.httpOnly).toBe(true);
-              expect(newAccessTokenCookie.sameSite).toBe('Strict');
+                expect(res.status).toBe(201);
+
+                const bookmark = await conn
+                  .getRepository(Bookmark)
+                  .findOne({ projectId: projectId, userId: loginResult.id });
+                expect(bookmark.projectId).toBeDefined();
+
+                const newAccessTokenCookie = setCookieParser.parse(
+                  res.header['set-cookie'][0],
+                )[0];
+
+                expect(newAccessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
+                expect(newAccessTokenCookie.httpOnly).toBe(true);
+                expect(newAccessTokenCookie.sameSite).toBe('Strict');
+              });
+              afterEach(async () => {
+                const project = await conn
+                  .getRepository(Project)
+                  .findOne(projectId);
+                expect(project.bookmarkCount).toBe(1);
+
+                await conn
+                  .getRepository(Bookmark)
+                  .delete({ projectId: projectId, userId: loginResult.id });
+                await conn.getRepository(Project).update(projectId, {
+                  bookmarkCount: project.bookmarkCount - 1,
+                });
+              });
             });
-            afterEach(async () => {
-              const project = await conn
-                .getRepository(Project)
-                .findOne(projectId);
-              expect(project.bookmarkCount).toBe(1);
+            describe("but the user hasn't verified its email", () => {
+              let loginResult: CurrentUserDto;
+              let expiredAccessTokenCookie: string;
+              let validRefreshTokenCookie: string;
 
-              await conn
-                .getRepository(Bookmark)
-                .delete({ projectId: projectId, userId: loginResult.id });
-              await conn.getRepository(Project).update(projectId, {
-                bookmarkCount: project.bookmarkCount - 1,
+              beforeEach(async () => {
+                const res = await request(app.getHttpServer())
+                  .post('/auth/login')
+                  .send({
+                    email: 'user16@example.com',
+                    password: 'Password_16',
+                  });
+                loginResult = res.body;
+                expiredAccessTokenCookie = res.header['set-cookie'][0];
+                validRefreshTokenCookie = res.header['set-cookie'][1];
+              });
+              it('should return Unauthorized', async () => {
+                const res = await request(app.getHttpServer())
+                  .post(`/projects/bookmark/${projectId}`)
+                  .set(
+                    'Cookie',
+                    `${expiredAccessTokenCookie}; ${validRefreshTokenCookie}`,
+                  );
+
+                expect(res.status).toBe(401);
+                expect(res.body.message).toBe('Unauthorized');
+              });
+              afterEach(async () => {
+                const bookmark = await conn
+                  .getRepository(Bookmark)
+                  .findOne({ projectId: projectId, userId: loginResult.id });
+                expect(bookmark).not.toBeDefined();
               });
             });
           });
           describe('is invalid since', () => {
+            let loginResult: CurrentUserDto;
+            let expiredAccessTokenCookie: string;
+
+            beforeEach(async () => {
+              tokenExpirationTimes.set({
+                accessToken: { value: 0, dimension: 'seconds' },
+              });
+
+              const res = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({ email: 'user1@example.com', password: 'Password_1' });
+              loginResult = res.body;
+              expiredAccessTokenCookie = res.header['set-cookie'][0];
+
+              tokenExpirationTimes.restore();
+            });
             describe('is not provided', () => {
               it('should return Unauthorized', async () => {
                 await request(app.getHttpServer())

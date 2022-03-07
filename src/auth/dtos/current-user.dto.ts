@@ -1,5 +1,6 @@
 import { OmitType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
+import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 @Exclude()
 export class CurrentUserDto {
@@ -11,6 +12,8 @@ export class CurrentUserDto {
   lastName: string;
   @Expose()
   email: string;
+  @ExposeType(Boolean)
+  isEmailVerified: boolean;
   @Expose()
   accessToken: string;
   @Expose()
