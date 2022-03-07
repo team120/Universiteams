@@ -19,7 +19,7 @@ export class User {
   @Column({ unique: true })
   email: string;
   @Column({ default: false })
-  isMailVerified: boolean;
+  isEmailVerified: boolean;
   @Column({ nullable: true })
   password: string;
   @Column()

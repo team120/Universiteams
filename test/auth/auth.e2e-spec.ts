@@ -440,12 +440,12 @@ describe('auth', () => {
         expect(res.status).toBe(200);
 
         const user = await conn.getRepository(User).findOne(loginResult.id);
-        expect(user.isMailVerified).toBe(true);
+        expect(user.isEmailVerified).toBe(true);
       });
       afterEach(async () => {
         await conn
           .getRepository(User)
-          .update(loginResult.id, { isMailVerified: false });
+          .update(loginResult.id, { isEmailVerified: false });
       });
     });
     describe('when an invalid email verification token is provided', () => {
