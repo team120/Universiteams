@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TokenDecoded, TokenPayload } from '../auth/dtos/token';
-import { User } from '../user/user.entity';
 import { SecretsVaultKeys } from '../utils/secrets';
 import * as jwt from 'jsonwebtoken';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
@@ -20,7 +19,7 @@ export class VerificationMessagesService {
     private readonly entityMapper: EntityMapperService,
   ) {}
 
-  generateVerifyEmailUrl(user: User) {
+  generateVerifyEmailUrl(user: CurrentUserWithoutTokens) {
     return this.generateVerificationUrl(
       user,
       AcceptedTokens.EmailVerificationToken,

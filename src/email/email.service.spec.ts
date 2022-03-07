@@ -9,9 +9,12 @@ import { VerificationMessagesService } from './verification-messages.service';
 describe('Email service', () => {
   let service: EmailService;
   const emailSendersMock = [];
-  const verificationEmailTokenServiceMock = {
-    generateVerificationUrl: jest.fn(),
-  };
+  const verificationMessagesServiceMock = {
+    generateVerifyEmailUrl: jest.fn(),
+    generateForgetPasswordUrl: jest.fn(),
+  } as Partial<
+    { [key in keyof VerificationMessagesService]: jest.Mock<any, any> }
+  >;
   beforeEach(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [ConfigModule],
@@ -20,7 +23,7 @@ describe('Email service', () => {
         { provide: EMAIL_SENDERS, useValue: emailSendersMock },
         {
           provide: VerificationMessagesService,
-          useValue: verificationEmailTokenServiceMock,
+          useValue: verificationMessagesServiceMock,
         },
         {
           provide: PinoLogger,
