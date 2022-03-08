@@ -242,8 +242,9 @@ describe('auth', () => {
       });
       describe('and email verification is incorrectly handled by all email senders', () => {
         beforeEach(() => {
-          emailSendersMock[0].sendMail.mockRejectedValue({});
-          emailSendersMock[1].sendMail.mockResolvedValue({});
+          emailSendersMock.forEach((emailSenderMock) => {
+            emailSenderMock.sendMail.mockRejectedValue({});
+          });
         });
         it('should save a new user and return an auth token', async () => {
           const registrationAttempt = validRegistrationToBeSaved();
@@ -252,9 +253,9 @@ describe('auth', () => {
             .send(registrationAttempt);
           insertedUserId = res.body.user.id;
 
-          expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
-          expect(emailSendersMock[1].sendMail).toHaveBeenCalledTimes(1);
-          expect(emailSendersMock[2].sendMail).toHaveBeenCalledTimes(0);
+          emailSendersMock.forEach((emailSenderMock) => {
+            expect(emailSenderMock.sendMail).toBeCalledTimes(1);
+          });
 
           expect(res.status).toBe(201);
           expect(res.body.user.email).toBe(registrationAttempt.email);
