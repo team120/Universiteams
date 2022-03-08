@@ -151,17 +151,15 @@ describe('auth', () => {
       ...modifiedUserProps,
     });
     describe('when supplied credentials are valid', () => {
-      let insertedUserId: number;
+      const registrationAttempt = validRegistrationToBeSaved();
       describe('and email verification is correctly handled by first email sender', () => {
         beforeEach(() => {
           emailSendersMock[0].sendMail.mockReturnValue({});
         });
         it('should save a new user and return an auth token', async () => {
-          const registrationAttempt = validRegistrationToBeSaved();
           const res = await request(app.getHttpServer())
             .post('/auth/register')
             .send(registrationAttempt);
-          insertedUserId = res.body.id;
 
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledWith(
@@ -195,7 +193,7 @@ describe('auth', () => {
 
           const insertedUser = await conn
             .getRepository(User)
-            .findOne(insertedUserId);
+            .findOne({ email: registrationAttempt.email });
           expect(insertedUser).toBeDefined();
           expect(insertedUser.email).toBe(registrationAttempt.email);
           expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
@@ -207,11 +205,9 @@ describe('auth', () => {
           emailSendersMock[1].sendMail.mockResolvedValue({});
         });
         it('should save a new user and return an auth token, while relying on second email sender for email verification', async () => {
-          const registrationAttempt = validRegistrationToBeSaved();
           const res = await request(app.getHttpServer())
             .post('/auth/register')
             .send(registrationAttempt);
-          insertedUserId = res.body.id;
 
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
           expect(emailSendersMock[1].sendMail).toHaveBeenCalledTimes(1);
@@ -234,7 +230,7 @@ describe('auth', () => {
 
           const insertedUser = await conn
             .getRepository(User)
-            .findOne(insertedUserId);
+            .findOne({ email: registrationAttempt.email });
           expect(insertedUser).toBeDefined();
           expect(insertedUser.email).toBe(registrationAttempt.email);
           expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
@@ -247,11 +243,9 @@ describe('auth', () => {
           });
         });
         it('should save a new user and return an auth token', async () => {
-          const registrationAttempt = validRegistrationToBeSaved();
           const res = await request(app.getHttpServer())
             .post('/auth/register')
             .send(registrationAttempt);
-          insertedUserId = res.body.id;
 
           emailSendersMock.forEach((emailSenderMock) => {
             expect(emailSenderMock.sendMail).toBeCalledTimes(1);
@@ -274,7 +268,7 @@ describe('auth', () => {
 
           const insertedUser = await conn
             .getRepository(User)
-            .findOne(insertedUserId);
+            .findOne({ email: registrationAttempt.email });
           expect(insertedUser).toBeDefined();
           expect(insertedUser.email).toBe(registrationAttempt.email);
           expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
@@ -282,7 +276,9 @@ describe('auth', () => {
       });
 
       afterEach(async () => {
-        await conn.getRepository(User).delete(insertedUserId);
+        await conn
+          .getRepository(User)
+          .delete({ email: registrationAttempt.email });
       });
     });
     describe('when supplied email, firstName and lastName are not valid', () => {
