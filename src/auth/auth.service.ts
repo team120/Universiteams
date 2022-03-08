@@ -8,7 +8,7 @@ import {
   DbException,
   Unauthorized,
 } from '../utils/exceptions/exceptions';
-import { RegisterDto, RegisteredUser } from './dtos/register.dto';
+import { RegisterDto } from './dtos/register.dto';
 import { TokenService } from './token.service';
 import { EmailService } from '../email/email.service';
 import { VerifyDto } from './dtos/verify.dto';
@@ -46,7 +46,7 @@ export class AuthService {
     return this.tokenService.generateTokens(user);
   }
 
-  async register(registerDto: RegisterDto): Promise<RegisteredUser> {
+  async register(registerDto: RegisterDto) {
     const user = await this.userRepo
       .findOne({ email: registerDto.email })
       .catch((e: Error) => {
@@ -64,20 +64,13 @@ export class AuthService {
         throw new DbException(e.message, e.stack);
       });
 
-    const emailError: string | undefined = await this.emailService
+    await this.emailService
       .sendVerificationEmail(insertedUser)
-      .then(() => {
-        return undefined;
-      })
       .catch((err: Error) => {
         this.logger.error(err, err.message);
-        return 'Verification email will take a bit longer than expected to arrive.\nIf that never happens, please contact support';
       });
 
-    return {
-      user: this.tokenService.generateTokens(insertedUser),
-      emailError: emailError,
-    };
+    return this.tokenService.generateTokens(insertedUser);
   }
 
   async verifyEmail(

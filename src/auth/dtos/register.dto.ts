@@ -1,7 +1,6 @@
 import { Exclude, Expose } from 'class-transformer';
 import { IsEmail, IsNotEmpty, Length } from 'class-validator';
 import { IsValidPassword } from '../password.validator';
-import { CurrentUserDto } from './current-user.dto';
 
 @Exclude()
 export class RegisterDto {
@@ -25,9 +24,4 @@ export class RegisterDto {
   @IsValidPassword()
   @Expose()
   password: string;
-}
-
-export interface RegisteredUser {
-  user: CurrentUserDto;
-  emailError?: string;
 }

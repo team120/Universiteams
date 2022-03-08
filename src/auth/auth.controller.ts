@@ -13,7 +13,10 @@ import { RequestWithUser } from '../utils/request-with-user';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { AuthService } from './auth.service';
-import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
+import {
+  CurrentUserDto,
+  CurrentUserWithoutTokens,
+} from './dtos/current-user.dto';
 import {
   ForgetPasswordDto,
   ResetPasswordDto,
@@ -44,10 +47,7 @@ export class AuthController {
     @Res() response: Response,
   ) {
     const loggedUser = await this.authService.login(loginDto);
-    this.tokenService.appendTokenCookies(response, loggedUser);
-    response
-      .status(200)
-      .json(this.entityMapper.mapValue(CurrentUserWithoutTokens, loggedUser));
+    this.populateResponse(response, 200, loggedUser);
   }
 
   @ApiCreatedResponse({
@@ -60,9 +60,18 @@ export class AuthController {
     @Res() response: Response,
   ) {
     const registeredUser = await this.authService.register(registerDto);
+    this.populateResponse(response, 201, registeredUser);
+  }
 
-    this.tokenService.appendTokenCookies(response, registeredUser.user);
-    response.status(201).json(registeredUser);
+  private populateResponse(
+    response: Response<any, Record<string, any>>,
+    statusCode: number,
+    currentUser: CurrentUserDto,
+  ) {
+    this.tokenService.appendTokenCookies(response, currentUser);
+    response
+      .status(statusCode)
+      .json(this.entityMapper.mapValue(CurrentUserWithoutTokens, currentUser));
   }
 
   @UseGuards(IsAuthGuard)

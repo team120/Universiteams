@@ -161,7 +161,7 @@ describe('auth', () => {
           const res = await request(app.getHttpServer())
             .post('/auth/register')
             .send(registrationAttempt);
-          insertedUserId = res.body.user.id;
+          insertedUserId = res.body.id;
 
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledWith(
@@ -179,11 +179,11 @@ describe('auth', () => {
           expect(emailSendersMock[2].sendMail).toHaveBeenCalledTimes(0);
 
           expect(res.status).toBe(201);
-          expect(res.body.user.email).toBe(registrationAttempt.email);
-          expect(res.body.user.id).toBeDefined();
-          expect(res.body.user.firstName).toBe(registrationAttempt.firstName);
-          expect(res.body.user.lastName).toBe(registrationAttempt.lastName);
-          expect(res.body.user.password).not.toBeDefined();
+          expect(res.body.email).toBe(registrationAttempt.email);
+          expect(res.body.id).toBeDefined();
+          expect(res.body.firstName).toBe(registrationAttempt.firstName);
+          expect(res.body.lastName).toBe(registrationAttempt.lastName);
+          expect(res.body.password).not.toBeDefined();
 
           const accessTokenCookie = setCookieParser.parse(
             res.header['set-cookie'][0],
@@ -201,28 +201,28 @@ describe('auth', () => {
           expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
         });
       });
-      describe('and email verification is incorrectly handled by first email sender, while relying on second email sender for email verification', () => {
+      describe('and email verification is incorrectly handled by first email sender', () => {
         beforeEach(() => {
           emailSendersMock[0].sendMail.mockRejectedValue({});
           emailSendersMock[1].sendMail.mockResolvedValue({});
         });
-        it('should save a new user and return an auth token', async () => {
+        it('should save a new user and return an auth token, while relying on second email sender for email verification', async () => {
           const registrationAttempt = validRegistrationToBeSaved();
           const res = await request(app.getHttpServer())
             .post('/auth/register')
             .send(registrationAttempt);
-          insertedUserId = res.body.user.id;
+          insertedUserId = res.body.id;
 
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
           expect(emailSendersMock[1].sendMail).toHaveBeenCalledTimes(1);
           expect(emailSendersMock[2].sendMail).toHaveBeenCalledTimes(0);
 
           expect(res.status).toBe(201);
-          expect(res.body.user.email).toBe(registrationAttempt.email);
-          expect(res.body.user.id).toBeDefined();
-          expect(res.body.user.firstName).toBe(registrationAttempt.firstName);
-          expect(res.body.user.lastName).toBe(registrationAttempt.lastName);
-          expect(res.body.user.password).not.toBeDefined();
+          expect(res.body.email).toBe(registrationAttempt.email);
+          expect(res.body.id).toBeDefined();
+          expect(res.body.firstName).toBe(registrationAttempt.firstName);
+          expect(res.body.lastName).toBe(registrationAttempt.lastName);
+          expect(res.body.password).not.toBeDefined();
 
           const accessTokenCookie = setCookieParser.parse(
             res.header['set-cookie'][0],
@@ -251,18 +251,18 @@ describe('auth', () => {
           const res = await request(app.getHttpServer())
             .post('/auth/register')
             .send(registrationAttempt);
-          insertedUserId = res.body.user.id;
+          insertedUserId = res.body.id;
 
           emailSendersMock.forEach((emailSenderMock) => {
             expect(emailSenderMock.sendMail).toBeCalledTimes(1);
           });
 
           expect(res.status).toBe(201);
-          expect(res.body.user.email).toBe(registrationAttempt.email);
-          expect(res.body.user.id).toBeDefined();
-          expect(res.body.user.firstName).toBe(registrationAttempt.firstName);
-          expect(res.body.user.lastName).toBe(registrationAttempt.lastName);
-          expect(res.body.user.password).not.toBeDefined();
+          expect(res.body.email).toBe(registrationAttempt.email);
+          expect(res.body.id).toBeDefined();
+          expect(res.body.firstName).toBe(registrationAttempt.firstName);
+          expect(res.body.lastName).toBe(registrationAttempt.lastName);
+          expect(res.body.password).not.toBeDefined();
 
           const accessTokenCookie = setCookieParser.parse(
             res.header['set-cookie'][0],
