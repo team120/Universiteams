@@ -29,7 +29,10 @@ export class EmailService {
     private readonly emailSenders: Array<IEmailSender>,
     private readonly verificationEmailToken: VerificationMessagesService,
     private readonly config: ConfigService,
-  ) {}
+  ) {
+    if (emailSenders.length === 0)
+      throw new EmailException('No email senders configured');
+  }
 
   async sendVerificationEmail(user: User) {
     const verificationLink =
@@ -54,7 +57,9 @@ export class EmailService {
         '</p>',
     };
 
-    await this.sendEmail(message);
+    await this.emailSenders[0].sendMail(message).catch((err: Error) => {
+      throw new EmailException(err.message, err.stack);
+    });
   }
 
   async sendForgetPasswordEmail(user: User) {
@@ -80,28 +85,8 @@ export class EmailService {
         '</p>',
     };
 
-    await this.sendEmail(message);
-  }
-
-  private async sendEmail(message: EmailMessage) {
-    let senderIndex = 0;
-    try {
-      await this.emailSenders[senderIndex].sendMail(message);
-    } catch {
-      await this.fallbackEmailSend(++senderIndex, message);
-    }
-  }
-
-  async fallbackEmailSend(senderIndex: number, message: EmailMessage) {
-    if (this.emailSenders[senderIndex] === undefined) {
-      throw new EmailException(
-        `Email ${message.subject} ${message.to.email} could not be sent since no more email senders are available`,
-      );
-    }
-    try {
-      await this.emailSenders[senderIndex].sendMail(message);
-    } catch {
-      return this.fallbackEmailSend(++senderIndex, message);
-    }
+    await this.emailSenders[0].sendMail(message).catch((err: Error) => {
+      throw new EmailException(err.message, err.stack);
+    });
   }
 }

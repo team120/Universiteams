@@ -202,7 +202,6 @@ describe('auth', () => {
       describe('and email verification is incorrectly handled by first email sender', () => {
         beforeEach(() => {
           emailSendersMock[0].sendMail.mockRejectedValue({});
-          emailSendersMock[1].sendMail.mockResolvedValue({});
         });
         it('should save a new user and return an auth token, while relying on second email sender for email verification', async () => {
           const res = await request(app.getHttpServer())
@@ -210,46 +209,6 @@ describe('auth', () => {
             .send(registrationAttempt);
 
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
-          expect(emailSendersMock[1].sendMail).toHaveBeenCalledTimes(1);
-          expect(emailSendersMock[2].sendMail).toHaveBeenCalledTimes(0);
-
-          expect(res.status).toBe(201);
-          expect(res.body.email).toBe(registrationAttempt.email);
-          expect(res.body.id).toBeDefined();
-          expect(res.body.firstName).toBe(registrationAttempt.firstName);
-          expect(res.body.lastName).toBe(registrationAttempt.lastName);
-          expect(res.body.password).not.toBeDefined();
-
-          const accessTokenCookie = setCookieParser.parse(
-            res.header['set-cookie'][0],
-          )[0];
-
-          expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
-          expect(accessTokenCookie.httpOnly).toBe(true);
-          expect(accessTokenCookie.sameSite).toBe('Strict');
-
-          const insertedUser = await conn
-            .getRepository(User)
-            .findOne({ email: registrationAttempt.email });
-          expect(insertedUser).toBeDefined();
-          expect(insertedUser.email).toBe(registrationAttempt.email);
-          expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
-        });
-      });
-      describe('and email verification is incorrectly handled by all email senders', () => {
-        beforeEach(() => {
-          emailSendersMock.forEach((emailSenderMock) => {
-            emailSenderMock.sendMail.mockRejectedValue({});
-          });
-        });
-        it('should save a new user and return an auth token', async () => {
-          const res = await request(app.getHttpServer())
-            .post('/auth/register')
-            .send(registrationAttempt);
-
-          emailSendersMock.forEach((emailSenderMock) => {
-            expect(emailSenderMock.sendMail).toBeCalledTimes(1);
-          });
 
           expect(res.status).toBe(201);
           expect(res.body.email).toBe(registrationAttempt.email);
