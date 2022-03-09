@@ -20,6 +20,7 @@ import {
 } from './dtos/forget-password.dto';
 import { PinoLogger } from 'nestjs-pino';
 import * as argon2 from 'argon2';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -113,7 +114,7 @@ export class AuthService {
 
     const newPassword = await argon2.hash(resetPasswordDto.password);
     await this.userRepo
-      .update(user.id, { password: newPassword })
+      .update(user.id, { password: newPassword, refreshUserSecret: uuid() })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });

@@ -13,6 +13,7 @@ import { TokenExpirationTimesFake } from '../utils/token-expiration-times.fake';
 import { SendGridEmailSender } from '../../src/email/sendgrid.email-sender';
 import { SendInBlueEmailSender } from '../../src/email/sendinblue.email-sender';
 import { NodemailerEmailSender } from '../../src/email/nodemailer.email-sender';
+import { LoginDto } from '../../src/auth/dtos/login.dto';
 
 describe('auth', () => {
   let app: INestApplication;
@@ -520,12 +521,33 @@ describe('auth', () => {
 
   describe('reset password', () => {
     const verifiedUserEmail = 'user1@example.com';
+    const oldPassword = 'Password_1';
     describe('when email address is valid and has been verified', () => {
       let verifiedUser: User;
+      let expiredAccessTokenBeforeReset: string;
+      let validRefreshTokenBeforeReset: string;
       beforeEach(async () => {
         verifiedUser = await conn
           .getRepository(User)
           .findOne({ email: verifiedUserEmail });
+
+        tokenExpirationTimesTesting.set({
+          accessToken: { value: 0, dimension: 'seconds' },
+        });
+
+        const loginBeforeReset = await request(app.getHttpServer())
+          .post('/auth/login')
+          .send({
+            email: verifiedUserEmail,
+            password: oldPassword,
+          } as LoginDto);
+        expect(loginBeforeReset.status).toBe(200);
+
+        expiredAccessTokenBeforeReset =
+          loginBeforeReset.header['set-cookie'][0];
+        validRefreshTokenBeforeReset = loginBeforeReset.header['set-cookie'][1];
+
+        tokenExpirationTimesTesting.restore();
       });
       describe('and is equal to the email address stored in verification token', () => {
         it('should return OK and update password', async () => {
@@ -536,11 +558,12 @@ describe('auth', () => {
             .generateForgetPasswordUrl(verifiedUser)
             .then((url) => url.split('token=')[1]);
 
+          const newPassword = 'Password_14';
           const res = await request(app.getHttpServer())
             .post('/auth/reset-password')
             .send({
               email: verifiedUserEmail,
-              password: 'Password_14',
+              password: newPassword,
               verificationToken: verificationTokenInUrl,
             });
 
@@ -553,6 +576,39 @@ describe('auth', () => {
           expect(verifiedUserWithNewPassword.password).not.toBe(
             verifiedUser.password,
           );
+          expect(verifiedUserWithNewPassword.refreshUserSecret).not.toBe(
+            verifiedUser.refreshUserSecret,
+          );
+
+          const loginWithOldPassword = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+              email: verifiedUserEmail,
+              password: oldPassword,
+            } as LoginDto);
+          expect(loginWithOldPassword.status).toBe(401);
+
+          const emailVerificationTokenInUrl =
+            await verificationEmailTokenService
+              .generateVerifyEmailUrl(verifiedUser)
+              .then((url) => url.split('token=')[1]);
+
+          const attemptRestrictedAction = await request(app.getHttpServer())
+            .post('/auth/verify-email')
+            .send({ verificationToken: emailVerificationTokenInUrl })
+            .set(
+              'Cookie',
+              `${expiredAccessTokenBeforeReset}; ${validRefreshTokenBeforeReset}`,
+            );
+          expect(attemptRestrictedAction.status).toBe(401);
+
+          const loginWithNewPassword = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+              email: verifiedUserEmail,
+              password: newPassword,
+            } as LoginDto);
+          expect(loginWithNewPassword.status).toBe(200);
         });
         afterEach(async () => {
           await conn

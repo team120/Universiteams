@@ -24,6 +24,8 @@ export interface IEmailService {
 
 @Injectable()
 export class EmailService {
+  private selectedSender = 0;
+
   constructor(
     @Inject(EMAIL_SENDERS)
     private readonly emailSenders: Array<IEmailSender>,
@@ -57,9 +59,11 @@ export class EmailService {
         '</p>',
     };
 
-    await this.emailSenders[0].sendMail(message).catch((err: Error) => {
-      throw new EmailException(err.message, err.stack);
-    });
+    await this.emailSenders[this.selectedSender]
+      .sendMail(message)
+      .catch((err: Error) => {
+        throw new EmailException(err.message, err.stack);
+      });
   }
 
   async sendForgetPasswordEmail(user: User) {
@@ -85,8 +89,10 @@ export class EmailService {
         '</p>',
     };
 
-    await this.emailSenders[0].sendMail(message).catch((err: Error) => {
-      throw new EmailException(err.message, err.stack);
-    });
+    await this.emailSenders[this.selectedSender]
+      .sendMail(message)
+      .catch((err: Error) => {
+        throw new EmailException(err.message, err.stack);
+      });
   }
 }
