@@ -6,7 +6,6 @@ import { RegisterDto } from '../../src/auth/dtos/register.dto';
 import * as setCookieParser from 'set-cookie-parser';
 import { EmailMessage, EMAIL_SENDERS } from '../../src/email/email.service';
 import { createAuthTestModule } from './auth.e2e-module';
-import { CurrentUserDto } from '../../src/auth/dtos/current-user.dto';
 import { VerificationMessagesService } from '../../src/email/verification-messages.service';
 import * as cookieParser from 'cookie-parser';
 import { TokenExpirationTimes } from '../../src/utils/token-expiration/token-expiration-times';
@@ -367,9 +366,9 @@ describe('auth', () => {
   });
 
   describe('verify email', () => {
-    let loginResult: CurrentUserDto;
     let accessTokenCookie: string;
     let refreshTokenCookie: string;
+    let notVerifiedUser: User;
     beforeEach(async () => {
       const email = 'user16@example.com';
       const userWithoutEmailVerified = await conn
@@ -377,13 +376,13 @@ describe('auth', () => {
         .findOne({ email: email, isEmailVerified: false });
       if (!userWithoutEmailVerified)
         throw new Error('User has already verified its email');
+      notVerifiedUser = userWithoutEmailVerified;
 
       const res = await request(app.getHttpServer()).post('/auth/login').send({
         email: email,
         password: 'Password_16',
       });
 
-      loginResult = res.body;
       accessTokenCookie = res.header['set-cookie'][0];
       refreshTokenCookie = res.header['set-cookie'][1];
     });
@@ -392,9 +391,9 @@ describe('auth', () => {
         const verificationEmailTokenService = app.get(
           VerificationMessagesService,
         );
-        const verificationTokenInUrl = verificationEmailTokenService
-          .generateVerifyEmailUrl(loginResult as any)
-          .split('token=')[1];
+        const verificationTokenInUrl = await verificationEmailTokenService
+          .generateVerifyEmailUrl(notVerifiedUser)
+          .then((url) => url.split('token=')[1]);
 
         const res = await request(app.getHttpServer())
           .post('/auth/verify-email')
@@ -403,13 +402,13 @@ describe('auth', () => {
 
         expect(res.status).toBe(200);
 
-        const user = await conn.getRepository(User).findOne(loginResult.id);
+        const user = await conn.getRepository(User).findOne(notVerifiedUser.id);
         expect(user.isEmailVerified).toBe(true);
       });
       afterEach(async () => {
         await conn
           .getRepository(User)
-          .update(loginResult.id, { isEmailVerified: false });
+          .update(notVerifiedUser.id, { isEmailVerified: false });
       });
     });
     describe('when an invalid email verification token is provided', () => {
@@ -442,9 +441,9 @@ describe('auth', () => {
           const verificationEmailTokenService = app.get(
             VerificationMessagesService,
           );
-          const verificationTokenInUrl = verificationEmailTokenService
-            .generateVerifyEmailUrl(loginResult as any)
-            .split('token=')[1];
+          const verificationTokenInUrl = await verificationEmailTokenService
+            .generateVerifyEmailUrl(notVerifiedUser)
+            .then((url) => url.split('token=')[1]);
 
           const res = await request(app.getHttpServer())
             .post('/auth/verify-email')
@@ -461,7 +460,7 @@ describe('auth', () => {
         });
       });
       afterEach(async () => {
-        const user = await conn.getRepository(User).findOne(loginResult.id);
+        const user = await conn.getRepository(User).findOne(notVerifiedUser.id);
         expect(user.isEmailVerified).toBe(false);
       });
     });
@@ -533,9 +532,9 @@ describe('auth', () => {
           const verificationEmailTokenService = app.get(
             VerificationMessagesService,
           );
-          const verificationTokenInUrl = verificationEmailTokenService
+          const verificationTokenInUrl = await verificationEmailTokenService
             .generateForgetPasswordUrl(verifiedUser)
-            .split('token=')[1];
+            .then((url) => url.split('token=')[1]);
 
           const res = await request(app.getHttpServer())
             .post('/auth/reset-password')
@@ -567,12 +566,12 @@ describe('auth', () => {
           const verificationEmailTokenService = app.get(
             VerificationMessagesService,
           );
-          const verificationTokenInUrl = verificationEmailTokenService
+          const verificationTokenInUrl = await verificationEmailTokenService
             .generateForgetPasswordUrl({
               ...verifiedUser,
               email: 'other@example.com',
             })
-            .split('token=')[1];
+            .then((url) => url.split('token=')[1]);
 
           const res = await request(app.getHttpServer())
             .post('/auth/reset-password')
@@ -600,12 +599,12 @@ describe('auth', () => {
           const verificationEmailTokenService = app.get(
             VerificationMessagesService,
           );
-          const verificationTokenInUrl = verificationEmailTokenService
+          const verificationTokenInUrl = await verificationEmailTokenService
             .generateForgetPasswordUrl({
               ...verifiedUser,
               email: 'other@example.com',
             })
-            .split('token=')[1];
+            .then((url) => url.split('token=')[1]);
 
           const res = await request(app.getHttpServer())
             .post('/auth/reset-password')

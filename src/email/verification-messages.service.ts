@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { TokenDecoded, TokenPayload } from '../auth/dtos/token';
+import { EmailTokenPayload } from '../auth/dtos/token';
 import { SecretsVaultKeys } from '../utils/secrets';
 import * as jwt from 'jsonwebtoken';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
@@ -9,7 +9,9 @@ import {
   AcceptedTokens,
   TokenExpirationTimes,
 } from '../utils/token-expiration/token-expiration-times';
-import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
+import * as argon2 from 'argon2';
+import { Buffer } from 'buffer';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class VerificationMessagesService {
@@ -19,7 +21,7 @@ export class VerificationMessagesService {
     private readonly entityMapper: EntityMapperService,
   ) {}
 
-  generateVerifyEmailUrl(user: CurrentUserWithoutTokens) {
+  generateVerifyEmailUrl(user: User) {
     return this.generateVerificationUrl(
       user,
       AcceptedTokens.EmailVerificationToken,
@@ -28,7 +30,7 @@ export class VerificationMessagesService {
     );
   }
 
-  generateForgetPasswordUrl(user: CurrentUserWithoutTokens) {
+  generateForgetPasswordUrl(user: User) {
     return this.generateVerificationUrl(
       user,
       AcceptedTokens.EmailVerificationToken,
@@ -39,16 +41,14 @@ export class VerificationMessagesService {
     );
   }
 
-  private generateVerificationUrl(
-    user: CurrentUserWithoutTokens,
+  private async generateVerificationUrl(
+    user: User,
     expirationTimeOfToken: AcceptedTokens,
     secret: string,
     baseUrl: string,
   ) {
-    const tokenPayload: TokenPayload = {
-      id: user.id,
-      user: `${user.firstName} ${user.lastName}`,
-      email: user.email,
+    const tokenPayload: EmailTokenPayload = {
+      identityHash: await this.computeUserHash(user),
     };
     const expiration = this.tokenExpirationTimes.getTokenExpirationShortVersion(
       expirationTimeOfToken,
@@ -60,30 +60,54 @@ export class VerificationMessagesService {
     return `${baseUrl}?token=${jwtVerification}`;
   }
 
-  checkVerifyEmailToken(verificationToken: string) {
-    return this.checkVerificationToken(
+  async checkVerificationEmailToken(verificationToken: string, user: User) {
+    const decodedToken = this.checkVerificationToken(
       verificationToken,
       this.config.get(SecretsVaultKeys.EMAIL_VERIFICATION_LINK_SECRET),
     );
+    await this.checkUserIdentityHash(decodedToken, user);
+
+    return decodedToken;
   }
 
-  checkForgetPasswordToken(verificationToken: string) {
-    return this.checkVerificationToken(
+  async checkForgetPasswordToken(verificationToken: string, user: User) {
+    const decodedToken = this.checkVerificationToken(
       verificationToken,
       this.config.get(
         SecretsVaultKeys.FORGET_PASSWORD_VERIFICATION_LINK_SECRET,
       ),
     );
+    await this.checkUserIdentityHash(decodedToken, user);
+
+    return decodedToken;
   }
 
   private checkVerificationToken(verificationToken: string, secret: string) {
     try {
       return this.entityMapper.mapValue(
-        TokenDecoded,
+        EmailTokenPayload,
         jwt.verify(verificationToken, secret),
       );
     } catch (err) {
       throw new Unauthorized(err);
     }
+  }
+
+  private async checkUserIdentityHash(
+    decodedToken: EmailTokenPayload,
+    user: User,
+  ) {
+    const computedUserHash = await this.computeUserHash(user);
+    if (decodedToken.identityHash !== computedUserHash)
+      throw new Unauthorized('User identity hash does not match token');
+  }
+
+  private computeUserHash(user: User) {
+    return argon2.hash(
+      user.id.toString().concat(user.email).concat(user.refreshTokenSecret),
+      {
+        salt: Buffer.alloc(10, 1),
+      },
+    );
   }
 }

@@ -1,7 +1,7 @@
 import { User } from '../user/user.entity';
 import { SecretsVaultKeys } from '../utils/secrets';
 import { CurrentUserDto } from './dtos/current-user.dto';
-import { TokenDecoded, TokenPayload } from './dtos/token';
+import { GeneralTokenDecoded, GeneralTokenPayload } from './dtos/token';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
@@ -27,7 +27,7 @@ export class TokenService {
   }
 
   generateTokens(user: User) {
-    const tokenPayload: TokenPayload = {
+    const tokenPayload: GeneralTokenPayload = {
       id: user.id,
       user: `${user.firstName} ${user.lastName}`,
       email: user.email,
@@ -58,12 +58,12 @@ export class TokenService {
   }
 
   checkAccessToken(accessToken: string): {
-    decodedToken: TokenDecoded;
+    decodedToken: GeneralTokenDecoded;
     isValid: boolean;
   } {
     try {
       const token = this.entityMapper.mapValue(
-        TokenDecoded,
+        GeneralTokenDecoded,
         jwt.verify(
           accessToken,
           this.configService.get(SecretsVaultKeys.ACCESS_TOKEN),
@@ -80,7 +80,7 @@ export class TokenService {
         throw new Unauthorized('Access token incorrectly formatted');
 
       const token = this.entityMapper.mapValue(
-        TokenDecoded,
+        GeneralTokenDecoded,
         jwt.decode(
           accessToken,
           this.configService.get(SecretsVaultKeys.ACCESS_TOKEN),
@@ -102,7 +102,7 @@ export class TokenService {
   } {
     try {
       const decodedRefreshToken = this.entityMapper.mapValue(
-        TokenDecoded,
+        GeneralTokenDecoded,
         jwt.verify(
           refreshToken,
           this.configService.get(SecretsVaultKeys.REFRESH_TOKEN) +

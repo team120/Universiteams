@@ -28,7 +28,7 @@ export class AuthService {
     private readonly userRepo: Repository<User>,
     private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
-    private readonly verificationEmailToken: VerificationMessagesService,
+    private readonly verificationMessageService: VerificationMessagesService,
     private readonly logger: PinoLogger,
   ) {}
 
@@ -77,11 +77,18 @@ export class AuthService {
     verifyDto: VerifyDto,
     currentUser: CurrentUserWithoutTokens,
   ) {
-    const decodedToken = this.verificationEmailToken.checkVerifyEmailToken(
+    const user = await this.userRepo
+      .findOne({
+        id: currentUser.id,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
+    await this.verificationMessageService.checkVerificationEmailToken(
       verifyDto.verificationToken,
+      user,
     );
-    if (decodedToken.id !== currentUser.id)
-      throw new Unauthorized('Current user id does not match verification url');
 
     await this.userRepo
       .update(currentUser.id, { isEmailVerified: true })
@@ -99,13 +106,10 @@ export class AuthService {
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     const user = await this.checkEmail(resetPasswordDto.email);
 
-    const decodedToken = this.verificationEmailToken.checkForgetPasswordToken(
+    await this.verificationMessageService.checkForgetPasswordToken(
       resetPasswordDto.verificationToken,
+      user,
     );
-    if (decodedToken.email !== resetPasswordDto.email)
-      throw new Unauthorized(
-        'Request user email does not match verification url',
-      );
 
     const newPassword = await argon2.hash(resetPasswordDto.password);
     await this.userRepo

@@ -36,7 +36,7 @@ export class EmailService {
 
   async sendVerificationEmail(user: User) {
     const verificationLink =
-      this.verificationEmailToken.generateVerifyEmailUrl(user);
+      await this.verificationEmailToken.generateVerifyEmailUrl(user);
 
     const message: EmailMessage = {
       from: {
@@ -64,7 +64,7 @@ export class EmailService {
 
   async sendForgetPasswordEmail(user: User) {
     const verificationLink =
-      this.verificationEmailToken.generateForgetPasswordUrl(user);
+      await this.verificationEmailToken.generateForgetPasswordUrl(user);
 
     const message: EmailMessage = {
       from: {

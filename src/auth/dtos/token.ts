@@ -2,7 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 @Exclude()
-export class TokenPayload {
+export class GeneralTokenPayload {
   @ExposeType(Number)
   id: number;
   @Expose()
@@ -12,7 +12,13 @@ export class TokenPayload {
 }
 
 @Exclude()
-export class TokenDecoded extends TokenPayload {
+export class EmailTokenPayload {
+  @Expose()
+  identityHash: string;
+}
+
+@Exclude()
+export class GeneralTokenDecoded extends GeneralTokenPayload {
   @ExposeType(Number)
   iat: number;
   @ExposeType(Number)
