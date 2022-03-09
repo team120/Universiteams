@@ -10,7 +10,6 @@ import {
   TokenExpirationTimes,
 } from '../utils/token-expiration/token-expiration-times';
 import * as argon2 from 'argon2';
-import { Buffer } from 'buffer';
 import { User } from '../user/user.entity';
 
 @Injectable()
@@ -48,7 +47,7 @@ export class VerificationMessagesService {
     baseUrl: string,
   ) {
     const tokenPayload: EmailTokenPayload = {
-      identityHash: await this.computeUserHash(user),
+      identityHash: await argon2.hash(this.userIdentityHashData(user)),
     };
     const expiration = this.tokenExpirationTimes.getTokenExpirationShortVersion(
       expirationTimeOfToken,
@@ -97,17 +96,15 @@ export class VerificationMessagesService {
     decodedToken: EmailTokenPayload,
     user: User,
   ) {
-    const computedUserHash = await this.computeUserHash(user);
-    if (decodedToken.identityHash !== computedUserHash)
+    const hashMatches = await argon2.verify(
+      decodedToken.identityHash,
+      this.userIdentityHashData(user),
+    );
+    if (!hashMatches)
       throw new Unauthorized('User identity hash does not match token');
   }
 
-  private computeUserHash(user: User) {
-    return argon2.hash(
-      user.id.toString().concat(user.email).concat(user.refreshUserSecret),
-      {
-        salt: Buffer.alloc(10, 1),
-      },
-    );
+  private userIdentityHashData(user: User) {
+    return user.id.toString().concat(user.email).concat(user.refreshUserSecret);
   }
 }
