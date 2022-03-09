@@ -87,11 +87,11 @@ describe('Token service', () => {
       it('should return isValid: true', async () => {
         const user: Partial<User> = {
           id: 1,
-          refreshTokenSecret: 'hjqehJeqeoQKLJWnsnal',
+          refreshUserSecret: 'hjqehJeqeoQKLJWnsnal',
         };
         const token = jwt.sign(
           { id: user.id },
-          config.get(SecretsVaultKeys.REFRESH_TOKEN) + user.refreshTokenSecret,
+          config.get(SecretsVaultKeys.REFRESH_TOKEN) + user.refreshUserSecret,
           {
             expiresIn: '10m',
           },
@@ -105,11 +105,11 @@ describe('Token service', () => {
       it('should return isValid: false and an error message', () => {
         const user: Partial<User> = {
           id: 1,
-          refreshTokenSecret: 'hjqehJeqeoQKLJWnsnal',
+          refreshUserSecret: 'hjqehJeqeoQKLJWnsnal',
         };
         const token = jwt.sign(
           { id: user.id },
-          config.get(SecretsVaultKeys.REFRESH_TOKEN) + user.refreshTokenSecret,
+          config.get(SecretsVaultKeys.REFRESH_TOKEN) + user.refreshUserSecret,
           {
             expiresIn: '0s',
           },
@@ -123,11 +123,11 @@ describe('Token service', () => {
       it('should return isValid: false and an error message', () => {
         const user: Partial<User> = {
           id: 1,
-          refreshTokenSecret: 'hjqehJeqeoQKLJWnsnal',
+          refreshUserSecret: 'hjqehJeqeoQKLJWnsnal',
         };
         const token = jwt.sign(
           { id: 24 },
-          config.get(SecretsVaultKeys.REFRESH_TOKEN) + user.refreshTokenSecret,
+          config.get(SecretsVaultKeys.REFRESH_TOKEN) + user.refreshUserSecret,
           {
             expiresIn: '10m',
           },

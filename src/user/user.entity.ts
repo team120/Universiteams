@@ -28,7 +28,7 @@ export class User {
   lastName: string;
   @Column({ unique: true })
   @Generated('uuid')
-  refreshTokenSecret: string;
+  refreshUserSecret: string;
 
   @OneToMany(() => UserAffiliation, (userAffiliation) => userAffiliation.user, {
     nullable: false,

@@ -104,7 +104,7 @@ export class VerificationMessagesService {
 
   private computeUserHash(user: User) {
     return argon2.hash(
-      user.id.toString().concat(user.email).concat(user.refreshTokenSecret),
+      user.id.toString().concat(user.email).concat(user.refreshUserSecret),
       {
         salt: Buffer.alloc(10, 1),
       },

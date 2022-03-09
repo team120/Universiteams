@@ -47,7 +47,7 @@ export class TokenService {
       refreshToken: `Bearer ${jwt.sign(
         tokenPayload,
         this.configService.get(SecretsVaultKeys.REFRESH_TOKEN) +
-          user.refreshTokenSecret,
+          user.refreshUserSecret,
         {
           expiresIn: this.tokenExpirationTimes.getTokenExpirationShortVersion(
             AcceptedTokens.RefreshToken,
@@ -106,7 +106,7 @@ export class TokenService {
         jwt.verify(
           refreshToken,
           this.configService.get(SecretsVaultKeys.REFRESH_TOKEN) +
-            accessTokenUser.refreshTokenSecret,
+            accessTokenUser.refreshUserSecret,
         ),
       );
       if (decodedRefreshToken.id !== accessTokenUser.id)
