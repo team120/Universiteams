@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EmailMessage, IEmailSender } from './email.service';
+import { EmailMessage, IEmailSender } from './email.processor';
 import * as sendgrid from '@sendgrid/mail';
 import { ConfigService } from '@nestjs/config';
 import { SecretsVaultKeys } from '../utils/secrets';

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration-times';
-import { EmailService, EMAIL_SENDERS, IEmailSender } from './email.service';
+import { EmailProcessor, EMAIL_SENDERS, IEmailSender } from './email.processor';
 import { NodemailerEmailSender } from './nodemailer.email-sender';
 import { SendGridEmailSender } from './sendgrid.email-sender';
 import { SendInBlueEmailSender } from './sendinblue.email-sender';
@@ -11,7 +11,7 @@ import { VerificationMessagesService } from './verification-messages.service';
 @Module({
   imports: [ConfigModule, SerializationModule],
   providers: [
-    EmailService,
+    EmailProcessor,
     VerificationMessagesService,
     NodemailerEmailSender,
     SendGridEmailSender,
@@ -26,12 +26,12 @@ import { VerificationMessagesService } from './verification-messages.service';
       provide: EMAIL_SENDERS,
       useFactory: (...emailSenders: IEmailSender[]) => emailSenders,
       inject: [
-        SendGridEmailSender,
         SendInBlueEmailSender,
+        SendGridEmailSender,
         NodemailerEmailSender,
       ],
     },
   ],
-  exports: [EmailService, VerificationMessagesService],
+  exports: [VerificationMessagesService],
 })
 export class EmailModule {}

@@ -4,7 +4,7 @@ import { Connection, DeepPartial } from 'typeorm';
 import { User } from '../../src/user/user.entity';
 import { RegisterDto } from '../../src/auth/dtos/register.dto';
 import * as setCookieParser from 'set-cookie-parser';
-import { EmailMessage, EMAIL_SENDERS } from '../../src/email/email.service';
+import { EmailMessage, EMAIL_SENDERS } from '../../src/email/email.processor';
 import { createAuthTestModule } from './auth.e2e-module';
 import { VerificationMessagesService } from '../../src/email/verification-messages.service';
 import * as cookieParser from 'cookie-parser';
@@ -14,6 +14,8 @@ import { SendGridEmailSender } from '../../src/email/sendgrid.email-sender';
 import { SendInBlueEmailSender } from '../../src/email/sendinblue.email-sender';
 import { NodemailerEmailSender } from '../../src/email/nodemailer.email-sender';
 import { LoginDto } from '../../src/auth/dtos/login.dto';
+import { getQueueToken } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 describe('auth', () => {
   let app: INestApplication;
@@ -161,6 +163,9 @@ describe('auth', () => {
             .post('/auth/register')
             .send(registrationAttempt);
 
+          const emailQueue = app.get<Queue>(getQueueToken('emails'));
+
+          await emailQueue.whenCurrentJobsFinished();
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -174,7 +179,6 @@ describe('auth', () => {
             } as Partial<EmailMessage>),
           );
           expect(emailSendersMock[1].sendMail).toHaveBeenCalledTimes(0);
-          expect(emailSendersMock[2].sendMail).toHaveBeenCalledTimes(0);
 
           expect(res.status).toBe(201);
           expect(res.body.email).toBe(registrationAttempt.email);
@@ -208,7 +212,11 @@ describe('auth', () => {
             .post('/auth/register')
             .send(registrationAttempt);
 
+          const emailQueue = app.get<Queue>(getQueueToken('emails'));
+
+          await emailQueue.whenCurrentJobsFinished();
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
+          expect(emailSendersMock[1].sendMail).toHaveBeenCalledTimes(0);
 
           expect(res.status).toBe(201);
           expect(res.body.email).toBe(registrationAttempt.email);
@@ -479,6 +487,9 @@ describe('auth', () => {
             email: 'user1@example.com',
           });
 
+        const emailQueue = app.get<Queue>(getQueueToken('emails'));
+
+        await emailQueue.whenCurrentJobsFinished();
         expect(emailSendersMock[0].sendMail).toBeCalledTimes(1);
         expect(emailSendersMock[1].sendMail).toBeCalledTimes(0);
 
