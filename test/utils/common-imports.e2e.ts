@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
@@ -20,6 +21,16 @@ export const commonImportsArray = [
       entities: ['src/**/*.entity.ts'],
       migrations: ['src/database/migrations/*.ts'],
       migrationsRun: false,
+    }),
+  }),
+  BullModule.forRootAsync({
+    imports: [ConfigModule],
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) => ({
+      redis: {
+        host: configService.get('REDIS_HOST'),
+        port: configService.get('REDIS_PORT'),
+      },
     }),
   }),
   LoggerModule.forRoot({

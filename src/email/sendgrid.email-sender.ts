@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EmailMessage, IEmailSender } from './email.service';
+import { EmailMessage, IEmailSender } from './email.processor';
 import * as sendgrid from '@sendgrid/mail';
 import { ConfigService } from '@nestjs/config';
 import { SecretsVaultKeys } from '../utils/secrets';
@@ -24,7 +24,10 @@ export class SendGridEmailSender implements IEmailSender {
     };
 
     try {
-      await this.sendGridApi.send(message);
+      const result = await this.sendGridApi.send(message);
+      this.logger.debug(
+        `SendGrid sendMail response status: ${result[0].statusCode}`,
+      );
     } catch (err) {
       this.logger.error(
         err as Error,

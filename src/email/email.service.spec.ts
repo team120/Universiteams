@@ -1,14 +1,18 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import { Job } from 'bull';
 import { PinoLogger } from 'nestjs-pino';
 import { User } from '../user/user.entity';
-import { EmailException } from '../utils/exceptions/exceptions';
-import { EmailService, EMAIL_SENDERS } from './email.service';
+import { EmailProcessor, EMAIL_SENDERS } from './email.processor';
 import { VerificationMessagesService } from './verification-messages.service';
 
 describe('Email service', () => {
-  let service: EmailService;
-  const emailSendersMock = [{ sendMail: jest.fn() }];
+  let service: EmailProcessor;
+  const emailSendersMock = [
+    { sendMail: jest.fn() },
+    { sendMail: jest.fn() },
+    { sendMail: jest.fn() },
+  ];
   const verificationMessagesServiceMock = {
     generateVerifyEmailUrl: jest.fn(),
     generateForgetPasswordUrl: jest.fn(),
@@ -19,7 +23,7 @@ describe('Email service', () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [ConfigModule],
       providers: [
-        EmailService,
+        EmailProcessor,
         { provide: EMAIL_SENDERS, useValue: emailSendersMock },
         {
           provide: VerificationMessagesService,
@@ -27,12 +31,12 @@ describe('Email service', () => {
         },
         {
           provide: PinoLogger,
-          useValue: { info: jest.fn(), error: jest.fn() },
+          useValue: { debug: jest.fn(), error: jest.fn() },
         },
       ],
     }).compile();
 
-    service = moduleFixture.get(EmailService);
+    service = moduleFixture.get(EmailProcessor);
   });
 
   afterEach(() => {
@@ -53,22 +57,11 @@ describe('Email service', () => {
       it('should resolve the promise', async () => {
         emailSendersMock[0].sendMail.mockResolvedValue({});
 
-        await service.sendVerificationEmail(user as User);
+        await service.sendVerificationEmail({ data: { ...user } } as Job<User>);
 
         expect(emailSendersMock[0].sendMail).toBeCalledTimes(1);
-      });
-    });
-    describe('and that one fails', () => {
-      it('should throw an EmailException', async () => {
-        emailSendersMock[0].sendMail.mockRejectedValue({});
-
-        await service.sendVerificationEmail(user as User).catch((err) => {
-          expect(err).toBeInstanceOf(EmailException);
-          expect(err.response).toBe('Internal Server Error');
-        });
-
-        expect(emailSendersMock[0].sendMail).toBeCalledTimes(1);
-        expect.assertions(3);
+        expect(emailSendersMock[1].sendMail).toBeCalledTimes(0);
+        expect(emailSendersMock[2].sendMail).toBeCalledTimes(0);
       });
     });
   });

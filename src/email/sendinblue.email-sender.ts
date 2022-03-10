@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EmailMessage, IEmailSender } from './email.service';
+import { EmailMessage, IEmailSender } from './email.processor';
 import * as sendInBlue from '@sendinblue/client';
 import { ConfigService } from '@nestjs/config';
 import { SecretsVaultKeys } from '../utils/secrets';
@@ -26,7 +26,9 @@ export class SendInBlueEmailSender implements IEmailSender {
 
     try {
       const result = await this.apiInstance.sendTransacEmail(message);
-      this.logger.debug(result.response.statusCode.toString());
+      this.logger.debug(
+        `SendInBlue sendMail response status: ${result.response.statusCode.toString()}`,
+      );
     } catch (err) {
       this.logger.error(
         err as Error,

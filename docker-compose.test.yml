@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: postgrestest
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
+      REDIS_HOST: redistest
+      REDIS_PORT: 6379
       ACCESS_TOKEN_SECRET: "access_token_test_secret"
       REFRESH_TOKEN_SECRET: "refresh_token_test_secret"
       EMAIL_VERIFICATION_LINK_SECRET: "verification_link_secret"
@@ -24,6 +26,7 @@ services:
       - 9228:9229
     depends_on:
       - postgrestest
+      - redistest
   postgrestest:
     image: postgres:12.8-alpine
     ports:
@@ -32,3 +35,7 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: postgrestest
+  redistest:
+    image: "redis:alpine"
+    ports:
+      - 6379

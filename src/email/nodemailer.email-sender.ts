@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import * as nodemailer from 'nodemailer';
-import { IEmailSender, EmailMessage } from './email.service';
+import { IEmailSender, EmailMessage } from './email.processor';
 
 @Injectable()
 export class NodemailerEmailSender implements IEmailSender {

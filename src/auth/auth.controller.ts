@@ -92,7 +92,7 @@ export class AuthController {
   async forgotPassword(
     @Body(AppValidationPipe) forgetPasswordDto: ForgetPasswordDto,
   ) {
-    await this.authService.forgotPassword(forgetPasswordDto);
+    return this.authService.forgotPassword(forgetPasswordDto);
   }
 
   @ApiOkResponse({

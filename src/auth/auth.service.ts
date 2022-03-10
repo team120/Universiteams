@@ -10,9 +10,11 @@ import {
 } from '../utils/exceptions/exceptions';
 import { RegisterDto } from './dtos/register.dto';
 import { TokenService } from './token.service';
-import { EmailService } from '../email/email.service';
 import { VerifyDto } from './dtos/verify.dto';
-import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
+import {
+  CurrentUserDto,
+  CurrentUserWithoutTokens,
+} from './dtos/current-user.dto';
 import { VerificationMessagesService } from '../email/verification-messages.service';
 import {
   ForgetPasswordDto,
@@ -21,6 +23,8 @@ import {
 import { PinoLogger } from 'nestjs-pino';
 import * as argon2 from 'argon2';
 import { v4 as uuid } from 'uuid';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +32,8 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly tokenService: TokenService,
-    private readonly emailService: EmailService,
+    @InjectQueue('emails')
+    private readonly emailQueue: Queue,
     private readonly verificationMessageService: VerificationMessagesService,
     private readonly logger: PinoLogger,
   ) {}
@@ -47,7 +52,7 @@ export class AuthService {
     return this.tokenService.generateTokens(user);
   }
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto): Promise<CurrentUserDto> {
     const user = await this.userRepo
       .findOne({ email: registerDto.email })
       .catch((e: Error) => {
@@ -65,13 +70,12 @@ export class AuthService {
         throw new DbException(e.message, e.stack);
       });
 
-    await this.emailService
-      .sendVerificationEmail(insertedUser)
-      .catch((err: Error) => {
-        this.logger.error(err, err.message);
-      });
+    const job = await this.emailQueue.add('email-verification', insertedUser);
 
-    return this.tokenService.generateTokens(insertedUser);
+    return {
+      ...this.tokenService.generateTokens(insertedUser),
+      emailJobId: job.id.toString(),
+    };
   }
 
   async verifyEmail(
@@ -101,7 +105,9 @@ export class AuthService {
   async forgotPassword(forgetPasswordDto: ForgetPasswordDto) {
     const user = await this.checkEmail(forgetPasswordDto.email);
 
-    await this.emailService.sendForgetPasswordEmail(user);
+    const job = await this.emailQueue.add('forgot-password', user);
+
+    return { emailJobId: job.id };
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
