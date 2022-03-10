@@ -68,6 +68,7 @@ export class EmailProcessor {
       .sendMail(message)
       .catch((err: Error) => {
         this.logger.error(err, err.message);
+        throw err;
       });
 
     this.logger.debug(
@@ -105,6 +106,7 @@ export class EmailProcessor {
       .sendMail(message)
       .catch((err: Error) => {
         this.logger.error(err, err.message);
+        throw err;
       });
 
     this.logger.debug(

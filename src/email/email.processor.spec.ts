@@ -6,7 +6,7 @@ import { User } from '../user/user.entity';
 import { EmailProcessor, EMAIL_SENDERS } from './email.processor';
 import { VerificationMessagesService } from './verification-messages.service';
 
-describe('Email service', () => {
+describe('Email processor', () => {
   let service: EmailProcessor;
   const emailSendersMock = [
     { sendMail: jest.fn() },
@@ -37,6 +37,24 @@ describe('Email service', () => {
     }).compile();
 
     service = moduleFixture.get(EmailProcessor);
+  });
+
+  describe('and that one fails', () => {
+    it('should throw an EmailException', async () => {
+      emailSendersMock[0].sendMail.mockRejectedValue(new Error('Queue error'));
+
+      await service
+        .sendVerificationEmail({ data: { ...user } } as Job<User>)
+        .catch((err) => {
+          expect(err).toBeInstanceOf(Error);
+          expect(err.message).toBe('Queue error');
+        });
+
+      expect(emailSendersMock[0].sendMail).toBeCalledTimes(1);
+      expect(emailSendersMock[1].sendMail).toBeCalledTimes(0);
+      expect(emailSendersMock[2].sendMail).toBeCalledTimes(0);
+      expect.assertions(5);
+    });
   });
 
   afterEach(() => {
