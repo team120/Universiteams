@@ -15,6 +15,8 @@ export class CurrentUserDto {
   @ExposeType(Boolean)
   isEmailVerified: boolean;
   @Expose()
+  emailJobId?: string;
+  @Expose()
   accessToken: string;
   @Expose()
   refreshToken: string;
