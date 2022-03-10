@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   test:
-    build: .
+    build: 
+      context: .
+      target: dev
     image: alereca/universiteams:1.0
     environment:
       POSTGRES_HOST: postgrestest
@@ -18,10 +20,10 @@ services:
       FORGET_PASSWORD_VERIFICATION_LINK_SECRET: "forget_password_verification_link_secret"
       EMAIL_USER: "universe@example.com"
       EMAIL_CONFIRMATION_URL: "http://localhost:5000/account/verify"
-    working_dir: /usr/src/app
+    working_dir: /home/node/app
     volumes:
-      - ./src:/usr/src/app/src
-      - ./test:/usr/src/app/test
+      - ./src:/home/node/app/src
+      - ./test:/home/node/app/test
     ports:
       - 9228:9229
     depends_on:

@@ -2,17 +2,19 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build: 
+      context: .
+      target: dev
     image: alereca/universiteams:1.0
     ports:
       - 3000:3000
       - 9229:9229
     command: npm run start:debug
-    working_dir: /usr/src/app
+    working_dir: /home/node/app
     volumes:
-      - ./src:/usr/src/app/src
-      - ./test:/usr/src/app/test
-      - ./dist:/usr/src/app/dist
+      - ./src:/home/node/app/src
+      - ./test:/home/node/app/test
+      - ./dist:/home/node/app/dist
     env_file:
       - docker.env
     depends_on:
