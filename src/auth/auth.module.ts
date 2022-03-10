@@ -10,6 +10,7 @@ import { IsAuthGuard } from './is-auth.guard';
 import { TokenService } from './token.service';
 import { EmailModule } from '../email/email.module';
 import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration-times';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration
     SerializationModule,
     ConfigModule,
     EmailModule,
+    BullModule.registerQueue({ name: 'emails' }),
   ],
   controllers: [AuthController],
   providers: [
