@@ -3,7 +3,6 @@ import { SecretsVaultKeys } from '../utils/secrets';
 import { User } from '../user/user.entity';
 import { VerificationMessagesService } from './verification-messages.service';
 import { ConfigService } from '@nestjs/config';
-import { EmailException } from '../utils/exceptions/exceptions';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { PinoLogger } from 'nestjs-pino';
@@ -37,7 +36,7 @@ export class EmailProcessor {
     private readonly config: ConfigService,
   ) {
     if (emailSenders.length === 0)
-      throw new EmailException('No email senders configured');
+      throw new Error('No email senders configured');
   }
 
   @Process('email-verification')
@@ -68,7 +67,7 @@ export class EmailProcessor {
     await this.emailSenders[this.selectedSender]
       .sendMail(message)
       .catch((err: Error) => {
-        throw new EmailException(err.message, err.stack);
+        this.logger.error(err, err.message);
       });
 
     this.logger.debug(
@@ -105,7 +104,7 @@ export class EmailProcessor {
     await this.emailSenders[this.selectedSender]
       .sendMail(message)
       .catch((err: Error) => {
-        throw new EmailException(err.message, err.stack);
+        this.logger.error(err, err.message);
       });
 
     this.logger.debug(

@@ -3,7 +3,6 @@ import { Test } from '@nestjs/testing';
 import { Job } from 'bull';
 import { PinoLogger } from 'nestjs-pino';
 import { User } from '../user/user.entity';
-import { EmailException } from '../utils/exceptions/exceptions';
 import { EmailProcessor, EMAIL_SENDERS } from './email.processor';
 import { VerificationMessagesService } from './verification-messages.service';
 
@@ -63,23 +62,6 @@ describe('Email service', () => {
         expect(emailSendersMock[0].sendMail).toBeCalledTimes(1);
         expect(emailSendersMock[1].sendMail).toBeCalledTimes(0);
         expect(emailSendersMock[2].sendMail).toBeCalledTimes(0);
-      });
-    });
-    describe('and that one fails', () => {
-      it('should throw an EmailException', async () => {
-        emailSendersMock[0].sendMail.mockRejectedValue({});
-
-        await service
-          .sendVerificationEmail({ data: { ...user } } as Job<User>)
-          .catch((err) => {
-            expect(err).toBeInstanceOf(EmailException);
-            expect(err.response).toBe('Internal Server Error');
-          });
-
-        expect(emailSendersMock[0].sendMail).toBeCalledTimes(1);
-        expect(emailSendersMock[1].sendMail).toBeCalledTimes(0);
-        expect(emailSendersMock[2].sendMail).toBeCalledTimes(0);
-        expect.assertions(5);
       });
     });
   });

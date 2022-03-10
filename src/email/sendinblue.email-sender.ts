@@ -26,7 +26,9 @@ export class SendInBlueEmailSender implements IEmailSender {
 
     try {
       const result = await this.apiInstance.sendTransacEmail(message);
-      this.logger.debug(result.response.statusCode.toString());
+      this.logger.debug(
+        `SendInBlue sendMail response status: ${result.response.statusCode.toString()}`,
+      );
     } catch (err) {
       this.logger.error(
         err as Error,
