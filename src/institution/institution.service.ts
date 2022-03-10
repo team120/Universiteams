@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
-import { DbException } from '../utils/exceptions/database.exception';
+import { DbException } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { InstitutionShowDto } from './dtos/institution.show.dto';
 import { Institution } from './institution.entity';

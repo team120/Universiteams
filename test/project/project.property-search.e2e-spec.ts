@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { addMonths, formatISO, subMonths } from 'date-fns';
 import * as request from 'supertest';
 import { Connection } from 'typeorm';
 import { createProjectTestingApp } from './project.e2e.module';
@@ -6,15 +7,17 @@ import {
   projectGeolocationWithExtendedDta,
   projects,
 } from './project.snapshot';
-
-jest.useRealTimers();
+import * as cookieParser from 'cookie-parser';
 
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
   let conn: Connection;
 
   beforeEach(async () => {
-    app = await createProjectTestingApp();
+    const testingAppCreationResult = await createProjectTestingApp();
+    app = testingAppCreationResult.app;
+    app.use(cookieParser());
+
     await app.init();
 
     conn = app.get(Connection);
@@ -32,7 +35,7 @@ describe('Project Actions (e2e)', () => {
         .get(`/projects/${id}`)
         .then((res) => {
           expect(res.status).toBe(404);
-          expect(res.body.message).toBe(`Not Found`);
+          expect(res.body.message).toBe('Id does not match with any project');
         });
     });
     it('should get the specified geolocation project with their associated users', async () => {
@@ -65,9 +68,8 @@ describe('Project Actions (e2e)', () => {
     describe('when isDown parameter is provided', () => {
       describe('and set to false', () => {
         it('should get the first page of projects and the every one counted', async () => {
-          const isDown = false;
           await request(app.getHttpServer())
-            .get(`/projects?isDown=${isDown}&offset=0&limit=5`)
+            .get('/projects?isDown=false&offset=0&limit=5')
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(5);
@@ -85,6 +87,13 @@ describe('Project Actions (e2e)', () => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(3);
               expect(res.body.projectCount).toBe(3);
+              expect(res.body.projects.map((p) => p.name)).toEqual(
+                expect.arrayContaining([
+                  'Estrategias para el diseño óptimo de procesos sustentables considerando la valorización de subproductos y la incorporación de energías renovables',
+                  'Diseño Ergonométrico de un Sistema Multisensorial y Multimedial, para Salas Universitarias de Inclusión Académica',
+                  'Evaluación de la Actividad Total de Sulfatación en la Atmósfera de la Ciudad de Rosario y de la Región Industrial al Norte de la Misma',
+                ]),
+              );
             });
         });
         it('should get no projects as well when another parameter is provided', async () => {
@@ -103,25 +112,32 @@ describe('Project Actions (e2e)', () => {
     describe('dateFrom is sent', () => {
       describe('less than a year', () => {
         it('should get the universiteams project only', async () => {
-          const dateFrom = new Date('2021-03-16');
-          dateFrom.setMonth(dateFrom.getMonth() - 8);
+          const dateFrom = subMonths(new Date('2021-03-16'), 8);
           await request(app.getHttpServer())
-            .get(`/projects?dateFrom=${dateFrom.toISOString()}`)
+            .get(
+              `/projects?dateFrom=${formatISO(dateFrom, {
+                representation: 'date',
+              })}&offset=0&limit=5`,
+            )
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(1);
-              expect(res.body.projects[0].name).toBe('Universiteams');
+              expect(res.body.projectCount).toBe(1);
+              expect(res.body.projects.map((p) => p.name)).toEqual([
+                'Universiteams',
+              ]);
             });
         });
       });
       describe('current date plus a month (future time)', () => {
         it('should get no projects (physically impossible to get other result)', async () => {
-          const now = new Date();
-          const year = now.getFullYear().toString();
-          const month = (now.getMonth() + 1).toString().padStart(2, '0');
-          const day = now.getDay().toString().padStart(2, '0');
+          const aMonthInTheFuture = addMonths(new Date(), 1);
           await request(app.getHttpServer())
-            .get(`/projects?dateFrom=${year}-${month}-${day}`)
+            .get(
+              `/projects?dateFrom=${formatISO(aMonthInTheFuture, {
+                representation: 'date',
+              })}&offset=0&limit=5`,
+            )
             .then((res) => {
               expect(res.status).toBe(200);
               expect(res.body.projects).toHaveLength(0);
@@ -131,16 +147,18 @@ describe('Project Actions (e2e)', () => {
       });
     });
     describe('when searching by one userId', () => {
-      it('should get one project (Universiteams) that exactly match one of their users', async () => {
+      it('should get two projects', async () => {
         const userId = 3;
         await request(app.getHttpServer())
-          .get(`/projects?userId=${userId}`)
+          .get(`/projects?userId=${userId}&offset=0&limit=5`)
           .then((res) => {
             expect(res.status).toBe(200);
             expect(res.body.projects).toHaveLength(2);
-            expect(res.body.projects[0].name).toEqual('Universiteams');
-            expect(res.body.projects[1].name).toEqual(
-              'Estudio de las Estructuras Conceptuales de la Ciencia de datos',
+            expect(res.body.projects.map((p) => p.name)).toEqual(
+              expect.arrayContaining([
+                'Universiteams',
+                'Estudio de las Estructuras Conceptuales de la Ciencia de datos',
+              ]),
             );
           });
       });
@@ -212,9 +230,9 @@ describe('Project Actions (e2e)', () => {
         });
       });
     });
-    describe('by project name in ascending order', () => {
+    describe('by project creation date in ascending order', () => {
       describe('when the first results page is requested', () => {
-        it('should get the first projects sorted by name in ascending order', async () => {
+        it('should get the first projects sorted by creation date in ascending order', async () => {
           await request(app.getHttpServer())
             .get(
               '/projects?sortBy=creationDate&inAscendingOrder=true&offset=0&limit=5',
@@ -231,7 +249,7 @@ describe('Project Actions (e2e)', () => {
         });
       });
       describe('when the third results page is requested', () => {
-        it('should get the last projects sorted by name in ascending order', async () => {
+        it('should get the last projects sorted by creation date in ascending order', async () => {
           await request(app.getHttpServer())
             .get(
               '/projects?sortBy=creationDate&inAscendingOrder=true&offset=10&limit=5',
@@ -248,7 +266,7 @@ describe('Project Actions (e2e)', () => {
     });
     describe('by project creation date in descending order', () => {
       describe('when the first results page is requested', () => {
-        it('should get the first projects sorted by date in descending order', async () => {
+        it('should get the first projects sorted by creation date in descending order', async () => {
           await request(app.getHttpServer())
             .get(
               '/projects?sortBy=creationDate&inAscendingOrder=false&offset=0&limit=5',
@@ -263,7 +281,7 @@ describe('Project Actions (e2e)', () => {
         });
       });
       describe('when the third results page is requested', () => {
-        it('should get the last projects sorted by date in descending order', async () => {
+        it('should get the last projects sorted by creation date in descending order', async () => {
           await request(app.getHttpServer())
             .get(
               '/projects?sortBy=creationDate&inAscendingOrder=false&offset=10&limit=5',
@@ -281,6 +299,23 @@ describe('Project Actions (e2e)', () => {
       });
     });
     describe('by dateFrom and dateUntil', () => {
+      describe('when dateUntil is before dateFrom', () => {
+        it('should get a validation error response (bad request)', async () => {
+          await request(app.getHttpServer())
+            .get(
+              `/projects?dateFrom=2021-01-02&dateUntil=2021-01-01&offset=0&limit=5`,
+            )
+            .then((res) => {
+              expect(res.status).toBe(400);
+              expect(res.body.message).toEqual([
+                'dateUntil is not after dateFrom',
+              ]);
+              expect(res.body.error).toBe('Bad Request');
+              expect(res.body.projects).not.toBeDefined();
+              expect(res.body.projectCount).not.toBeDefined();
+            });
+        });
+      });
       describe('when searching for projects with a duration of', () => {
         const startingDate = '2019-01-01';
         describe(`one years from ${startingDate}`, () => {
@@ -314,8 +349,11 @@ describe('Project Actions (e2e)', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.projects).toHaveLength(2);
                     expect(res.body.projectCount).toBe(2);
-                    expect(res.body.projects[0].name).toBe(
-                      'Perfeccionamiento de un Datalogger para Medición de Vientos con fines Energéticos',
+                    expect(res.body.projects.map((p) => p.name)).toEqual(
+                      expect.arrayContaining([
+                        'Perfeccionamiento de un Datalogger para Medición de Vientos con fines Energéticos',
+                        'Estrategias de Modelado de Procesos bajo la Filosofía de Diseño Inherentemente Seguro',
+                      ]),
                     );
                   });
               },

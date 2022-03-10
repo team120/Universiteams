@@ -1,3 +1,5 @@
+import { formatISO } from 'date-fns';
+
 export const CURRENT_DATE_SERVICE = 'CURRENT_DATE_SERVICE';
 
 export interface ICurrentDateService {
@@ -18,6 +20,6 @@ export class CurrentDateService implements ICurrentDateService {
       throw new Error("currentDate doesn't match ISO 8601 format");
 
     const now = this.currentDate ? new Date(this.currentDate) : new Date();
-    return now.toISOString().split('T')[0];
+    return formatISO(now, { representation: 'date' });
   }
 }

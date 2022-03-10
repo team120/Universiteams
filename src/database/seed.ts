@@ -715,11 +715,11 @@ export class Seed {
     return {
       rizzoJuan: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Juan',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Juan',
         lastName: 'Rizzo',
+        isEmailVerified: true,
         interests: [interests.dataScience, interests.businessIntelligence],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -731,11 +731,11 @@ export class Seed {
       }),
       villaCamila: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Camila',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Camila',
         lastName: 'Villa',
+        isEmailVerified: true,
         interests: [
           interests.backendDev,
           interests.itSecurity,
@@ -759,10 +759,9 @@ export class Seed {
       }),
       sanchezMarcos: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Marcos',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Marcos',
         lastName: 'Sanchez',
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -780,11 +779,11 @@ export class Seed {
       }),
       fanaroJose: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Aldo Jose',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Aldo Jose',
         lastName: 'Fanaro',
+        isEmailVerified: true,
         interests: [interests.edTech],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -797,11 +796,11 @@ export class Seed {
       }),
       beniaSol: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Julia Sol',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Julia Sol',
         lastName: 'Benia',
+        isEmailVerified: true,
         interests: [interests.processEngineering],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -814,11 +813,11 @@ export class Seed {
       }),
       musoSebastian: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Sebastian Fabricio',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Sebastian Fabricio',
         lastName: 'Muso',
+        isEmailVerified: true,
         interests: [interests.environment, interests.sustainableDevelopment],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -837,11 +836,11 @@ export class Seed {
       }),
       chiavoniMarcela: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Marcela Camila',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Marcela Camila',
         lastName: 'Chiavoni',
+        isEmailVerified: true,
         interests: [interests.foodTech],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -860,11 +859,11 @@ export class Seed {
       }),
       martinezRosa: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Rosa',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Rosa',
         lastName: 'Martinez',
+        isEmailVerified: true,
         interests: [interests.foodTech],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -883,11 +882,11 @@ export class Seed {
       }),
       bernalPablo: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Pablo',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Pablo',
         lastName: 'Bernal',
+        isEmailVerified: true,
         interests: [interests.energy, interests.environment],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -906,11 +905,11 @@ export class Seed {
       }),
       scaniaNicola: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Nicola',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Nicola',
         lastName: 'Scania',
+        isEmailVerified: true,
         interests: [interests.processEngineering],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -923,11 +922,11 @@ export class Seed {
       }),
       albaJuan: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Juan Luis',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Juan Luis',
         lastName: 'Alba',
+        isEmailVerified: true,
         interests: [interests.edTech],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -946,11 +945,11 @@ export class Seed {
       }),
       federEdgardo: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Edgardo Joaquin',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Edgardo Joaquin',
         lastName: 'Feder',
+        isEmailVerified: true,
         interests: [
           interests.environment,
           interests.contingencies,
@@ -973,11 +972,11 @@ export class Seed {
       }),
       denarisSilvia: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Silvia Elene',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Silvia Elene',
         lastName: 'Denaris',
+        isEmailVerified: true,
         interests: [interests.infoSystems],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -996,11 +995,11 @@ export class Seed {
       }),
       obregonMario: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Mario',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Mario',
         lastName: 'Obregon',
+        isEmailVerified: true,
         interests: [
           interests.arduino,
           interests.optimization,
@@ -1017,11 +1016,11 @@ export class Seed {
       }),
       troiloAlessandro: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Alessandro',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Alessandro',
         lastName: 'Troilo',
+        isEmailVerified: true,
         interests: [interests.dataScience, interests.environment],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -1033,11 +1032,11 @@ export class Seed {
       }),
       brignoniLucia: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Lucia',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Lucia',
         lastName: 'Brignoni',
+        isEmailVerified: false,
         interests: [interests.backendDev, interests.frontendDev],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -1049,11 +1048,11 @@ export class Seed {
       }),
       dellepianeJuan: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Juan',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Juan',
         lastName: 'Dellepiane',
+        isEmailVerified: true,
         interests: [
           interests.edTech,
           interests.dataScience,
@@ -1069,11 +1068,11 @@ export class Seed {
       }),
       lizcovichHernan: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Hernan Juan Cruz',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Hernan Juan Cruz',
         lastName: 'Lizcovich',
+        isEmailVerified: true,
         interests: [interests.arduino, interests.sustainableDevelopment],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -1085,11 +1084,11 @@ export class Seed {
       }),
       alcazarPablo: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Pablo',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Pablo',
         lastName: 'Alcazar',
+        isEmailVerified: true,
         interests: [interests.energy, interests.environment],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -1101,11 +1100,11 @@ export class Seed {
       }),
       inmhofCamila: this.usersRepo.create({
         id: userIdGen.next(),
-        mail: `user${numGenMockUsers.next()}@example.com`,
-        isMailVerified: true,
-        password: await argon2.hash(`password${numGenMockPasswords.next()}`),
-        name: 'Inhof',
+        email: `user${numGenMockUsers.next()}@example.com`,
+        password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
+        firstName: 'Inhof',
         lastName: 'Camila',
+        isEmailVerified: true,
         interests: [interests.energy, interests.contingencies],
         userAffiliations: [
           this.userAffiliationRepo.create({

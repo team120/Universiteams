@@ -1,10 +1,14 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
+import { Repository } from 'typeorm';
+import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
+import { Bookmark } from '../bookmark/bookmark.entity';
 import {
-  CURRENT_DATE_SERVICE,
-  ICurrentDateService,
-} from '../utils/current-date';
-import { DbException } from '../utils/exceptions/database.exception';
+  BadRequest,
+  DbException,
+  NotFound,
+} from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import {
   ProjectFilters,
@@ -17,18 +21,21 @@ import {
   ProjectSingleDto,
   ProjectsResult,
 } from './dtos/project.show.dto';
+import { Project } from './project.entity';
 import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 
 @Injectable()
 export class ProjectService {
   constructor(
+    @InjectRepository(Project)
+    private readonly projectRepository: Repository<Project>,
+    @InjectRepository(Bookmark)
+    private readonly bookmarkRepository: Repository<Bookmark>,
     private readonly queryCreator: QueryCreator,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
     private readonly propCompute: ProjectPropCompute,
-    @Inject(CURRENT_DATE_SERVICE)
-    private readonly currentDate: ICurrentDateService,
   ) {
     this.logger.setContext(ProjectService.name);
   }
@@ -100,9 +107,46 @@ export class ProjectService {
       });
 
     this.logger.debug(`Project ${project?.id} found`);
-    if (!project) throw new NotFoundException();
+    if (!project) throw new NotFound('Id does not match with any project');
 
     this.logger.debug('Map project to dto');
     return this.entityMapper.mapValue(ProjectSingleDto, project);
+  }
+
+  async bookmark(id: number, user: CurrentUserWithoutTokens) {
+    const project = await this.projectRepository.findOne(id);
+    if (!project) throw new NotFound('Id does not match with any project');
+
+    const bookmark = await this.bookmarkRepository.findOne({
+      projectId: project.id,
+      userId: user.id,
+    });
+    if (bookmark)
+      throw new BadRequest(
+        'This project has been already bookmarked by this user',
+      );
+
+    await this.bookmarkRepository
+      .insert({
+        projectId: project.id,
+        userId: user.id,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully bookmarked by user#${user.id}`,
+    );
+
+    await this.projectRepository
+      .update(project.id, {
+        bookmarkCount: project.bookmarkCount + 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully increased its bookmark count`,
+    );
   }
 }

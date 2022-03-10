@@ -8,7 +8,8 @@ describe('Project Actions (e2e)', () => {
   let conn: Connection;
 
   beforeEach(async () => {
-    app = await createProjectTestingApp();
+    const testingAppCreationResult = await createProjectTestingApp();
+    app = testingAppCreationResult.app;
     await app.init();
 
     conn = app.get(Connection);
@@ -32,7 +33,7 @@ describe('Project Actions (e2e)', () => {
             expect(
               res.body.projects[1].enrollments.filter(
                 (e) => e.role === 'Admin',
-              )[0].user.name,
+              )[0].user.firstName,
             ).toEqual('Camila');
           });
       });

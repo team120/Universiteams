@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { isBefore } from 'date-fns';
 import {
   CURRENT_DATE_SERVICE,
   ICurrentDateService,
@@ -23,6 +24,6 @@ export class ProjectPropCompute {
 
     const now = new Date(this.currentDate.get());
     const endingDate = new Date(p.endDate);
-    return endingDate < now;
+    return isBefore(endingDate, now);
   }
 }

@@ -1,10 +1,12 @@
-import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
+import { Bookmark } from '../bookmark/bookmark.entity';
 import { CURRENT_DATE_SERVICE } from '../utils/current-date';
 import { CurrentDateServiceMock } from '../utils/current-date.mock';
-import { DbException } from '../utils/exceptions/database.exception';
+import { DbException, NotFound } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
+import { Project } from './project.entity';
 import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
@@ -22,6 +24,14 @@ describe('ProjectService', () => {
       providers: [
         ProjectService,
         ProjectPropCompute,
+        {
+          provide: getRepositoryToken(Project),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(Bookmark),
+          useValue: {},
+        },
         {
           provide: PinoLogger,
           useValue: { debug: jest.fn(), setContext: jest.fn() },
@@ -52,8 +62,8 @@ describe('ProjectService', () => {
         const noMatchingId = 155;
         getOneMock.getOne.mockResolvedValue(undefined);
         await service.findOne(noMatchingId).catch((error) => {
-          expect(error).toBeInstanceOf(NotFoundException);
-          expect(error.response.message).toBe('Not Found');
+          expect(error).toBeInstanceOf(NotFound);
+          expect(error.response).toBe('Id does not match with any project');
         });
         expect.assertions(2);
       });

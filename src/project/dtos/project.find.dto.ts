@@ -9,6 +9,7 @@ import {
   Min,
 } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
+import { IsAfter } from '../../utils/decorators/is-after.validator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
 
@@ -50,6 +51,7 @@ export class ProjectFindDto {
   dateFrom?: string;
   @IsOptional()
   @IsDateString()
+  @IsAfter('dateFrom')
   @Expose()
   dateUntil?: string;
   @IsOptional()

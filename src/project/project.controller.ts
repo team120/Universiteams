@@ -1,5 +1,16 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { IsEmailVerifiedGuard } from '../auth/is-email-verified.guard';
+import { RequestWithUser } from '../utils/request-with-user';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectsResult } from './dtos/project.show.dto';
@@ -20,5 +31,15 @@ export class ProjectController {
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) projectId: number) {
     return this.projectService.findOne(projectId);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Post('bookmark/:id')
+  async bookmark(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.projectService.bookmark(id, request.currentUser);
   }
 }

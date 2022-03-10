@@ -9,6 +9,7 @@ export class AppValidationPipe extends ValidationPipe {
   }
 
   async transform(value: any, metadata: ArgumentMetadata): Promise<any> {
+    this.logger.debug(value, 'Input value');
     const result = await super.transform(value, metadata).catch((err) => {
       this.logger.debug(
         'Validation errors present => Exception filter will handle it',

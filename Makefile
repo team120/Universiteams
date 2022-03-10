@@ -15,11 +15,13 @@ up:
 
 ## down:  Tear down enviroment
 down:
-	docker-compose down
+	- docker-compose down
+	- sudo rimraf dist
 
 ## clean:  Stop and remove both containers and data volumes
 clean:
-	docker-compose down -v
+	- docker-compose down -v
+	- sudo rimraf dist
 
 ## wipe:  Erase universiteams service image
 wipe:
@@ -29,7 +31,7 @@ wipe:
 .PHONY: test
 ## test:  Execute unit tests
 test:
-	docker-compose -p test -f docker-compose.test.yml run --service-ports --rm --no-deps test npm run test
+	docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run test
 
 .PHONY: test-dg
 ## test-dg (test-debug):  Execute unit tests in debug mode
@@ -39,7 +41,7 @@ test-dg:
 .PHONY: e2e
 ## e2e:   Execute end to end tests
 e2e:
-	- docker-compose -p test -f docker-compose.test.yml run --service-ports test npm run test:e2e
+	- docker-compose -p test -f docker-compose.test.yml run test npm run test:e2e
 	- docker-compose -p test -f docker-compose.test.yml down -v
 
 .PHONY: e2e-dg

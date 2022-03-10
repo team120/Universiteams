@@ -7,7 +7,7 @@ import {
   CURRENT_DATE_SERVICE,
   ICurrentDateService,
 } from '../utils/current-date';
-import { DbException } from '../utils/exceptions/database.exception';
+import { DbException } from '../utils/exceptions/exceptions';
 import {
   ProjectFilters,
   PaginationAttributes,

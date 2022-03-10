@@ -6,36 +6,29 @@ import {
   ManyToMany,
   OneToMany,
   JoinTable,
+  Generated,
 } from 'typeorm';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Interest } from '../interest/interest.entity';
+import { Bookmark } from '../bookmark/bookmark.entity';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ unique: true })
-  mail: string;
+  email: string;
   @Column({ default: false })
-  isMailVerified: boolean;
+  isEmailVerified: boolean;
   @Column({ nullable: true })
   password: string;
-  @Column({ nullable: true })
-  dni: string;
-  @Column({ nullable: true })
-  name: string;
-  @Column({ nullable: true })
+  @Column()
+  firstName: string;
+  @Column()
   lastName: string;
-  @Column({ nullable: true })
-  studentId: number;
-  @Column({ nullable: true })
-  professorId: number;
-  @Column({ nullable: true })
-  professorCategory: string;
-  @Column({ nullable: true })
-  gender: string;
-  @Column({ nullable: true })
-  picture: string;
+  @Column({ unique: true })
+  @Generated('uuid')
+  refreshUserSecret: string;
 
   @OneToMany(() => UserAffiliation, (userAffiliation) => userAffiliation.user, {
     nullable: false,
@@ -54,4 +47,7 @@ export class User {
   })
   @JoinTable({ name: 'user_interest' })
   interests?: Interest[];
+
+  @OneToMany(() => Bookmark, (bookmark) => bookmark.user)
+  bookmarks: Bookmark[];
 }
