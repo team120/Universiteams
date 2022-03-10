@@ -11,10 +11,7 @@ import {
 import { RegisterDto } from './dtos/register.dto';
 import { TokenService } from './token.service';
 import { VerifyDto } from './dtos/verify.dto';
-import {
-  CurrentUserDto,
-  CurrentUserWithoutTokens,
-} from './dtos/current-user.dto';
+import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
 import { VerificationMessagesService } from '../email/verification-messages.service';
 import {
   ForgetPasswordDto,
@@ -52,7 +49,7 @@ export class AuthService {
     return this.tokenService.generateTokens(user);
   }
 
-  async register(registerDto: RegisterDto): Promise<CurrentUserDto> {
+  async register(registerDto: RegisterDto) {
     const user = await this.userRepo
       .findOne({ email: registerDto.email })
       .catch((e: Error) => {
@@ -70,12 +67,9 @@ export class AuthService {
         throw new DbException(e.message, e.stack);
       });
 
-    const job = await this.emailQueue.add('email-verification', insertedUser);
+    await this.emailQueue.add('email-verification', insertedUser);
 
-    return {
-      ...this.tokenService.generateTokens(insertedUser),
-      emailJobId: job.id.toString(),
-    };
+    return this.tokenService.generateTokens(insertedUser);
   }
 
   async verifyEmail(
@@ -105,9 +99,9 @@ export class AuthService {
   async forgotPassword(forgetPasswordDto: ForgetPasswordDto) {
     const user = await this.checkEmail(forgetPasswordDto.email);
 
-    const job = await this.emailQueue.add('forgot-password', user);
-
-    return { emailJobId: job.id };
+    await this.emailQueue.add('forgot-password', user).catch((err: Error) => {
+      this.logger.error(err, err.message);
+    });
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {

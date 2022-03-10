@@ -183,7 +183,6 @@ describe('auth', () => {
           expect(res.status).toBe(201);
           expect(res.body.email).toBe(registrationAttempt.email);
           expect(res.body.id).toBeDefined();
-          expect(res.body.emailJobId).toBeDefined();
           expect(res.body.firstName).toBe(registrationAttempt.firstName);
           expect(res.body.lastName).toBe(registrationAttempt.lastName);
           expect(res.body.password).not.toBeDefined();
@@ -495,7 +494,6 @@ describe('auth', () => {
         expect(emailSendersMock[1].sendMail).toBeCalledTimes(0);
 
         expect(res.status).toBe(200);
-        expect(res.body.emailJobId).toBeDefined();
       });
     });
     describe('when email address is invalid', () => {
