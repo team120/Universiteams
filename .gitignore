@@ -43,9 +43,8 @@ lerna-debug.log*
 *.tgz
 
 # dotenv environment variables file
-docker.env
-.env
-.env.test
+*.env
+
 
 # File DB
 *.sqlite
