@@ -6,38 +6,25 @@ services:
       context: .
       target: dev
     image: alereca/universiteams:1.0
-    environment:
-      POSTGRES_HOST: postgrestest
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: postgrestest
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      REDIS_HOST: redistest
-      REDIS_PORT: 6379
-      ACCESS_TOKEN_SECRET: "access_token_test_secret"
-      REFRESH_TOKEN_SECRET: "refresh_token_test_secret"
-      EMAIL_VERIFICATION_LINK_SECRET: "verification_link_secret"
-      FORGET_PASSWORD_VERIFICATION_LINK_SECRET: "forget_password_verification_link_secret"
-      EMAIL_USER: "universe@example.com"
-      EMAIL_CONFIRMATION_URL: "http://localhost:5000/account/verify"
+    env_file:
+      - docker.test.env
     working_dir: /home/node/app
     volumes:
       - ./src:/home/node/app/src
       - ./test:/home/node/app/test
     ports:
+      # Only for local debugging purposes
       - 9228:9229
     depends_on:
       - postgrestest
       - redistest
   postgrestest:
     image: postgres:12.8-alpine
+    env_file:
+      - docker.test.env
     ports:
-      - 5432
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: postgrestest
+      - 5432      
   redistest:
-    image: "redis:alpine"
+    image: redis:alpine
     ports:
       - 6379
