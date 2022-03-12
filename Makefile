@@ -11,21 +11,22 @@ help: Makefile
 
 ## up:	Bootstrap environment
 up:
-	docker-compose up --detach --remove-orphans
+	- docker-compose -p dev -f docker-compose.dev.yml build
+	- docker-compose -p dev -f docker-compose.dev.yml up --detach --remove-orphans
 
 ## down:  Tear down enviroment
 down:
-	- docker-compose down
+	- docker-compose -p dev -f docker-compose.dev.yml down
 	- sudo rimraf dist
 
 ## clean:  Stop and remove both containers and data volumes
 clean:
-	- docker-compose down -v
+	- docker-compose -p dev -f docker-compose.dev.yml down -v
 	- sudo rimraf dist
 
 ## wipe:  Erase universiteams service image
 wipe:
-	- docker-compose down
+	- docker-compose -p dev -f docker-compose.dev.yml down
 	- docker image rm -f $(shell docker image ls -q "*/universiteams")
 
 .PHONY: test
@@ -63,10 +64,10 @@ logs:
 .PHONY: lint
 ## lint:   Run eslint in fix mode
 lint:
-	docker-compose run --rm --no-deps app npm run lint
+	docker-compose -p dev -f docker-compose.dev.yml run --rm --no-deps app npm run lint
 
 .PHONY: format
 ## format:   Run prettier
 format:
-	docker-compose run --rm --no-deps app npm run format
+	docker-compose -p dev -f docker-compose.dev.yml run --rm --no-deps app npm run format
 
