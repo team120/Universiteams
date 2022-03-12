@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  test:
+    build: 
+      context: .
+      target: base
+    image: alereca/universiteams:1.0
+    env_file:
+      - docker.test.env
+    working_dir: /home/node/app
+    volumes:
+      - ./src:/home/node/app/src
+      - ./test:/home/node/app/test
+    depends_on:
+      - postgrestest
+      - redistest
+  postgrestest:
+    image: postgres:12.8-alpine
+    env_file:
+      - docker.test.env
+    ports:
+      - 5432
+  redistest:
+    image: redis:alpine
+    ports:
+      - 6379
