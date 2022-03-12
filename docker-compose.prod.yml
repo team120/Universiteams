@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      target: prod
+    image: alereca/universiteams:1.0
+    ports:
+      - 3000:3000
+    working_dir: /home/node/app
+    env_file:
+      - docker.env
+    depends_on:
+      - postgres
+      - redis
+  postgres:
+    image: postgres:12.8-alpine
+    # Currently there is no need to expose this container port to host, since every interaction happens between containers
+    ports:
+      - 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - docker.env
+  redis:
+    image: "redis:alpine"
+    ports:
+      - 6379
+
+volumes:
+  pgdata:
