@@ -15,16 +15,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: 'Create docker.test.env file'
+        run: | 
+          chmod 755 ./create-test-env-file.sh
+          ./create-test-env-file.sh
       - name: 'Run Unit Tests'
-        run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run test
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run test
       - name: 'Run E2E Tests'
         run: |
-          docker-compose -p test -f docker-compose.test.yml run test npm run test:e2e
-          docker-compose -p test -f docker-compose.test.yml down
+          docker-compose -p ci -f docker-compose.ci.yml run test npm run test:e2e
+          docker-compose -p ci -f docker-compose.ci.yml down
       - name: 'Run Linter'
-        run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run lint
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run lint
       - name: 'Run Formatter'
-        run: docker-compose -p test -f docker-compose.test.yml run --rm --no-deps test npm run format
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run format
       - name: 'Apply Linter and Formatter Changes'
         uses: stefanzweifel/git-auto-commit-action@v4
         with:

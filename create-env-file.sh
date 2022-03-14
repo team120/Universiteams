@@ -1,0 +1,38 @@
+#!/bin/bash
+# TODO: Take any sensible secret as script arguments
+
+ENV_FILE='docker.env'
+
+if [[ -f "$ENV_FILE" ]]
+then
+    echo "$ENV_FILE already exists"
+    exit 1
+fi
+
+for ARGUMENT in "$@"
+do
+    KEY=$(echo $ARGUMENT | cut -f 1 -d '=')
+    KEY_LENGTH=${#KEY}
+
+    VALUE=${ARGUMENT:$KEY_LENGTH + 1}
+
+    echo "$KEY=$VALUE"
+    export "$KEY"="$VALUE"
+done
+
+touch $ENV_FILE
+echo POSTGRES_HOST="postgres" >> $ENV_FILE
+echo POSTGRES_PORT="5432" >> $ENV_FILE
+echo POSTGRES_USER=$POSTGRES_USER >> $ENV_FILE
+echo POSTGRES_PASSWORD=$POSTGRES_PASSWORD >> $ENV_FILE
+echo POSTGRES_DB="universiteams" >> $ENV_FILE
+echo REDIS_HOST="redis" >> $ENV_FILE
+echo REDIS_PORT="6379" >> $ENV_FILE
+echo ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET >> $ENV_FILE
+echo REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET >> $ENV_FILE
+echo EMAIL_VERIFICATION_LINK_SECRET=$EMAIL_VERIFICATION_LINK_SECRET >> $ENV_FILE
+echo FORGET_PASSWORD_VERIFICATION_LINK_SECRET=$FORGET_PASSWORD_VERIFICATION_LINK_SECRET >> $ENV_FILE
+echo EMAIL_USER=$EMAIL_USER >> $ENV_FILE
+echo EMAIL_CONFIRMATION_URL="http://localhost:5000/account/verify" >> $ENV_FILE
+echo SENDGRID_API_KEY=$SENDGRID_API_KEY >> $ENV_FILE
+echo SENDINBLUE_API_KEY=$SENDINBLUE_API_KEY >> $ENV_FILE

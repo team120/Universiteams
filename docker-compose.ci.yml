@@ -4,7 +4,7 @@ services:
   test:
     build: 
       context: .
-      target: dev
+      target: base
     image: alereca/universiteams:1.0
     env_file:
       - docker.test.env
@@ -12,9 +12,6 @@ services:
     volumes:
       - ./src:/home/node/app/src
       - ./test:/home/node/app/test
-    ports:
-      # Only for local debugging purposes
-      - 9228:9229
     depends_on:
       - postgrestest
       - redistest
@@ -23,7 +20,7 @@ services:
     env_file:
       - docker.test.env
     ports:
-      - 5432      
+      - 5432
   redistest:
     image: redis:alpine
     ports:

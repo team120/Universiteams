@@ -9,24 +9,39 @@ help: Makefile
 # .PHONY: A phony target is one that is not really the name of a file; 
 # rather it is just a name for a recipe to be executed when you make an explicit request.
 
-## up:	Bootstrap environment
-up:
-	docker-compose up --detach --remove-orphans
+## dev:	Bootstrap dev environment
+dev:
+	- docker-compose -p dev -f docker-compose.dev.yml build
+	- docker-compose -p dev -f docker-compose.dev.yml up --detach --remove-orphans
 
-## down:  Tear down enviroment
-down:
-	- docker-compose down
+## prod: Bootstrap prod environment
+prod:
+	- docker-compose -p prod -f docker-compose.prod.yml build
+	- docker-compose -p prod -f docker-compose.prod.yml up --remove-orphans
+
+## down-dv: Tear down dev enviroment without deleting data volumes
+down-dv:
+	- docker-compose -p dev -f docker-compose.dev.yml down
 	- sudo rimraf dist
 
-## clean:  Stop and remove both containers and data volumes
-clean:
-	- docker-compose down -v
+## down-pd: Tear down prod enviroment without deleting data volumes
+down-pd:
+	docker-compose -p prod -f docker-compose.prod.yml down
+
+## clean-dv: Stop and remove both containers and data volumes from dev environment
+clean-dv:
+	- docker-compose -p dev -f docker-compose.dev.yml down -v
 	- sudo rimraf dist
 
-## wipe:  Erase universiteams service image
+## clean-pd: Stop and remove both containers and data volumes from prod environment
+clean-pd:
+	docker-compose -p prod -f docker-compose.prod.yml down -v
+
+## wipe: Erase universiteams service image
 wipe:
-	- docker-compose down
-	- docker image rm -f $(shell docker image ls -q "*/universiteams")
+	- docker-compose -p dev -f docker-compose.dev.yml down
+	- docker-compose -p prod -f docker-compose.prod.yml down
+	- docker image rm -f $(shell docker image ls --filter label=org.opencontainers.image.vendor=universiteams -q)
 
 .PHONY: test
 ## test:  Execute unit tests
@@ -63,10 +78,10 @@ logs:
 .PHONY: lint
 ## lint:   Run eslint in fix mode
 lint:
-	docker-compose run --rm --no-deps app npm run lint
+	docker-compose -p dev -f docker-compose.dev.yml run --rm --no-deps app npm run lint
 
 .PHONY: format
 ## format:   Run prettier
 format:
-	docker-compose run --rm --no-deps app npm run format
+	docker-compose -p dev -f docker-compose.dev.yml run --rm --no-deps app npm run format
 

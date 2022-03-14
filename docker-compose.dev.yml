@@ -2,17 +2,19 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build: 
+      context: .
+      target: dev
     image: alereca/universiteams:1.0
     ports:
       - 3000:3000
       - 9229:9229
     command: npm run start:debug
-    working_dir: /usr/src/app
+    working_dir: /home/node/app
     volumes:
-      - ./src:/usr/src/app/src
-      - ./test:/usr/src/app/test
-      - ./dist:/usr/src/app/dist
+      - ./src:/home/node/app/src
+      - ./test:/home/node/app/test
+      - ./dist:/home/node/app/dist
     env_file:
       - docker.env
     depends_on:
@@ -27,20 +29,22 @@ services:
       - pgdata:/var/lib/postgresql/data
     env_file:
       - docker.env
+  # Pg-admin won't be used in production
   pg-admin:
     image: dpage/pgadmin4:5.6
     ports:
       - 8080:80
     volumes:
       - pgadmindata:/var/lib/pgadmin
-    env_file:
-      - docker.env
+    environment:
+      - PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      - PGADMIN_DEFAULT_PASSWORD: "admin"
     depends_on:
       - postgres
   redis:
-    image: "redis:alpine"
+    image: redis:alpine
     ports:
-      - 6379:6379
+      - 6379
 
 volumes:
   pgdata:
