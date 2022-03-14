@@ -1,4 +1,5 @@
 node_modules
+npm-debug.log
 dist
 
 # Make
@@ -30,3 +31,6 @@ README.md
 
 # Environment config
 *.env
+
+# Scripts
+*.sh
