@@ -6,7 +6,7 @@ ENV_FILE='docker.test.env'
 if [[ -f "$ENV_FILE" ]]
 then
     echo "$ENV_FILE already exists"
-    exit
+    exit 1
 fi
 
 touch $ENV_FILE
