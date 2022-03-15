@@ -7,10 +7,11 @@ services:
       target: prod
     image: alereca/universiteams:1.0
     ports:
-      - 3000:3000
+      - 3000
     working_dir: /home/node/app
     env_file:
       - docker.env
+    restart: unless-stopped  
     depends_on:
       - postgres
       - redis
