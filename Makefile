@@ -17,7 +17,7 @@ dev:
 ## prod: Bootstrap prod environment
 prod:
 	- docker-compose -p prod -f docker-compose.prod.yml build
-	- docker-compose -p prod -f docker-compose.prod.yml up --remove-orphans
+	- docker-compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
 
 ## down-dv: Tear down dev enviroment without deleting data volumes
 down-dv:

@@ -15,6 +15,29 @@ services:
     depends_on:
       - postgres
       - redis
+  webserver:
+    image: nginx:mainline-alpine
+    ports:
+      - 80:80
+    volumes:
+      - web-root:/var/www/html
+      - ./nginx-conf:/etc/nginx/conf.d
+      # Relevant Let’s Encrypt certificates and keys for our domain
+      - certbot-etc:/etc/letsencript
+      # Let’s Encrypt’s default working directory
+      - certbot-var:/var/lib/letsencript
+    restart: unless-stopped
+    depends_on:
+      - app
+  certbot:
+    image: certbot/certbot
+    command: certonly --webroot --webroot-path=/var/www/html --email alejandrorecalde5@gmail.com --agree-tos --no-eff-email --staging -d universiteams.com www.universiteams.com
+    volumes:
+      - web-root:/var/www/html
+      - certbot-etc:/etc/letsencript
+      - certbot-var:/var/lib/letsencript
+    depends_on:
+      - webserver
   postgres:
     image: postgres:12.8-alpine
     # Currently there is no need to expose this container port to host, since every interaction happens between containers
@@ -24,10 +47,20 @@ services:
       - pgdata:/var/lib/postgresql/data
     env_file:
       - docker.env
+    restart: unless-stopped
   redis:
     image: "redis:alpine"
     ports:
       - 6379
+    restart: unless-stopped
 
 volumes:
   pgdata:
+  certbot-etc:
+  certbot-var:
+  web-root:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/universiteams/app/
+      o: bind
