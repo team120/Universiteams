@@ -19,12 +19,12 @@ prod:
 	- docker-compose -p prod -f docker-compose.prod.yml build
 	- docker-compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
 
-## down-dv: Tear down dev enviroment without deleting data volumes
+## down-dv: Tear down dev environment without deleting data volumes
 down-dv:
 	- docker-compose -p dev -f docker-compose.dev.yml down
 	- sudo rimraf dist
 
-## down-pd: Tear down prod enviroment without deleting data volumes
+## down-pd: Tear down prod environment without deleting data volumes
 down-pd:
 	docker-compose -p prod -f docker-compose.prod.yml down
 
