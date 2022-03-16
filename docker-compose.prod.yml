@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  reverse-proxy:
+    image: traefik:v2.6
+    command: 
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoint.websecure.address=:443
+      # Cert resolver
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.myresolver.acme.email=alejandrorecalde5@gmail.com
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+    ports:
+      - 443:443
+      - 80:80
+    volumes:
+      - ./letsencrypt:/letsencrypt
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - app
   app:
     build: 
       context: .
@@ -12,6 +32,12 @@ services:
     env_file:
       - docker.env
     restart: unless-stopped  
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.app.rule=Host(`universiteams.com`, `www.universiteams.com`)
+      - traefik.http.routers.app.entrypoints=websecure
+      - traefik.http.routers.app.tls=true
+      - traefik.http.routers.app.tls.certresolver=myresolver
     depends_on:
       - postgres
       - redis
