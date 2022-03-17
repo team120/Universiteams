@@ -6,6 +6,7 @@ services:
     command: 
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
+      - --providers.file.filename=/traefik/traefik.dynamic.yaml
       - --entrypoints.websecure.address=:443
       # Cert resolver
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
