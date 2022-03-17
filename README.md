@@ -21,16 +21,37 @@ $ choco install make
 
 [https://docs.npmjs.com/downloading-and-installing-node-js-and-npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 
-## Project Setup and Running the app
+## Local Environment
+### Setup and Running the app
 ```bash
-$ make up
+$ make dev
 ```
 > Migrations are executed by default when the app is bootstrapping
 
+### Access
+#### API
+[api.localhost](http://api.localhost)
+### DB Admin
+[db.localhost](https://db.localhost)
 
-## Project Teardown
+### Teardown
 ```bash
-$ make down
+$ make down-dv
+```
+
+## Production Environment
+### Setup and Running the app
+```bash
+$ make prod
+```
+
+### Access
+[api.universiteams.com](https://api.universiteams.com)
+[universiteams.com](https://universiteams.com)
+
+### Teardown
+```bash
+$ make down-pd
 ```
 
 ## Test
@@ -39,11 +60,17 @@ $ make down
 # unit tests
 $ make test
 
+# unit test [interactive debug mode]
+make test-dg
+
+# unit test coverage
+$ make cov
+
 # e2e tests
 $ make e2e
 
-# test coverage
-$ make cov
+# e2e tests [non-interactive debug mode]
+$ make e2e-dg name="jest_test_partial_description"
 ```
 
 ## Lint
@@ -58,7 +85,7 @@ make lint
 make format
 ```
 
-## Tech Stack
+## Backend Tech Stack
 
 ### Common
 
@@ -75,15 +102,6 @@ make format
 | :ballot_box_with_check: TypeORM    |
 | :ballot_box_with_check: PostgreSQL |
 | :ballot_box_with_check: Docker     |
-
-### Frontend
-
-| Tool                                        |
-| :------------------------------------------ |
-| :ballot_box_with_check: Angular 11          |
-| :ballot_box_with_check: Angular Material    |
-| :ballot_box_with_check: Angular Flex Layout |
-| :ballot_box_with_check: HTML5 / CSS3 / SASS |
 
 ## Authors
 

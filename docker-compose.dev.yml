@@ -34,7 +34,7 @@ services:
       - docker.env
     labels:
       - traefik.enable=true
-      - traefik.http.routers.app.rule=Host(`app.localhost`)
+      - traefik.http.routers.app.rule=Host(`api.localhost`)
     depends_on:
       - postgres
       - redis
