@@ -7,8 +7,6 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entrypoints.websecure.address=:443
-      # TLS config
-      - --tls.options.default.minVersion=VersionTLS12
       # Cert resolver
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
       - --certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
