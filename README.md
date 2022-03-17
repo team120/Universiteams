@@ -31,7 +31,7 @@ $ make dev
 ### Access
 #### API
 [api.localhost](http://api.localhost)
-### DB Admin
+#### DB Admin
 [db.localhost](https://db.localhost)
 
 ### Teardown
@@ -47,6 +47,7 @@ $ make prod
 
 ### Access
 [api.universiteams.com](https://api.universiteams.com)
+
 [universiteams.com](https://universiteams.com)
 
 ### Teardown
@@ -61,7 +62,7 @@ $ make down-pd
 $ make test
 
 # unit test [interactive debug mode]
-make test-dg
+$ make test-dg
 
 # unit test coverage
 $ make cov
