@@ -7,6 +7,10 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --providers.file.filename=/traefik/traefik.dynamic.yaml
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --entrypoints.websecure.address=:443
       # Cert resolver
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
@@ -33,10 +37,10 @@ services:
     working_dir: /home/node/app
     env_file:
       - docker.env
-    restart: unless-stopped  
+    restart: unless-stopped
     labels:
       - traefik.enable=true
-      - traefik.http.routers.app.rule=Host(`universiteams.com`, `api.universiteams.com`)
+      - traefik.http.routers.app.rule=Host(`universiteams.com`, `api.universiteams.com`, `www.universiteams.com`)
       - traefik.http.routers.app.entrypoints=websecure
       - traefik.http.routers.app.tls=true
       - traefik.http.routers.app.tls.certresolver=myresolver
