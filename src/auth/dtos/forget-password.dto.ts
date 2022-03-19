@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { IsEmail, IsJWT, IsNotEmpty, Length } from 'class-validator';
+import { IsEmail, IsJWT, IsNotEmpty, MinLength } from 'class-validator';
 import { IsValidPassword } from '../password.validator';
 
 @Exclude()
@@ -17,7 +17,7 @@ export class ResetPasswordDto {
   @Expose()
   email: string;
   @IsNotEmpty()
-  @Length(8)
+  @MinLength(8)
   @IsValidPassword()
   @Expose()
   password: string;
