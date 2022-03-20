@@ -27,32 +27,32 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+      # Avoid caching this image as it will break ci workflows buildx base image cache
+      - name: Build prod image with cached base image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          target: prod
+          push: false
+          load: true
+          tags: universiteams/api:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build image to be cached
+      - name: Publish prod image
         uses: docker/build-push-action@v2
         with:
           context: .
           target: prod
           push: true
-          load: true
           tags: universiteams/api:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-      # Temp fix to avoid maintaining old cache data
-      # https://github.com/docker/build-push-action/issues/252
-      # https://github.com/moby/buildkit/issues/1896
-      - name: Renew cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-      - name: 'Create production .env file'
+      - name: Create production .env file
         run: |
           chmod +x ./create-env-file.sh
           ./create-env-file.sh POSTGRES_USER=${{secrets.POSTGRES_USER}} POSTGRES_PASSWORD=${{secrets.POSTGRES_PASSWORD}} ACCESS_TOKEN_SECRET=${{secrets.ACCESS_TOKEN_SECRET}} REFRESH_TOKEN_SECRET=${{secrets.REFRESH_TOKEN_SECRET}} EMAIL_VERIFICATION_LINK_SECRET=${{secrets.EMAIL_VERIFICATION_LINK_SECRET}} FORGET_PASSWORD_VERIFICATION_LINK_SECRET=${{secrets.FORGET_PASSWORD_VERIFICATION_LINK_SECRET}} EMAIL_USER=${{secrets.EMAIL_USER}} SENDGRID_API_KEY=${{secrets.SENDGRID_API_KEY}} SENDINBLUE_API_KEY=${{secrets.SENDINBLUE_API_KEY}}
-      - name: 'Bootstrap prod dependencies'
+      - name: Bootstrap prod dependencies
         run: |
           docker-compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
