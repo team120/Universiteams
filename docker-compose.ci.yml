@@ -2,6 +2,9 @@ version: '3.8'
 
 services:
   test:
+    build: 
+      context: .
+      target: base
     image: universiteams/api:latest
     env_file:
       - docker.test.env
