@@ -5,7 +5,7 @@ services:
     build: 
       context: .
       target: base
-    image: alereca/universiteams:1.0
+    image: universiteams/api:latest
     env_file:
       - docker.test.env
     working_dir: /home/node/app

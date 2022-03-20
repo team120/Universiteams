@@ -1,0 +1,61 @@
+name: Universiteams CI
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Cache Docker Layers
+        use: actions/cache@v2
+        with:
+          path: /tmt/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-key: |
+            ${{ runner.os }}-buildx-
+      - name: Build image to be cached
+        use: docker/build-push-action@v2
+        with:
+          context: .
+          target: base
+          push: false
+          tags: universiteams/api:latest
+          cache-from: type=local, src=/tmt/.buildx-cache
+          cache-to: type=local, src=/tmt/.buildx-cache-new, mode=max
+      # Temp fix to avoid maintaining old cache data
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: |
+          rm -rf /tmt/.buildx-cache
+          mv /tmt/.buildx-cache-new /tmt/.buildx-cache
+      - name: 'Create docker.test.env file'
+        run: | 
+          chmod +x ./create-test-env-file.sh
+          ./create-test-env-file.sh
+      - name: 'Run Unit Tests'
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run test
+      - name: 'Run E2E Tests'
+        run: |
+          docker-compose -p ci -f docker-compose.ci.yml run test npm run test:e2e
+          docker-compose -p ci -f docker-compose.ci.yml down
+      - name: 'Run Linter'
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run lint
+      - name: 'Run Formatter'
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run format
+      - name: 'Apply Linter and Formatter Changes'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply eslint and prettier code changes
