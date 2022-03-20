@@ -1,0 +1,64 @@
+name: Universiteams CI
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - name: Build image to be cached
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          target: base
+          builder: ${{ steps.buildx.outputs.name }}
+          push: false
+          load: true
+          tags: universiteams/api:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+      # Temp fix to avoid maintaining old cache data
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      - name: Renew cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      - name: 'Create docker.test.env file'
+        run: | 
+          chmod +x ./create-test-env-file.sh
+          ./create-test-env-file.sh
+      - name: 'Run Unit Tests'
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run test
+      - name: 'Run E2E Tests'
+        run: |
+          docker-compose -p ci -f docker-compose.ci.yml run test npm run test:e2e
+          docker-compose -p ci -f docker-compose.ci.yml down
+      - name: 'Run Linter'
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run lint
+      - name: 'Run Formatter'
+        run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run format
+      - name: 'Apply Linter and Formatter Changes'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply eslint and prettier code changes

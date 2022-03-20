@@ -5,13 +5,10 @@ services:
     build: 
       context: .
       target: base
-    image: alereca/universiteams:1.0
+    image: universiteams/api:latest
     env_file:
       - docker.test.env
     working_dir: /home/node/app
-    volumes:
-      - ./src:/home/node/app/src
-      - ./test:/home/node/app/test
     depends_on:
       - postgrestest
       - redistest
