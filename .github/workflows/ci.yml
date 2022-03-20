@@ -17,8 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Docker Buildx
+        id: buildx
         uses: docker/setup-buildx-action@v1
-      - run: rm -rf /tmp/.buildx-cache
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
@@ -31,7 +31,9 @@ jobs:
         with:
           context: .
           target: base
+          builder: ${{ steps.buildx.outputs.name }}
           push: false
+          load: true
           tags: universiteams/api:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
@@ -42,12 +44,14 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      - run: docker image ls -a
       - name: 'Create docker.test.env file'
         run: | 
           chmod +x ./create-test-env-file.sh
           ./create-test-env-file.sh
       - name: 'Run Unit Tests'
         run: docker-compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run test
+      - run: docker image ls -a
       - name: 'Run E2E Tests'
         run: |
           docker-compose -p ci -f docker-compose.ci.yml run test npm run test:e2e

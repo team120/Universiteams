@@ -9,9 +9,6 @@ services:
     env_file:
       - docker.test.env
     working_dir: /home/node/app
-    volumes:
-      - ./src:/home/node/app/src
-      - ./test:/home/node/app/test
     depends_on:
       - postgrestest
       - redistest
