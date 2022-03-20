@@ -29,6 +29,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
+          target: base
           push: false
           tags: universiteams/api:latest
           cache-from: type=local,src=/tmp/.buildx-cache
