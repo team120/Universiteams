@@ -23,7 +23,7 @@ jobs:
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-key: |
+          restore-keys: |
             ${{ runner.os }}-buildx-
       - name: Build image to be cached
         uses: docker/build-push-action@v2
