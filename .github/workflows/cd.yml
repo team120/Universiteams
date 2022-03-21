@@ -13,7 +13,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: 
+    environment:
       name: production
       url: https://api.universiteams.com
     steps:
@@ -27,32 +27,62 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      # Avoid caching this image as it will break ci workflows buildx base image cache
-      - name: Build prod image with cached base image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          target: prod
-          push: false
-          load: true
-          tags: universiteams/api:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish prod image
+      # Avoid caching this image as it will break ci workflows buildx base image cache
+      - name: Build and publish prod image with cached base image
         uses: docker/build-push-action@v2
         with:
           context: .
           target: prod
           push: true
           tags: universiteams/api:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
       - name: Create production .env file
         run: |
           chmod +x ./create-env-file.sh
           ./create-env-file.sh POSTGRES_USER=${{secrets.POSTGRES_USER}} POSTGRES_PASSWORD=${{secrets.POSTGRES_PASSWORD}} ACCESS_TOKEN_SECRET=${{secrets.ACCESS_TOKEN_SECRET}} REFRESH_TOKEN_SECRET=${{secrets.REFRESH_TOKEN_SECRET}} EMAIL_VERIFICATION_LINK_SECRET=${{secrets.EMAIL_VERIFICATION_LINK_SECRET}} FORGET_PASSWORD_VERIFICATION_LINK_SECRET=${{secrets.FORGET_PASSWORD_VERIFICATION_LINK_SECRET}} EMAIL_USER=${{secrets.EMAIL_USER}} SENDGRID_API_KEY=${{secrets.SENDGRID_API_KEY}} SENDINBLUE_API_KEY=${{secrets.SENDINBLUE_API_KEY}}
-      - name: Bootstrap prod dependencies
-        run: |
-          docker-compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
+      - name: Copy .env and docker-compose.prod.yml to server filesystem
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          source: ./docker.env,./docker-compose.prod.yml
+          target: .
+      - name: Connect to server by ssh in order to create traefik directory if not exists
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          script: mkdir -p traefik
+      - name: Copy traefik dynamic config to server filesystem
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          source: ./traefik/traefik.dynamic.yaml
+          target: ./traefik/traefik.dynamic.yaml
+      - name: Connect to server by ssh in order to bootstrap prod dependencies
+        uses: appleboy/ssh-action@master
+        env:
+          USER_PASSWORD: ${{ secrets.SERVER_USER_PASSWORD }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          envs: USER_PASSWORD
+          script: |
+            echo $USER_PASSWORD | sudo -S su
+            sudo docker-compose -p prod -f docker-compose.prod.yml down
+            sudo docker pull universiteams/api:latest
+            sudo docker-compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
