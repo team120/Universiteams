@@ -53,7 +53,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           source: ./docker.env,./docker-compose.prod.yml
-          target: ~/
+          target: .
       - name: Connect to server by ssh in order to create traefik directory if not exists
         uses: appleboy/ssh-action@master
         with:
@@ -62,7 +62,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: mkdir -p traefik
-      - run: ls
       - name: Copy traefik dynamic config to server filesystem
         uses: appleboy/scp-action@master
         with:
@@ -70,8 +69,9 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          source: "./traefik/traefik.dynamic.yaml"
-          target: ~/traefik
+          debug: true
+          source: traefik/traefik.dynamic.yaml
+          target: traefik
       - name: Connect to server by ssh in order to bootstrap prod dependencies
         uses: appleboy/ssh-action@master
         env:
