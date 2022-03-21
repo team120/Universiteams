@@ -62,7 +62,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: mkdir -p traefik
-      - run: sleep 20s
       - name: Copy traefik dynamic config to server filesystem
         uses: appleboy/scp-action@master
         with:
@@ -83,7 +82,6 @@ jobs:
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           envs: USER_PASSWORD
           script: |
-            echo $USER_PASSWORD | sudo -S su
-            sudo docker-compose -p prod -f docker-compose.prod.yml down
-            sudo docker pull universiteams/api:latest
-            sudo docker-compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
+            echo $USER_PASSWORD | sudo -S docker-compose -p prod -f docker-compose.prod.yml down
+            echo $USER_PASSWORD | sudo -S docker pull universiteams/api:latest
+            echo $USER_PASSWORD | sudo -S docker-compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
