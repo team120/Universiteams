@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          source: ./traefik/traefik.dynamic.yaml
+          source: "./traefik/traefik.dynamic.yaml"
           target: ~/traefik
       - name: Connect to server by ssh in order to bootstrap prod dependencies
         uses: appleboy/ssh-action@master
