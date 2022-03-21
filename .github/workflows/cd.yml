@@ -41,24 +41,6 @@ jobs:
           push: true
           tags: universiteams/api:latest
           cache-from: type=local,src=/tmp/.buildx-cache
-      - name: Connect to server by ssh in order to create traefik directory if not exists
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          script: mkdir -p traefik
-      - name: Copy traefik dynamic config to server filesystem
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          debug: true
-          source: ./traefik/traefik.dynamic.yaml
-          target: ./traefik
       - name: Create production .env file
         run: |
           chmod +x ./create-env-file.sh
@@ -72,6 +54,24 @@ jobs:
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           source: ./docker.env,./docker-compose.prod.yml
           target: .
+      - name: Connect to server by ssh in order to create traefik directory if not exists
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          script: mkdir -p traefik
+      - run: sleep 20s
+      - name: Copy traefik dynamic config to server filesystem
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          source: ./traefik/traefik.dynamic.yaml
+          target: ./traefik
       - name: Connect to server by ssh in order to bootstrap prod dependencies
         uses: appleboy/ssh-action@master
         env:
