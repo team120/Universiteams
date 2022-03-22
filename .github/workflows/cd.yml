@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Get version from pushed tag
-        run: echo "TAG=${GITHUB_REF#refs/tags/v}"" >> $GITHUB_ENV
+        run: echo "TAG=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       # Avoid caching this image as it will break ci workflows buildx base image cache
       - name: Build and publish latest and versioned prod image with cached base image
         uses: docker/build-push-action@v2
