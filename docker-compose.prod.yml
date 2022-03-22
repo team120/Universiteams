@@ -31,7 +31,7 @@ services:
     build: 
       context: .
       target: prod
-    image: alereca/universiteams:1.0
+    image: universiteams/api:latest
     ports:
       - 3000
     working_dir: /home/node/app
