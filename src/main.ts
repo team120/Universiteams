@@ -10,9 +10,11 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  app.enableCors();
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
+
+  const corsOptions = { origin: [process.env.FRONTEND_DEV_HOST], }
+  app.enableCors(corsOptions);
 
   const config = new DocumentBuilder()
     .setTitle('Universiteams API')
