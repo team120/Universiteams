@@ -36,4 +36,4 @@ echo EMAIL_USER=$EMAIL_USER >> $ENV_FILE
 echo EMAIL_CONFIRMATION_URL="http://localhost:5000/account/verify" >> $ENV_FILE
 echo SENDGRID_API_KEY=$SENDGRID_API_KEY >> $ENV_FILE
 echo SENDINBLUE_API_KEY=$SENDINBLUE_API_KEY >> $ENV_FILE
-echo FRONTEND_DEV_HOST="http://localhost:3000/" >> $ENV_FILE
+echo FRONTEND_HOST="http://localhost:3000/" >> $ENV_FILE
