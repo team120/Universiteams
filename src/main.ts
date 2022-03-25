@@ -13,7 +13,7 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
 
-  const corsOptions = { origin: [process.env.FRONTEND_DEV_HOST], }
+  const corsOptions = { origin: [process.env.FRONTEND_HOST], credentials: true }
   app.enableCors(corsOptions);
 
   const config = new DocumentBuilder()
