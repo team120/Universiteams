@@ -31,7 +31,7 @@ services:
       - ./test:/home/node/app/test
       - ./dist:/home/node/app/dist
     env_file:
-      - docker.env
+      - docker.dev.env
     labels:
       - traefik.enable=true
       - traefik.http.routers.app.rule=Host(`api.localhost`)
@@ -46,7 +46,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     env_file:
-      - docker.env
+      - docker.dev.env
   # Pg-admin won't be used in production
   pg-admin:
     image: dpage/pgadmin4:5.6

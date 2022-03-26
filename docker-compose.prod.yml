@@ -36,7 +36,7 @@ services:
       - 3000
     working_dir: /home/node/app
     env_file:
-      - docker.env
+      - docker.prod.env
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -55,7 +55,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     env_file:
-      - docker.env
+      - docker.prod.env
   redis:
     image: "redis:alpine"
     ports:
