@@ -22,7 +22,7 @@ prod:
 ## down-dv: Tear down dev environment without deleting data volumes
 down-dv:
 	- docker-compose -p dev -f docker-compose.dev.yml down
-	- sudo rimraf dist
+	- sudo rm -rf dist
 
 ## down-pd: Tear down prod environment without deleting data volumes
 down-pd:
@@ -31,7 +31,7 @@ down-pd:
 ## clean-dv: Stop and remove both containers and data volumes from dev environment
 clean-dv:
 	- docker-compose -p dev -f docker-compose.dev.yml down -v
-	- sudo rimraf dist
+	- sudo rm -rf dist
 
 ## clean-pd: Stop and remove both containers and data volumes from prod environment
 clean-pd:

@@ -54,7 +54,7 @@ export class EmailProcessor {
       subject: 'Please confirm your email',
       text:
         `Hello ${user.firstName},` +
-        "Welcome to Universi. We are excited to have you on-board and there's just one step to verify if it's actually your e-mail address:" +
+        "Welcome to Universiteams. We are excited to have you on-board and there's just one step to verify if it's actually your e-mail address:" +
         `link="${verificationLink}" Confirm Account`,
       html:
         `<h1>Hello ${user.firstName},</h1>` +
