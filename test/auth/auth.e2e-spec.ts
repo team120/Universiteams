@@ -197,7 +197,7 @@ describe('auth', () => {
 
           const insertedUser = await conn
             .getRepository(User)
-            .findOne({ email: registrationAttempt.email });
+            .findOne({where: { email: registrationAttempt.email }});
           expect(insertedUser).toBeDefined();
           expect(insertedUser.email).toBe(registrationAttempt.email);
           expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
@@ -235,7 +235,7 @@ describe('auth', () => {
 
           const insertedUser = await conn
             .getRepository(User)
-            .findOne({ email: registrationAttempt.email });
+            .findOne({where: { email: registrationAttempt.email }});
           expect(insertedUser).toBeDefined();
           expect(insertedUser.email).toBe(registrationAttempt.email);
           expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
@@ -271,7 +271,7 @@ describe('auth', () => {
 
             const insertedUser = await conn
               .getRepository(User)
-              .findOne({ email: registrationAttempt.email });
+              .findOne({where: { email: registrationAttempt.email }});
             expect(insertedUser).not.toBeDefined();
           });
       });
@@ -298,7 +298,7 @@ describe('auth', () => {
 
               const insertedUser = await conn
                 .getRepository(User)
-                .findOne({ email: registrationAttempt.email });
+                .findOne({where: { email: registrationAttempt.email }});
               expect(insertedUser).not.toBeDefined();
             });
         });
@@ -321,7 +321,7 @@ describe('auth', () => {
 
               const insertedUser = await conn
                 .getRepository(User)
-                .findOne({ email: registrationAttempt.email });
+                .findOne({where: { email: registrationAttempt.email }});
               expect(insertedUser).not.toBeDefined();
             });
         });
@@ -345,7 +345,7 @@ describe('auth', () => {
 
               const insertedUser = await conn
                 .getRepository(User)
-                .findOne({ email: registrationAttempt.email });
+                .findOne({where: { email: registrationAttempt.email }});
               expect(insertedUser).not.toBeDefined();
             });
         });
@@ -367,7 +367,7 @@ describe('auth', () => {
 
             const usersInDbWithThatEmail = await conn
               .getRepository(User)
-              .count({ email: registrationAttempt.email });
+              .count({where: { email: registrationAttempt.email }});
             expect(usersInDbWithThatEmail).toBe(1);
           });
       });
@@ -382,7 +382,7 @@ describe('auth', () => {
       const email = 'user16@example.com';
       const userWithoutEmailVerified = await conn
         .getRepository(User)
-        .findOne({ email: email, isEmailVerified: false });
+        .findOne({where: { email: email, isEmailVerified: false }});
       if (!userWithoutEmailVerified)
         throw new Error('User has already verified its email');
       notVerifiedUser = userWithoutEmailVerified;
@@ -411,7 +411,7 @@ describe('auth', () => {
 
         expect(res.status).toBe(200);
 
-        const user = await conn.getRepository(User).findOne(notVerifiedUser.id);
+        const user = await conn.getRepository(User).findOne({where: {id: notVerifiedUser.id}});
         expect(user.isEmailVerified).toBe(true);
       });
       afterEach(async () => {
@@ -469,7 +469,7 @@ describe('auth', () => {
         });
       });
       afterEach(async () => {
-        const user = await conn.getRepository(User).findOne(notVerifiedUser.id);
+        const user = await conn.getRepository(User).findOne({where: {id: notVerifiedUser.id}});
         expect(user.isEmailVerified).toBe(false);
       });
     });
@@ -540,7 +540,7 @@ describe('auth', () => {
       beforeEach(async () => {
         verifiedUser = await conn
           .getRepository(User)
-          .findOne({ email: verifiedUserEmail });
+          .findOne({where: { email: verifiedUserEmail }});
 
         tokenExpirationTimesTesting.set({
           accessToken: { value: 0, dimension: 'seconds' },
@@ -582,7 +582,7 @@ describe('auth', () => {
 
           const verifiedUserWithNewPassword = await conn
             .getRepository(User)
-            .findOne({ email: verifiedUserEmail });
+            .findOne({where: { email: verifiedUserEmail }});
 
           expect(verifiedUserWithNewPassword.password).not.toBe(
             verifiedUser.password,
