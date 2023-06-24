@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Suitable to deploy in public servers
 # Use non-root user node (created by base node image)
-FROM node:14-alpine AS base
+FROM node:18-alpine AS base
 LABEL org.opencontainers.image.vendor=universiteams
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app
@@ -11,7 +11,7 @@ RUN npm install
 COPY --chown=node:node . .
 RUN npm run build
 
-FROM node:14-alpine AS prod
+FROM node:18-alpine AS prod
 LABEL org.opencontainers.image.vendor=universiteams
 WORKDIR /home/node/app
 USER root
