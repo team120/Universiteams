@@ -21,7 +21,7 @@ export class IsAuthService {
       this.tokenService.checkAccessToken(accessToken);
 
     const user = await this.userRepo.findOne(
-      accessTokenVerificationResult.decodedToken.id,
+      { where: {id: accessTokenVerificationResult.decodedToken.id}},
     );
 
     if (!user)

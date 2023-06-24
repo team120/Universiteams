@@ -37,7 +37,7 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.userRepo
-      .findOne({ email: loginDto.email })
+      .findOne({where: { email: loginDto.email }})
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
@@ -51,7 +51,7 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.userRepo
-      .findOne({ email: registerDto.email })
+      .findOne({where: { email: registerDto.email }})
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
@@ -77,9 +77,9 @@ export class AuthService {
     currentUser: CurrentUserWithoutTokens,
   ) {
     const user = await this.userRepo
-      .findOne({
+      .findOne({where: {
         id: currentUser.id,
-      })
+      }})
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
@@ -122,10 +122,10 @@ export class AuthService {
 
   private async checkEmail(email: string) {
     const user = await this.userRepo
-      .findOne({
+      .findOne({where: {
         email: email,
         isEmailVerified: true,
-      })
+      }})
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });

@@ -114,13 +114,13 @@ export class ProjectService {
   }
 
   async bookmark(id: number, user: CurrentUserWithoutTokens) {
-    const project = await this.projectRepository.findOne(id);
+    const project = await this.projectRepository.findOne({where: {id: id}});
     if (!project) throw new NotFound('Id does not match with any project');
 
-    const bookmark = await this.bookmarkRepository.findOne({
+    const bookmark = await this.bookmarkRepository.findOne({where: {
       projectId: project.id,
       userId: user.id,
-    });
+    }});
     if (bookmark)
       throw new BadRequest(
         'This project has been already bookmarked by this user',
