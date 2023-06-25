@@ -1,6 +1,5 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { Connection } from 'typeorm';
 import { CurrentUserDto } from '../../src/auth/dtos/current-user.dto';
 import { Bookmark } from '../../src/bookmark/bookmark.entity';
 import { Project } from '../../src/project/project.entity';
@@ -8,10 +7,11 @@ import { createProjectTestingApp } from './project.e2e.module';
 import * as cookieParser from 'cookie-parser';
 import * as setCookieParser from 'set-cookie-parser';
 import { TokenExpirationTimesFake } from '../utils/token-expiration-times.fake';
+import { DataSource } from 'typeorm';
 
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
-  let conn: Connection;
+  let conn: DataSource;
   let tokenExpirationTimes: TokenExpirationTimesFake;
 
   beforeEach(async () => {
@@ -21,7 +21,7 @@ describe('Project Actions (e2e)', () => {
 
     await app.init();
 
-    conn = app.get(Connection);
+    conn = app.get(DataSource);
     await conn.runMigrations();
 
     tokenExpirationTimes = testingAppCreationResult.tokenExpirationTimesTesting;
@@ -54,7 +54,7 @@ describe('Project Actions (e2e)', () => {
 
               const bookmark = await conn
                 .getRepository(Bookmark)
-                .findOne({ projectId: projectId, userId: loginResult.id });
+                .findOne({where: { projectId: projectId, userId: loginResult.id }});
               expect(bookmark.projectId).toBeDefined();
             });
           });
@@ -74,14 +74,14 @@ describe('Project Actions (e2e)', () => {
 
               const bookmarkCount = await conn
                 .getRepository(Bookmark)
-                .count({ projectId: projectId, userId: loginResult.id });
+                .count({where: { projectId: projectId, userId: loginResult.id }});
               expect(bookmarkCount).toBe(1);
             });
           });
           afterEach(async () => {
             const project = await conn
               .getRepository(Project)
-              .findOne(projectId);
+              .findOne({where: {id: projectId}});
             expect(project.bookmarkCount).toBe(1);
 
             await conn
@@ -113,7 +113,7 @@ describe('Project Actions (e2e)', () => {
           afterEach(async () => {
             const bookmark = await conn
               .getRepository(Bookmark)
-              .findOne({ projectId: projectId, userId: loginResult.id });
+              .findOne({where: { projectId: projectId, userId: loginResult.id }});
             expect(bookmark).not.toBeDefined();
           });
         });
@@ -178,7 +178,7 @@ describe('Project Actions (e2e)', () => {
 
                 const bookmark = await conn
                   .getRepository(Bookmark)
-                  .findOne({ projectId: projectId, userId: loginResult.id });
+                  .findOne({where: { projectId: projectId, userId: loginResult.id }});
                 expect(bookmark.projectId).toBeDefined();
 
                 const newAccessTokenCookie = setCookieParser.parse(
@@ -192,7 +192,7 @@ describe('Project Actions (e2e)', () => {
               afterEach(async () => {
                 const project = await conn
                   .getRepository(Project)
-                  .findOne(projectId);
+                  .findOne({where: {id: projectId}});
                 expect(project.bookmarkCount).toBe(1);
 
                 await conn
@@ -233,7 +233,7 @@ describe('Project Actions (e2e)', () => {
               afterEach(async () => {
                 const bookmark = await conn
                   .getRepository(Bookmark)
-                  .findOne({ projectId: projectId, userId: loginResult.id });
+                  .findOne({where: { projectId: projectId, userId: loginResult.id }});
                 expect(bookmark).not.toBeDefined();
               });
             });
@@ -309,7 +309,7 @@ describe('Project Actions (e2e)', () => {
             afterEach(async () => {
               const bookmark = await conn
                 .getRepository(Bookmark)
-                .findOne({ projectId: projectId, userId: loginResult.id });
+                .findOne({where: { projectId: projectId, userId: loginResult.id }});
               expect(bookmark).not.toBeDefined();
             });
           });

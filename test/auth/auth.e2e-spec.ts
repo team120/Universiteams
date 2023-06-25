@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { Connection, DeepPartial } from 'typeorm';
+import { DataSource, DeepPartial } from 'typeorm';
 import { User } from '../../src/user/user.entity';
 import { RegisterDto } from '../../src/auth/dtos/register.dto';
 import * as setCookieParser from 'set-cookie-parser';
@@ -19,7 +19,7 @@ import { Queue } from 'bull';
 
 describe('auth', () => {
   let app: INestApplication;
-  let conn: Connection;
+  let conn: DataSource;
   const emailSendersMock = [
     {
       sendMail: jest.fn(),
@@ -62,7 +62,7 @@ describe('auth', () => {
     app.use(cookieParser());
     await app.init();
 
-    conn = app.get(Connection);
+    conn = app.get(DataSource);
     await conn.runMigrations();
   });
   afterEach(async () => {

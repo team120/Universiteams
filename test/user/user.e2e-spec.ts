@@ -3,11 +3,11 @@ import { TestingModule, Test } from '@nestjs/testing';
 import { UserE2EModule } from './user.e2e.module';
 import * as request from 'supertest';
 import { users } from './user.snapshot';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 describe('User Actions (e2e)', () => {
   let app: INestApplication;
-  let conn: Connection;
+  let conn: DataSource;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -17,7 +17,7 @@ describe('User Actions (e2e)', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    conn = app.get(Connection);
+    conn = app.get(DataSource);
     await conn.runMigrations();
   });
 

@@ -7,7 +7,7 @@ import { SkipWhenTestingInterval } from '../utils/decorators/skip-when-testing-i
 @Injectable()
 export class ViewRefresherService {
   constructor(
-    @InjectConnection() private connection: Connection,
+    @InjectConnection() private connection: DataSource,
     private logger: PinoLogger,
   ) {
     this.logger.setContext(ViewRefresherService.name);

@@ -1,18 +1,18 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { Connection } from 'typeorm';
 import { createProjectTestingApp } from './project.e2e.module';
+import { DataSource } from 'typeorm';
 
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
-  let conn: Connection;
+  let conn: DataSource;
 
   beforeEach(async () => {
     const testingAppCreationResult = await createProjectTestingApp();
     app = testingAppCreationResult.app;
     await app.init();
 
-    conn = app.get(Connection);
+    conn = app.get(DataSource);
     await conn.runMigrations();
   });
 

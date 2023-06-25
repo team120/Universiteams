@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { addMonths, formatISO, subMonths } from 'date-fns';
 import * as request from 'supertest';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { createProjectTestingApp } from './project.e2e.module';
 import {
   projectGeolocationWithExtendedDta,
@@ -11,7 +11,7 @@ import * as cookieParser from 'cookie-parser';
 
 describe('Project Actions (e2e)', () => {
   let app: INestApplication;
-  let conn: Connection;
+  let conn: DataSource;
 
   beforeEach(async () => {
     const testingAppCreationResult = await createProjectTestingApp();
@@ -20,7 +20,7 @@ describe('Project Actions (e2e)', () => {
 
     await app.init();
 
-    conn = app.get(Connection);
+    conn = app.get(DataSource);
     await conn.runMigrations();
   });
 

@@ -1,13 +1,14 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepository } from 'typeorm';
 import { Seed } from '../../src/database/seed';
 import { Institution } from '../../src/institution/institution.entity';
 import { Project } from '../../src/project/project.entity';
 import { commonImportsArray } from '../utils/common-imports.e2e';
+import { DataSource } from 'typeorm';
 
 describe('seed removeSeedDbData e2e', () => {
   let app: INestApplication;
+  let conn: DataSource;
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [...commonImportsArray],
@@ -15,6 +16,8 @@ describe('seed removeSeedDbData e2e', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    conn = app.get(DataSource);
   });
 
   afterEach(async () => {
@@ -29,7 +32,7 @@ describe('seed removeSeedDbData e2e', () => {
 
     await seed.removeSeedDbData();
 
-    expect(await getRepository(Project).count()).toBe(0);
-    expect(await getRepository(Institution).count()).toBe(0);
+    expect(await conn.getRepository(Project).count()).toBe(0);
+    expect(await conn.getRepository(Institution).count()).toBe(0);
   });
 });
