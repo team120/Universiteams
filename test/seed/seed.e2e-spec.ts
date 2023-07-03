@@ -21,14 +21,14 @@ describe('seed removeSeedDbData e2e', () => {
   });
 
   afterEach(async () => {
-    const seed = new Seed();
+    const seed = new Seed(conn);
 
     await seed.seedDbData();
     await app.close();
   });
 
   it('should erase every element introduced by seedDbData()', async () => {
-    const seed = new Seed();
+    const seed = new Seed(conn);
 
     await seed.removeSeedDbData();
 

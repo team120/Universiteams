@@ -1,4 +1,3 @@
-import { getRepository } from 'typeorm';
 import * as argon2 from 'argon2';
 import { Enrollment, ProjectRole } from '../enrollment/enrolment.entity';
 import { Facility } from '../facility/facility.entity';
@@ -12,6 +11,7 @@ import {
 } from '../user-affiliation/user-affiliation.entity';
 import { User } from '../user/user.entity';
 import { randomInt } from 'crypto';
+import { DataSource, Repository } from 'typeorm';
 
 class NumUnitaryIncrease {
   constructor(private num: number) {}
@@ -22,14 +22,25 @@ class NumUnitaryIncrease {
 }
 
 export class Seed {
-  private readonly enrollmentsRepo = getRepository(Enrollment);
-  private readonly institutionRepo = getRepository(Institution);
-  private readonly interestRepo = getRepository(Interest);
-  private readonly projectRepo = getRepository(Project);
-  private readonly researchDepartmentRepo = getRepository(ResearchDepartment);
-  private readonly usersRepo = getRepository(User);
-  private readonly userAffiliationRepo = getRepository(UserAffiliation);
-  private readonly facilityRepo = getRepository(Facility);
+  private readonly enrollmentsRepo: Repository<Enrollment>;
+  private readonly institutionRepo:  Repository<Institution>;
+  private readonly interestRepo: Repository<Interest>;
+  private readonly projectRepo: Repository<Project>;
+  private readonly researchDepartmentRepo: Repository<ResearchDepartment>;
+  private readonly usersRepo: Repository<User>;
+  private readonly userAffiliationRepo:  Repository<UserAffiliation>;
+  private readonly facilityRepo: Repository<Facility>;
+
+  constructor(private dataSource: DataSource) {
+    this.enrollmentsRepo = this.dataSource.getRepository(Enrollment);
+    this.institutionRepo = this.dataSource.getRepository(Institution);
+    this.interestRepo = this.dataSource.getRepository(Interest);
+    this.projectRepo = this.dataSource.getRepository(Project);
+    this.researchDepartmentRepo = this.dataSource.getRepository(ResearchDepartment);
+    this.usersRepo = this.dataSource.getRepository(User);
+    this.userAffiliationRepo = this.dataSource.getRepository(UserAffiliation);
+    this.facilityRepo = this.dataSource.getRepository(Facility);  
+  }
 
   async seedDbData() {
     const institutions = this.institutionsFactory();
