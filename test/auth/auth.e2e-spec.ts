@@ -272,7 +272,7 @@ describe('auth', () => {
             const insertedUser = await conn
               .getRepository(User)
               .findOne({where: { email: registrationAttempt.email }});
-            expect(insertedUser).not.toBeDefined();
+            expect(insertedUser).toBeNull();
           });
       });
     });
@@ -299,7 +299,7 @@ describe('auth', () => {
               const insertedUser = await conn
                 .getRepository(User)
                 .findOne({where: { email: registrationAttempt.email }});
-              expect(insertedUser).not.toBeDefined();
+              expect(insertedUser).toBeNull();
             });
         });
       });
@@ -322,7 +322,7 @@ describe('auth', () => {
               const insertedUser = await conn
                 .getRepository(User)
                 .findOne({where: { email: registrationAttempt.email }});
-              expect(insertedUser).not.toBeDefined();
+              expect(insertedUser).toBeNull();
             });
         });
       });
@@ -346,7 +346,7 @@ describe('auth', () => {
               const insertedUser = await conn
                 .getRepository(User)
                 .findOne({where: { email: registrationAttempt.email }});
-              expect(insertedUser).not.toBeDefined();
+              expect(insertedUser).toBeNull();
             });
         });
       });

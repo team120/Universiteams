@@ -114,7 +114,7 @@ describe('Project Actions (e2e)', () => {
             const bookmark = await conn
               .getRepository(Bookmark)
               .findOne({where: { projectId: projectId, userId: loginResult.id }});
-            expect(bookmark).not.toBeDefined();
+            expect(bookmark).toBeNull();
           });
         });
       });
@@ -234,7 +234,7 @@ describe('Project Actions (e2e)', () => {
                 const bookmark = await conn
                   .getRepository(Bookmark)
                   .findOne({where: { projectId: projectId, userId: loginResult.id }});
-                expect(bookmark).not.toBeDefined();
+                expect(bookmark).toBeNull();
               });
             });
           });
@@ -310,7 +310,7 @@ describe('Project Actions (e2e)', () => {
               const bookmark = await conn
                 .getRepository(Bookmark)
                 .findOne({where: { projectId: projectId, userId: loginResult.id }});
-              expect(bookmark).not.toBeDefined();
+              expect(bookmark).toBeNull();
             });
           });
         });
