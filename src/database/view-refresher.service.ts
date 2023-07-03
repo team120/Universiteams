@@ -8,7 +8,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 export class ViewRefresherService {
   constructor(
     @InjectDataSource()
-    private connection: DataSource,
+    private dataSource: DataSource,
     private logger: PinoLogger,
   ) {
     this.logger.setContext(ViewRefresherService.name);
@@ -17,7 +17,7 @@ export class ViewRefresherService {
   @SkipWhenTestingInterval('search-index-refresher', 900000)
   refreshFullTextSearchIndexMaterializedView() {
     this.logger.info('Refreshing project_search_index materialized view');
-    this.connection
+    this.dataSource
       .query('REFRESH MATERIALIZED VIEW CONCURRENTLY project_search_index')
       .catch((err) => {
         this.logger.error(
@@ -30,7 +30,7 @@ export class ViewRefresherService {
   @SkipWhenTestingInterval('unique-words-refresher', 1000000)
   refreshUniqueWordsMaterializedView() {
     this.logger.info('Refreshing unique_words materialized view');
-    this.connection
+    this.dataSource
       .query('REFRESH MATERIALIZED VIEW unique_words')
       .catch((err) => {
         this.logger.error(
