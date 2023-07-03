@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Connection } from 'typeorm';
 import { SkipWhenTestingInterval } from '../utils/decorators/skip-when-testing-interval.decorator';
+import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 @Injectable()
 export class ViewRefresherService {
   constructor(
-    @InjectConnection() private connection: DataSource,
+    @InjectDataSource()
+    private connection: DataSource,
     private logger: PinoLogger,
   ) {
     this.logger.setContext(ViewRefresherService.name);
