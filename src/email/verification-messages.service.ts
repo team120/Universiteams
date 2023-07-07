@@ -25,7 +25,7 @@ export class VerificationMessagesService {
       user,
       AcceptedTokens.EmailVerificationToken,
       this.config.get(SecretsVaultKeys.EMAIL_VERIFICATION_LINK_SECRET),
-      'http://localhost:5000/account/verify',
+      this.config.get(SecretsVaultKeys.EMAIL_CONFIRMATION_URL),
     );
   }
 
@@ -36,7 +36,7 @@ export class VerificationMessagesService {
       this.config.get(
         SecretsVaultKeys.FORGET_PASSWORD_VERIFICATION_LINK_SECRET,
       ),
-      'http://localhost:5000/account/reset-password',
+      this.config.get(SecretsVaultKeys.FORGET_PASSWORD_URL),
     );
   }
 
