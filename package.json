@@ -71,7 +71,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-unused-imports": "^2.0.0",
     "jest": "^27.0.6",
-    "minimist": "^1.2.6",
+    "minimist": "^1.2.8",
     "pino-pretty": "^10.0.1",
     "prettier": "^2.3.2",
     "set-cookie-parser": "^2.4.8",
