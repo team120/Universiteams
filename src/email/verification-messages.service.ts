@@ -48,6 +48,7 @@ export class VerificationMessagesService {
   ) {
     const tokenPayload: EmailTokenPayload = {
       identityHash: await argon2.hash(this.userIdentityHashData(user)),
+      email: user.email,
     };
     const expiration = this.tokenExpirationTimes.getTokenExpirationShortVersion(
       expirationTimeOfToken,
@@ -69,19 +70,13 @@ export class VerificationMessagesService {
     return decodedToken;
   }
 
-  async checkForgetPasswordToken(verificationToken: string, user: User) {
-    const decodedToken = this.checkVerificationToken(
-      verificationToken,
-      this.config.get(
-        SecretsVaultKeys.FORGET_PASSWORD_VERIFICATION_LINK_SECRET,
-      ),
-    );
+  async checkForgetPasswordToken(decodedToken: EmailTokenPayload, user: User) {
     await this.checkUserIdentityHash(decodedToken, user);
 
     return decodedToken;
   }
 
-  private checkVerificationToken(verificationToken: string, secret: string) {
+  checkVerificationToken(verificationToken: string, secret: string) {
     try {
       return this.entityMapper.mapValue(
         EmailTokenPayload,

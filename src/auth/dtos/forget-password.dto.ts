@@ -13,10 +13,6 @@ export class ForgetPasswordDto {
 @Exclude()
 export class ResetPasswordDto {
   @IsNotEmpty()
-  @IsEmail()
-  @Expose()
-  email: string;
-  @IsNotEmpty()
   @MinLength(8)
   @IsValidPassword()
   @Expose()

@@ -15,6 +15,8 @@ export class GeneralTokenPayload {
 export class EmailTokenPayload {
   @Expose()
   identityHash: string;
+  @Expose()
+  email: string;
 }
 
 @Exclude()
