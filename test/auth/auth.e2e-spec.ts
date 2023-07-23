@@ -92,7 +92,7 @@ describe('auth', () => {
 
         expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
         expect(accessTokenCookie.httpOnly).toBe(true);
-        expect(accessTokenCookie.sameSite).toBe('Strict');
+        expect(accessTokenCookie.sameSite).toBe('None');
       });
     });
     describe('when supplied email is not valid', () => {
@@ -193,7 +193,7 @@ describe('auth', () => {
 
           expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
           expect(accessTokenCookie.httpOnly).toBe(true);
-          expect(accessTokenCookie.sameSite).toBe('Strict');
+          expect(accessTokenCookie.sameSite).toBe('None');
 
           const insertedUser = await conn
             .getRepository(User)
@@ -231,7 +231,7 @@ describe('auth', () => {
 
           expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
           expect(accessTokenCookie.httpOnly).toBe(true);
-          expect(accessTokenCookie.sameSite).toBe('Strict');
+          expect(accessTokenCookie.sameSite).toBe('None');
 
           const insertedUser = await conn
             .getRepository(User)

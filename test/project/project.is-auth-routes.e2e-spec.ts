@@ -187,7 +187,7 @@ describe('Project Actions (e2e)', () => {
 
                 expect(newAccessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
                 expect(newAccessTokenCookie.httpOnly).toBe(true);
-                expect(newAccessTokenCookie.sameSite).toBe('Strict');
+                expect(newAccessTokenCookie.sameSite).toBe('None');
               });
               afterEach(async () => {
                 const project = await conn
