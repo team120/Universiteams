@@ -49,6 +49,8 @@ export class VerificationMessagesService {
     const tokenPayload: EmailTokenPayload = {
       identityHash: await argon2.hash(this.userIdentityHashData(user)),
       email: user.email,
+      user: `${user.firstName} ${user.lastName}`,
+      id: user.id,
     };
     const expiration = this.tokenExpirationTimes.getTokenExpirationShortVersion(
       expirationTimeOfToken,
