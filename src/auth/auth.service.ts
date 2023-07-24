@@ -22,7 +22,7 @@ import * as argon2 from 'argon2';
 import { v4 as uuid } from 'uuid';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import { SecretsVaultKeys } from 'src/utils/secrets';
+import { SecretsVaultKeys } from '../utils/secrets';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
