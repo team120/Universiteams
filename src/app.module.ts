@@ -35,12 +35,15 @@ import { BullModule } from '@nestjs/bull';
         formatters: {
           level: (level: string) => new Object({ level: level }),
         },
-        prettyPrint:
+        transport:
           process.env.NODE_ENV !== 'prod'
             ? {
-                colorize: true,
-                levelFirst: true,
-                translateTime: 'mm/dd/yyyy h:MM:ss TT Z',
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  levelFirst: true,
+                  translateTime: 'mm/dd/yyyy h:MM:ss TT Z',
+                },
               }
             : undefined,
       },
