@@ -22,6 +22,8 @@ import * as argon2 from 'argon2';
 import { v4 as uuid } from 'uuid';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { SecretsVaultKeys } from '../utils/secrets';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -31,13 +33,14 @@ export class AuthService {
     private readonly tokenService: TokenService,
     @InjectQueue('emails')
     private readonly emailQueue: Queue,
+    private readonly config: ConfigService,
     private readonly verificationMessageService: VerificationMessagesService,
     private readonly logger: PinoLogger,
   ) {}
 
   async login(loginDto: LoginDto) {
     const user = await this.userRepo
-      .findOne({where: { email: loginDto.email }})
+      .findOne({ where: { email: loginDto.email } })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
@@ -51,7 +54,7 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.userRepo
-      .findOne({where: { email: registerDto.email }})
+      .findOne({ where: { email: registerDto.email } })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
@@ -77,9 +80,11 @@ export class AuthService {
     currentUser: CurrentUserWithoutTokens,
   ) {
     const user = await this.userRepo
-      .findOne({where: {
-        id: currentUser.id,
-      }})
+      .findOne({
+        where: {
+          id: currentUser.id,
+        },
+      })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
@@ -105,10 +110,17 @@ export class AuthService {
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const user = await this.checkEmail(resetPasswordDto.email);
+    const decodedToken = this.verificationMessageService.checkVerificationToken(
+      resetPasswordDto.verificationToken,
+      this.config.get(
+        SecretsVaultKeys.FORGET_PASSWORD_VERIFICATION_LINK_SECRET,
+      ),
+    );
+
+    const user = await this.checkEmail(decodedToken.email);
 
     await this.verificationMessageService.checkForgetPasswordToken(
-      resetPasswordDto.verificationToken,
+      decodedToken,
       user,
     );
 
@@ -122,10 +134,12 @@ export class AuthService {
 
   private async checkEmail(email: string) {
     const user = await this.userRepo
-      .findOne({where: {
-        email: email,
-        isEmailVerified: true,
-      }})
+      .findOne({
+        where: {
+          email: email,
+          isEmailVerified: true,
+        },
+      })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });

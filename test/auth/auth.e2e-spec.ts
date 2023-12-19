@@ -16,6 +16,7 @@ import { NodemailerEmailSender } from '../../src/email/nodemailer.email-sender';
 import { LoginDto } from '../../src/auth/dtos/login.dto';
 import { getQueueToken } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { ResetPasswordDto } from '../../src/auth/dtos/forget-password.dto';
 
 describe('auth', () => {
   let app: INestApplication;
@@ -92,7 +93,7 @@ describe('auth', () => {
 
         expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
         expect(accessTokenCookie.httpOnly).toBe(true);
-        expect(accessTokenCookie.sameSite).toBe('Strict');
+        expect(accessTokenCookie.sameSite).toBe('None');
       });
     });
     describe('when supplied email is not valid', () => {
@@ -193,11 +194,11 @@ describe('auth', () => {
 
           expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
           expect(accessTokenCookie.httpOnly).toBe(true);
-          expect(accessTokenCookie.sameSite).toBe('Strict');
+          expect(accessTokenCookie.sameSite).toBe('None');
 
           const insertedUser = await conn
             .getRepository(User)
-            .findOne({where: { email: registrationAttempt.email }});
+            .findOne({ where: { email: registrationAttempt.email } });
           expect(insertedUser).toBeDefined();
           expect(insertedUser.email).toBe(registrationAttempt.email);
           expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
@@ -231,11 +232,11 @@ describe('auth', () => {
 
           expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
           expect(accessTokenCookie.httpOnly).toBe(true);
-          expect(accessTokenCookie.sameSite).toBe('Strict');
+          expect(accessTokenCookie.sameSite).toBe('None');
 
           const insertedUser = await conn
             .getRepository(User)
-            .findOne({where: { email: registrationAttempt.email }});
+            .findOne({ where: { email: registrationAttempt.email } });
           expect(insertedUser).toBeDefined();
           expect(insertedUser.email).toBe(registrationAttempt.email);
           expect(insertedUser.firstName).toBe(registrationAttempt.firstName);
@@ -271,7 +272,7 @@ describe('auth', () => {
 
             const insertedUser = await conn
               .getRepository(User)
-              .findOne({where: { email: registrationAttempt.email }});
+              .findOne({ where: { email: registrationAttempt.email } });
             expect(insertedUser).toBeNull();
           });
       });
@@ -298,7 +299,7 @@ describe('auth', () => {
 
               const insertedUser = await conn
                 .getRepository(User)
-                .findOne({where: { email: registrationAttempt.email }});
+                .findOne({ where: { email: registrationAttempt.email } });
               expect(insertedUser).toBeNull();
             });
         });
@@ -321,7 +322,7 @@ describe('auth', () => {
 
               const insertedUser = await conn
                 .getRepository(User)
-                .findOne({where: { email: registrationAttempt.email }});
+                .findOne({ where: { email: registrationAttempt.email } });
               expect(insertedUser).toBeNull();
             });
         });
@@ -345,7 +346,7 @@ describe('auth', () => {
 
               const insertedUser = await conn
                 .getRepository(User)
-                .findOne({where: { email: registrationAttempt.email }});
+                .findOne({ where: { email: registrationAttempt.email } });
               expect(insertedUser).toBeNull();
             });
         });
@@ -367,7 +368,7 @@ describe('auth', () => {
 
             const usersInDbWithThatEmail = await conn
               .getRepository(User)
-              .count({where: { email: registrationAttempt.email }});
+              .count({ where: { email: registrationAttempt.email } });
             expect(usersInDbWithThatEmail).toBe(1);
           });
       });
@@ -382,7 +383,7 @@ describe('auth', () => {
       const email = 'user16@example.com';
       const userWithoutEmailVerified = await conn
         .getRepository(User)
-        .findOne({where: { email: email, isEmailVerified: false }});
+        .findOne({ where: { email: email, isEmailVerified: false } });
       if (!userWithoutEmailVerified)
         throw new Error('User has already verified its email');
       notVerifiedUser = userWithoutEmailVerified;
@@ -411,7 +412,9 @@ describe('auth', () => {
 
         expect(res.status).toBe(200);
 
-        const user = await conn.getRepository(User).findOne({where: {id: notVerifiedUser.id}});
+        const user = await conn
+          .getRepository(User)
+          .findOne({ where: { id: notVerifiedUser.id } });
         expect(user.isEmailVerified).toBe(true);
       });
       afterEach(async () => {
@@ -469,7 +472,9 @@ describe('auth', () => {
         });
       });
       afterEach(async () => {
-        const user = await conn.getRepository(User).findOne({where: {id: notVerifiedUser.id}});
+        const user = await conn
+          .getRepository(User)
+          .findOne({ where: { id: notVerifiedUser.id } });
         expect(user.isEmailVerified).toBe(false);
       });
     });
@@ -533,33 +538,32 @@ describe('auth', () => {
   describe('reset password', () => {
     const verifiedUserEmail = 'user1@example.com';
     const oldPassword = 'Password_1';
-    describe('when email address is valid and has been verified', () => {
-      let verifiedUser: User;
-      let expiredAccessTokenBeforeReset: string;
-      let validRefreshTokenBeforeReset: string;
-      beforeEach(async () => {
-        verifiedUser = await conn
-          .getRepository(User)
-          .findOne({where: { email: verifiedUserEmail }});
+    let verifiedUser: User;
+    let expiredAccessTokenBeforeReset: string;
+    let validRefreshTokenBeforeReset: string;
+    beforeEach(async () => {
+      verifiedUser = await conn
+        .getRepository(User)
+        .findOne({ where: { email: verifiedUserEmail } });
 
-        tokenExpirationTimesTesting.set({
-          accessToken: { value: 0, dimension: 'seconds' },
-        });
-
-        const loginBeforeReset = await request(app.getHttpServer())
-          .post('/auth/login')
-          .send({
-            email: verifiedUserEmail,
-            password: oldPassword,
-          } as LoginDto);
-        expect(loginBeforeReset.status).toBe(200);
-
-        expiredAccessTokenBeforeReset =
-          loginBeforeReset.header['set-cookie'][0];
-        validRefreshTokenBeforeReset = loginBeforeReset.header['set-cookie'][1];
-
-        tokenExpirationTimesTesting.restore();
+      tokenExpirationTimesTesting.set({
+        accessToken: { value: 0, dimension: 'seconds' },
       });
+
+      const loginBeforeReset = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: verifiedUserEmail,
+          password: oldPassword,
+        } as LoginDto);
+      expect(loginBeforeReset.status).toBe(200);
+
+      expiredAccessTokenBeforeReset = loginBeforeReset.header['set-cookie'][0];
+      validRefreshTokenBeforeReset = loginBeforeReset.header['set-cookie'][1];
+
+      tokenExpirationTimesTesting.restore();
+    });
+    describe('when email address is valid and has been verified', () => {
       describe('and is equal to the email address stored in verification token', () => {
         it('should return OK and update password', async () => {
           const verificationEmailTokenService = app.get(
@@ -582,7 +586,7 @@ describe('auth', () => {
 
           const verifiedUserWithNewPassword = await conn
             .getRepository(User)
-            .findOne({where: { email: verifiedUserEmail }});
+            .findOne({ where: { email: verifiedUserEmail } });
 
           expect(verifiedUserWithNewPassword.password).not.toBe(
             verifiedUser.password,
@@ -628,31 +632,6 @@ describe('auth', () => {
         });
       });
 
-      describe('and is not equal to the email address stored in verification token', () => {
-        it('should return Unauthorized', async () => {
-          const verificationEmailTokenService = app.get(
-            VerificationMessagesService,
-          );
-          const verificationTokenInUrl = await verificationEmailTokenService
-            .generateForgetPasswordUrl({
-              ...verifiedUser,
-              email: 'other@example.com',
-            })
-            .then((url) => url.split('token=')[1]);
-
-          const res = await request(app.getHttpServer())
-            .post('/auth/reset-password')
-            .send({
-              email: verifiedUserEmail,
-              password: 'Password_14',
-              verificationToken: verificationTokenInUrl,
-            });
-
-          expect(res.status).toBe(401);
-          expect(res.body.message).toBe('Unauthorized');
-        });
-      });
-
       describe('but verification token is expired', () => {
         beforeEach(() => {
           tokenExpirationTimesTesting.set({
@@ -690,20 +669,17 @@ describe('auth', () => {
       });
     });
 
-    describe('when email address and password are invalid', () => {
-      it.each(['user16example.com', '@example.com'])(
-        'should return BadRequest',
-        async (email: string) => {
+    describe('when password is invalid', () => {
+      it('should return BadRequest',
+        async () => {
           const res = await request(app.getHttpServer())
             .post('/auth/reset-password')
             .send({
-              email: email,
               password: 'Password87',
               verificationToken: 'asasoheqjleqlhkjqelkhjHOJkljh',
             });
 
           expect(res.status).toBe(400);
-          expect(res.body.message).toContain('email must be an email');
           expect(res.body.message).toContain(
             'password must include at least: one non-alphanumeric character (#,$,%,etc)',
           );
@@ -713,25 +689,30 @@ describe('auth', () => {
         },
       );
     });
-  });
-  describe('when email address is either not a verified email or is not associated with a personal user account', () => {
-    it.each(['user16@example.com', 'user70@example.com'])(
-      'should return BadRequest',
-      async (email: string) => {
+    describe('when embedded email address in jwt token is either not a verified email or is not associated with a personal user account', () => {
+      it('should return BadRequest', async () => {
+        const verificationEmailTokenService = app.get(
+          VerificationMessagesService,
+        );
+        const verificationTokenInUrl = await verificationEmailTokenService
+          .generateForgetPasswordUrl({
+            ...verifiedUser,
+            email: 'other@example.com',
+          })
+          .then((url) => url.split('token=')[1]);
+  
         const res = await request(app.getHttpServer())
           .post('/auth/reset-password')
           .send({
-            email: email,
             password: 'Password_14',
-            verificationToken:
-              'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE2NDY2MjcxNjYsImV4cCI6MTY0NjYyNzE2OCwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.Fg5lSJFvnV3CYf9Hsi4o6m56HbqgXvAsgwpxxKGXfgM',
-          });
-
+            verificationToken: verificationTokenInUrl,
+          } as ResetPasswordDto);
+  
         expect(res.status).toBe(400);
         expect(res.body.message).toBe(
           'That address is either not a verified email or is not associated with a personal user account',
         );
-      },
-    );
+      });
+    });
   });
 });

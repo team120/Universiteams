@@ -25,7 +25,7 @@ export class VerificationMessagesService {
       user,
       AcceptedTokens.EmailVerificationToken,
       this.config.get(SecretsVaultKeys.EMAIL_VERIFICATION_LINK_SECRET),
-      'http://localhost:5000/account/verify',
+      this.config.get(SecretsVaultKeys.EMAIL_CONFIRMATION_URL),
     );
   }
 
@@ -36,7 +36,7 @@ export class VerificationMessagesService {
       this.config.get(
         SecretsVaultKeys.FORGET_PASSWORD_VERIFICATION_LINK_SECRET,
       ),
-      'http://localhost:5000/account/reset-password',
+      this.config.get(SecretsVaultKeys.FORGET_PASSWORD_URL),
     );
   }
 
@@ -48,6 +48,9 @@ export class VerificationMessagesService {
   ) {
     const tokenPayload: EmailTokenPayload = {
       identityHash: await argon2.hash(this.userIdentityHashData(user)),
+      email: user.email,
+      user: `${user.firstName} ${user.lastName}`,
+      id: user.id,
     };
     const expiration = this.tokenExpirationTimes.getTokenExpirationShortVersion(
       expirationTimeOfToken,
@@ -69,19 +72,13 @@ export class VerificationMessagesService {
     return decodedToken;
   }
 
-  async checkForgetPasswordToken(verificationToken: string, user: User) {
-    const decodedToken = this.checkVerificationToken(
-      verificationToken,
-      this.config.get(
-        SecretsVaultKeys.FORGET_PASSWORD_VERIFICATION_LINK_SECRET,
-      ),
-    );
+  async checkForgetPasswordToken(decodedToken: EmailTokenPayload, user: User) {
     await this.checkUserIdentityHash(decodedToken, user);
 
     return decodedToken;
   }
 
-  private checkVerificationToken(verificationToken: string, secret: string) {
+  checkVerificationToken(verificationToken: string, secret: string) {
     try {
       return this.entityMapper.mapValue(
         EmailTokenPayload,

@@ -12,7 +12,7 @@ export class GeneralTokenPayload {
 }
 
 @Exclude()
-export class EmailTokenPayload {
+export class EmailTokenPayload extends GeneralTokenPayload {
   @Expose()
   identityHash: string;
 }

@@ -131,7 +131,8 @@ export class TokenService {
     response.cookie('accessToken', currentUser.accessToken, {
       expires: add(new Date(), { days: 1 }),
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: this.configService.get(SecretsVaultKeys.SAME_SITE_POLICY),
+      secure: this.configService.get(SecretsVaultKeys.SECURE_COOKIE),     
     });
     response.cookie('refreshToken', currentUser.refreshToken, {
       expires: add(
@@ -141,7 +142,8 @@ export class TokenService {
         ),
       ),
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: this.configService.get(SecretsVaultKeys.SAME_SITE_POLICY),
+      secure: this.configService.get(SecretsVaultKeys.SECURE_COOKIE),  
     });
   }
 }
