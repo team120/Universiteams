@@ -83,6 +83,6 @@ jobs:
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           envs: USER_PASSWORD
           script: |
-            echo $USER_PASSWORD | sudo -S docker-compose -p prod -f docker-compose.prod.yml down
+            echo $USER_PASSWORD | sudo -S docker compose -p prod -f docker-compose.prod.yml down
             echo $USER_PASSWORD | sudo -S docker pull universiteams/api:latest
-            echo $USER_PASSWORD | sudo -S docker-compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
+            echo $USER_PASSWORD | sudo -S docker compose -p prod -f docker-compose.prod.yml up --detach --remove-orphans
