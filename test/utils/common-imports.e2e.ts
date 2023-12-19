@@ -39,10 +39,13 @@ export const commonImportsArray = [
       formatters: {
         level: (level: string) => new Object({ level: level }),
       },
-      prettyPrint: {
-        colorize: true,
-        levelFirst: true,
-        translateTime: 'mm/dd/yyyy h:MM:ss TT Z',
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          levelFirst: true,
+          translateTime: 'mm/dd/yyyy h:MM:ss TT Z',
+        },
       },
     },
   }),
