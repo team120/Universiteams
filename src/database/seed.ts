@@ -23,12 +23,12 @@ class NumUnitaryIncrease {
 
 export class Seed {
   private readonly enrollmentsRepo: Repository<Enrollment>;
-  private readonly institutionRepo:  Repository<Institution>;
+  private readonly institutionRepo: Repository<Institution>;
   private readonly interestRepo: Repository<Interest>;
   private readonly projectRepo: Repository<Project>;
   private readonly researchDepartmentRepo: Repository<ResearchDepartment>;
   private readonly usersRepo: Repository<User>;
-  private readonly userAffiliationRepo:  Repository<UserAffiliation>;
+  private readonly userAffiliationRepo: Repository<UserAffiliation>;
   private readonly facilityRepo: Repository<Facility>;
 
   constructor(private dataSource: DataSource) {
@@ -36,13 +36,16 @@ export class Seed {
     this.institutionRepo = this.dataSource.getRepository(Institution);
     this.interestRepo = this.dataSource.getRepository(Interest);
     this.projectRepo = this.dataSource.getRepository(Project);
-    this.researchDepartmentRepo = this.dataSource.getRepository(ResearchDepartment);
+    this.researchDepartmentRepo =
+      this.dataSource.getRepository(ResearchDepartment);
     this.usersRepo = this.dataSource.getRepository(User);
     this.userAffiliationRepo = this.dataSource.getRepository(UserAffiliation);
-    this.facilityRepo = this.dataSource.getRepository(Facility);  
+    this.facilityRepo = this.dataSource.getRepository(Facility);
   }
 
   async seedDbData() {
+    await this.dataSource.synchronize();
+
     const institutions = this.institutionsFactory();
     await this.institutionRepo.save(Object.values(institutions));
 
