@@ -19,7 +19,7 @@ import { ViewRefresherService } from './view-refresher.service';
         migrations: ['dist/database/migrations/*{.ts,.js}'],
         migrationsRun: true,
         synchronize: false,
-        logging: 'all',
+        logging: false,
         cli: { migrationsDir: 'src/database/migrations' },
       }),
     }),
