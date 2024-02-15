@@ -46,6 +46,10 @@ export class ProjectFindDto {
   @ExposeType(Number)
   userId?: number;
   @IsOptional()
+  @IsNumber({}, { each: true })
+  @ExposeType(Number)
+  interestIds?: number[];
+  @IsOptional()
   @IsDateString()
   @Expose()
   dateFrom?: string;

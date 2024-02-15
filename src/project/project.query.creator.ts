@@ -103,6 +103,16 @@ export class QueryCreator {
         'researchDepartmentInstitution',
       )
       .leftJoin('project.interests', 'interests');
+    
+    if (filters.interestIds) {
+      if (Array.isArray(filters.interestIds)) {
+        filters.interestIds.forEach((interestId) => {
+          relatedEntitiesJoinsQuery.andWhere(`interests.id = :interestId`, { interestId });
+        });
+      } else {
+        relatedEntitiesJoinsQuery.andWhere('interests.id = :interestId', { interestId: filters.interestIds });
+      }
+    }
 
     if (filters.institutionId) {
       relatedEntitiesJoinsQuery.andWhere(
