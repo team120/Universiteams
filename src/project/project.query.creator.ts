@@ -102,18 +102,13 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
-      .leftJoin('project.enrollments', 'enrollment')
-      .leftJoin('enrollment.user', 'user')
-      .leftJoin('user.userAffiliations', 'userAffiliation')
-      .leftJoin('userAffiliation.researchDepartment', 'userResearchDepartment')
-      .leftJoin('userResearchDepartment.facility', 'userFacility')
-      .leftJoin('userFacility.institution', 'userInstitution');
+      .leftJoin('project.interests', 'interests');
 
     if (filters.institutionId) {
       relatedEntitiesJoinsQuery.andWhere(
-        `userInstitution.id = :userInstitutionId`,
+        `researchDepartmentInstitution.id = :researchDepartmentInstitutionId`,
         {
-          userInstitutionId: filters.institutionId,
+          researchDepartmentInstitutionId: filters.institutionId,
         },
       );
     }
