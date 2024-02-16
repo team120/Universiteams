@@ -102,15 +102,21 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
-      .leftJoin('project.interests', 'interests');
-    
+      .leftJoin('project.interests', 'interests')
+      .leftJoin('project.enrollments', 'enrollment')
+      .leftJoin('enrollment.user', 'user');
+
     if (filters.interestIds) {
       if (Array.isArray(filters.interestIds)) {
         filters.interestIds.forEach((interestId) => {
-          relatedEntitiesJoinsQuery.andWhere(`interests.id = :interestId`, { interestId });
+          relatedEntitiesJoinsQuery.andWhere(`interests.id = :interestId`, {
+            interestId,
+          });
         });
       } else {
-        relatedEntitiesJoinsQuery.andWhere('interests.id = :interestId', { interestId: filters.interestIds });
+        relatedEntitiesJoinsQuery.andWhere('interests.id = :interestId', {
+          interestId: filters.interestIds,
+        });
       }
     }
 
@@ -140,11 +146,13 @@ export class QueryCreator {
         },
       );
     }
+
     if (filters.type) {
       relatedEntitiesJoinsQuery.andWhere('project.type = :type', {
         type: filters.type,
       });
     }
+
     if (filters.isDown !== undefined) {
       if (filters.isDown === false)
         relatedEntitiesJoinsQuery.andWhere(
@@ -161,11 +169,13 @@ export class QueryCreator {
           },
         );
     }
+
     if (filters.userId) {
       relatedEntitiesJoinsQuery.andWhere('user.id = :userId', {
         userId: filters.userId,
       });
     }
+
     if (filters.dateFrom) {
       relatedEntitiesJoinsQuery.andWhere(
         'project."creationDate" BETWEEN :dateFrom AND :currentDate',
@@ -175,6 +185,7 @@ export class QueryCreator {
         },
       );
     }
+
     if (filters.dateUntil) {
       relatedEntitiesJoinsQuery.andWhere(
         'COALESCE(project."endDate" < :dateUntil, false)',
