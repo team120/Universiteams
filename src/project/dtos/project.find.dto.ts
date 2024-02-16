@@ -40,6 +40,10 @@ export class ProjectFindDto {
   @IsOptional()
   @IsNumber()
   @ExposeType(Number)
+  facilityId?: number;
+  @IsOptional()
+  @IsNumber()
+  @ExposeType(Number)
   institutionId?: number;
   @IsOptional()
   @IsNumber()

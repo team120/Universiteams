@@ -122,6 +122,16 @@ export class QueryCreator {
         },
       );
     }
+
+    if (filters.facilityId) {
+      relatedEntitiesJoinsQuery.andWhere(
+        'researchDepartmentFacility.id = :researchDepartmentFacilityId',
+        {
+          researchDepartmentFacilityId: filters.facilityId,
+        },
+      );
+    }
+
     if (filters.researchDepartmentId) {
       relatedEntitiesJoinsQuery.andWhere(
         'researchDepartment.id = :researchDepartmentId',
