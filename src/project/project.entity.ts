@@ -9,7 +9,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ResearchDepartment } from '../research-department/research-department.entity';
+import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
 import { Bookmark } from '../bookmark/bookmark.entity';
 

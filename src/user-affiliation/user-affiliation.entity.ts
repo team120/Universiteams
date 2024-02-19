@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ResearchDepartment } from '../research-department/research-department.entity';
+import { ResearchDepartment } from '../research-department/department.entity';
 import { User } from '../user/user.entity';
 
 export enum UserAffiliationType {
