@@ -13,6 +13,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { BullModule } from '@nestjs/bull';
+import { FacilityModule } from './facility/facility.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { BullModule } from '@nestjs/bull';
     DatabaseModule,
     AuthModule,
     EmailModule,
+    FacilityModule,
   ],
   controllers: [AppController],
 })
