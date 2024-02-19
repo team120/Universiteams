@@ -102,21 +102,42 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
+      .leftJoin('project.interests', 'interests')
       .leftJoin('project.enrollments', 'enrollment')
-      .leftJoin('enrollment.user', 'user')
-      .leftJoin('user.userAffiliations', 'userAffiliation')
-      .leftJoin('userAffiliation.researchDepartment', 'userResearchDepartment')
-      .leftJoin('userResearchDepartment.facility', 'userFacility')
-      .leftJoin('userFacility.institution', 'userInstitution');
+      .leftJoin('enrollment.user', 'user');
+
+    if (filters.interestIds) {
+      if (Array.isArray(filters.interestIds)) {
+        filters.interestIds.forEach((interestId) => {
+          relatedEntitiesJoinsQuery.andWhere(`interests.id = :interestId`, {
+            interestId,
+          });
+        });
+      } else {
+        relatedEntitiesJoinsQuery.andWhere('interests.id = :interestId', {
+          interestId: filters.interestIds,
+        });
+      }
+    }
 
     if (filters.institutionId) {
       relatedEntitiesJoinsQuery.andWhere(
-        `userInstitution.id = :userInstitutionId`,
+        `researchDepartmentInstitution.id = :researchDepartmentInstitutionId`,
         {
-          userInstitutionId: filters.institutionId,
+          researchDepartmentInstitutionId: filters.institutionId,
         },
       );
     }
+
+    if (filters.facilityId) {
+      relatedEntitiesJoinsQuery.andWhere(
+        'researchDepartmentFacility.id = :researchDepartmentFacilityId',
+        {
+          researchDepartmentFacilityId: filters.facilityId,
+        },
+      );
+    }
+
     if (filters.researchDepartmentId) {
       relatedEntitiesJoinsQuery.andWhere(
         'researchDepartment.id = :researchDepartmentId',
@@ -125,11 +146,13 @@ export class QueryCreator {
         },
       );
     }
+
     if (filters.type) {
       relatedEntitiesJoinsQuery.andWhere('project.type = :type', {
         type: filters.type,
       });
     }
+
     if (filters.isDown !== undefined) {
       if (filters.isDown === false)
         relatedEntitiesJoinsQuery.andWhere(
@@ -146,11 +169,13 @@ export class QueryCreator {
           },
         );
     }
+
     if (filters.userId) {
       relatedEntitiesJoinsQuery.andWhere('user.id = :userId', {
         userId: filters.userId,
       });
     }
+
     if (filters.dateFrom) {
       relatedEntitiesJoinsQuery.andWhere(
         'project."creationDate" BETWEEN :dateFrom AND :currentDate',
@@ -160,6 +185,7 @@ export class QueryCreator {
         },
       );
     }
+
     if (filters.dateUntil) {
       relatedEntitiesJoinsQuery.andWhere(
         'COALESCE(project."endDate" < :dateUntil, false)',
