@@ -108,11 +108,14 @@ export class QueryCreator {
 
     if (filters.interestIds) {
       if (Array.isArray(filters.interestIds)) {
-        filters.interestIds.forEach((interestId) => {
-          relatedEntitiesJoinsQuery.andWhere(`interests.id = :interestId`, {
-            interestId,
+        relatedEntitiesJoinsQuery
+          .andWhere(`interests.id IN (:...interestIds)`, {
+            interestIds: filters.interestIds,
+          })
+          .groupBy('project.id')
+          .having('COUNT(DISTINCT interests.id) = :interestsCount', {
+            interestsCount: filters.interestIds.length,
           });
-        });
       } else {
         relatedEntitiesJoinsQuery.andWhere('interests.id = :interestId', {
           interestId: filters.interestIds,
