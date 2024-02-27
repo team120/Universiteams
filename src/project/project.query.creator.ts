@@ -21,8 +21,6 @@ import { UniqueWordsService } from './unique-words.service';
 export class QueryCreator {
   private sortBy = new Map([
     [SortByProperty.name, 'project.name'],
-    [SortByProperty.researchDepartment, 'researchDepartment.name'],
-    [SortByProperty.facility, 'researchDepartmentFacility.name'],
     [SortByProperty.creationDate, 'project.creationDate'],
   ]);
 
