@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Institution } from '../institution/institution.entity';
-import { ResearchDepartment } from '../research-department/research-department.entity';
+import { ResearchDepartment } from '../research-department/department.entity';
 
 @Entity()
 export class Facility {

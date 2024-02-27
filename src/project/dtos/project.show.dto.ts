@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { ResearchDepartmentShowDto } from '../../research-department/dtos/research-department.show.dto';
+import { ResearchDepartmentShowDto } from '../../research-department/dtos/department.show.dto';
 import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
 import { ProjectType } from '../project.entity';

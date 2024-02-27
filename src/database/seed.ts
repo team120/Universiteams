@@ -4,7 +4,7 @@ import { Facility } from '../facility/facility.entity';
 import { Institution } from '../institution/institution.entity';
 import { Interest } from '../interest/interest.entity';
 import { Project, ProjectType } from '../project/project.entity';
-import { ResearchDepartment } from '../research-department/research-department.entity';
+import { ResearchDepartment } from '../research-department/department.entity';
 import {
   UserAffiliation,
   UserAffiliationType,
