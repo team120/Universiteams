@@ -25,9 +25,3 @@ export class FacilityFindDto {
   @ExposeType(Number)
   limit?: number;
 }
-
-@Exclude()
-export class PaginationAttributes extends PickType(FacilityFindDto, [
-  'limit',
-  'offset',
-]) {}
