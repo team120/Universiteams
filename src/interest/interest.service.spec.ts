@@ -43,7 +43,7 @@ describe('InterestService', () => {
     describe('when find returns an empty array', () => {
       it('should return an empty array', async () => {
         interestRepositoryMock.find.mockResolvedValue([]);
-        const interests = await service.findAll();
+        const interests = await service.find();
         expect(interests).toEqual([]);
         expect(interestRepositoryMock.find).toHaveBeenCalledTimes(1);
       });
@@ -52,7 +52,7 @@ describe('InterestService', () => {
     describe('when an exception is thrown by the repository method', () => {
       it('should throw a db exception', async () => {
         interestRepositoryMock.find.mockRejectedValue(new Error());
-        await service.findAll().catch((error) => {
+        await service.find().catch((error) => {
           expect(error).toBeInstanceOf(DbException);
           expect(error.response).toBe('Internal Server Error');
         });
