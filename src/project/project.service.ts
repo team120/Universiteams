@@ -40,7 +40,7 @@ export class ProjectService {
     this.logger.setContext(ProjectService.name);
   }
 
-  async findProjects(findOptions: ProjectFindDto): Promise<ProjectsResult> {
+  async find(findOptions: ProjectFindDto, currentUser?: CurrentUserWithoutTokens): Promise<ProjectsResult> {
     const filters: ProjectFilters = this.entityMapper.mapValue(
       ProjectFilters,
       findOptions,
@@ -64,6 +64,7 @@ export class ProjectService {
     const extraFiltersAppliedSearchQuery = this.queryCreator.applyExtraFilters(
       filters,
       fuzzyTextSearchQuery,
+      currentUser,
     );
 
     const [sortingAppliedQuery, orderByClause] = this.queryCreator.applySorting(

@@ -21,6 +21,8 @@ export class ProjectInListDto {
   endDate: string;
   @ExposeType(Boolean)
   isDown: boolean;
+  @ExposeType(Boolean)
+  isBookmarked?: boolean;
   @ExposeType(ResearchDepartmentShowDto)
   researchDepartments: ResearchDepartmentShowDto[];
   @ExposeType(InterestShowDto)

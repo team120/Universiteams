@@ -16,6 +16,7 @@ import {
 } from './dtos/project.find.dto';
 import { Project } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
+import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 
 @Injectable()
 export class QueryCreator {
@@ -92,6 +93,7 @@ export class QueryCreator {
   applyExtraFilters(
     filters: ProjectFilters,
     query: SelectQueryBuilder<Project>,
+    currentUser?: CurrentUserWithoutTokens,
   ): SelectQueryBuilder<Project> {
     const relatedEntitiesJoinsQuery = query
       .innerJoin('project.researchDepartments', 'researchDepartment')
@@ -100,18 +102,27 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
-      .leftJoin('project.interests', 'interests')
+      .leftJoin('project.interests', 'interest')
       .leftJoin('project.enrollments', 'enrollment')
       .leftJoin('enrollment.user', 'user');
+
+    if (currentUser) {
+      relatedEntitiesJoinsQuery
+        .leftJoin('project.bookmarks', 'bookmark')
+        .addSelect(
+          `CASE WHEN bookmark.userId IS NOT NULL AND bookmark.userId = ${currentUser.id} THEN TRUE ELSE FALSE END`,
+          'isBookmarked',
+        );
+    }
 
     if (filters.interestIds) {
       if (Array.isArray(filters.interestIds)) {
         relatedEntitiesJoinsQuery
-          .andWhere(`interests.id IN (:...interestIds)`, {
+          .andWhere(`interest.id IN (:...interestIds)`, {
             interestIds: filters.interestIds,
           })
           .groupBy('project.id')
-          .having('COUNT(DISTINCT interests.id) = :interestsCount', {
+          .having('COUNT(DISTINCT interest.id) = :interestsCount', {
             interestsCount: filters.interestIds.length,
           });
       } else {
