@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FacilityService } from './facility.service';
-import { AppValidationPipe } from 'src/utils/validation.pipe';
+import { AppValidationPipe } from '../utils/validation.pipe';
 import { FacilityFindDto } from './dtos/facility.find.dto';
 
 @ApiTags('facilities')

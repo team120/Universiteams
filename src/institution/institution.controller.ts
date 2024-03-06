@@ -2,7 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InstitutionService } from './institution.service';
 import { InstitutionFindDto } from './dtos/institution.find.dto';
-import { AppValidationPipe } from 'src/utils/validation.pipe';
+import { AppValidationPipe } from '../utils/validation.pipe';
 
 @ApiTags('institutions')
 @Controller('institutions')
