@@ -42,7 +42,7 @@ describe('InstitutionService', () => {
     describe('when find returns an empty array', () => {
       it('should return an empty array', async () => {
         institutionRepositoryMock.find.mockResolvedValue([]);
-        const institutions = await service.find();
+        const institutions = await service.find({});
         expect(institutions).toEqual([]);
         expect(institutionRepositoryMock.find).toHaveBeenCalledTimes(1);
       });
@@ -51,7 +51,7 @@ describe('InstitutionService', () => {
     describe('when an exception is thrown by the repository method', () => {
       it('should throw a db exception', async () => {
         institutionRepositoryMock.find.mockRejectedValue(new Error());
-        await service.find().catch((error) => {
+        await service.find({}).catch((error) => {
           expect(error).toBeInstanceOf(DbException);
           expect(error.response).toBe('Internal Server Error');
         });
