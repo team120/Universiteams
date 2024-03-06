@@ -1,26 +1,34 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { IsAuthService } from './is-auth.service';
 import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
-export class IsAuthGuard implements CanActivate {
+export class SetCurrentUserInterceptor implements NestInterceptor {
   constructor(
     private readonly isAuthService: IsAuthService,
     private readonly logger: PinoLogger,
   ) {
-    this.logger.setContext(IsAuthGuard.name);
+    this.logger.setContext(SetCurrentUserInterceptor.name);
   }
 
-  async canActivate(context: ExecutionContext) {
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
     const httpContext = context.switchToHttp();
 
     try {
       await this.isAuthService.setCurrentUser(httpContext);
     } catch (error) {
       this.logger.debug(error);
-      throw error;
     }
 
-    return true;
+    return next.handle();
   }
 }

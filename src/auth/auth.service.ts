@@ -36,7 +36,9 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly verificationMessageService: VerificationMessagesService,
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(AuthService.name);
+  }
 
   async login(loginDto: LoginDto) {
     const user = await this.userRepo
