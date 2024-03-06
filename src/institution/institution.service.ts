@@ -6,6 +6,7 @@ import { DbException } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { InstitutionShowDto } from './dtos/institution.show.dto';
 import { Institution } from './institution.entity';
+import { InstitutionFindDto } from './dtos/institution.find.dto';
 
 @Injectable()
 export class InstitutionService {
@@ -18,10 +19,14 @@ export class InstitutionService {
     this.logger.setContext(InstitutionService.name);
   }
 
-  async findAll(): Promise<InstitutionShowDto[]> {
-    this.logger.debug('Find all universities and their related departments');
+  async find(findOptions: InstitutionFindDto): Promise<InstitutionShowDto[]> {
+    this.logger.debug('Find universities and their related departments');
     const universities = await this.institutionRepository
-      .find({ relations: ['facilities', 'facilities.researchDepartments'] })
+      .find({
+        take: findOptions.limit,
+        skip: findOptions.offset,
+        relations: ['facilities', 'facilities.researchDepartments'],
+      })
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
