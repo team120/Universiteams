@@ -39,7 +39,7 @@ export class Project {
   @Column({ default: false })
   referenceOnly: boolean;
   @Column({ select: false })
-  isBookmarked: boolean;
+  isBookmarked?: boolean;
 
   @ManyToMany(
     () => ResearchDepartment,
