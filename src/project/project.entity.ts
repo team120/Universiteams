@@ -38,6 +38,8 @@ export class Project {
   web: string;
   @Column({ default: false })
   referenceOnly: boolean;
+  @Column({ select: false })
+  isBookmarked: boolean;
 
   @ManyToMany(
     () => ResearchDepartment,
@@ -69,6 +71,7 @@ export class Project {
 
   @Column({ default: 0 })
   bookmarkCount: number;
+
   @OneToMany(() => Bookmark, (bookmark) => bookmark.project, {
     nullable: true,
     cascade: ['insert', 'update'],

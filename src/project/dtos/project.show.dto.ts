@@ -15,6 +15,8 @@ export class ProjectInListDto {
   type: ProjectType;
   @ExposeType(Number)
   userCount: number;
+  @ExposeType(Number)
+  bookmarkCount: number;
   @Expose()
   creationDate: string;
   @Expose()

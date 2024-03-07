@@ -40,7 +40,10 @@ export class ProjectService {
     this.logger.setContext(ProjectService.name);
   }
 
-  async find(findOptions: ProjectFindDto, currentUser?: CurrentUserWithoutTokens): Promise<ProjectsResult> {
+  async find(
+    findOptions: ProjectFindDto,
+    currentUser?: CurrentUserWithoutTokens,
+  ): Promise<ProjectsResult> {
     const filters: ProjectFilters = this.entityMapper.mapValue(
       ProjectFilters,
       findOptions,
@@ -64,31 +67,41 @@ export class ProjectService {
     const extraFiltersAppliedSearchQuery = this.queryCreator.applyExtraFilters(
       filters,
       fuzzyTextSearchQuery,
-      currentUser,
+    );
+    this.logger.debug(
+      { query: extraFiltersAppliedSearchQuery.getSql() },
+      'filtered',
     );
 
     const [sortingAppliedQuery, orderByClause] = this.queryCreator.applySorting(
       sortAttributes,
       extraFiltersAppliedSearchQuery,
     );
+    this.logger.debug({ query: sortingAppliedQuery.getSql() }, 'sorted');
 
     const [paginationAppliedQuery, projectsCount] =
       await this.queryCreator.applyPagination(
         sortingAppliedQuery,
         paginationAttributes,
         orderByClause,
+        currentUser,
       );
+    this.logger.debug(paginationAppliedQuery.getSql());
 
-    const projects = await paginationAppliedQuery
-      .getMany()
-      .then((projects) => projects?.map((p) => this.propCompute.addIsDown(p)))
+    const { entities, raw } = await paginationAppliedQuery
+      .getRawAndEntities()
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
 
+    this.logger.debug(raw[0], 'raw results');
+
     this.logger.debug('Map projects to dto');
     return {
-      projects: this.entityMapper.mapArray(ProjectInListDto, projects),
+      projects: this.entityMapper.mapArray(
+        ProjectInListDto,
+        entities.map((p) => this.propCompute.addIsDown(p)),
+      ),
       projectCount: projectsCount,
       suggestedSearchTerms: suggestedSearchTerms,
     };
@@ -115,13 +128,15 @@ export class ProjectService {
   }
 
   async bookmark(id: number, user: CurrentUserWithoutTokens) {
-    const project = await this.projectRepository.findOne({where: {id: id}});
+    const project = await this.projectRepository.findOne({ where: { id: id } });
     if (!project) throw new NotFound('Id does not match with any project');
 
-    const bookmark = await this.bookmarkRepository.findOne({where: {
-      projectId: project.id,
-      userId: user.id,
-    }});
+    const bookmark = await this.bookmarkRepository.findOne({
+      where: {
+        projectId: project.id,
+        userId: user.id,
+      },
+    });
     if (bookmark)
       throw new BadRequest(
         'This project has been already bookmarked by this user',

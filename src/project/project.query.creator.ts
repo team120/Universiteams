@@ -93,7 +93,6 @@ export class QueryCreator {
   applyExtraFilters(
     filters: ProjectFilters,
     query: SelectQueryBuilder<Project>,
-    currentUser?: CurrentUserWithoutTokens,
   ): SelectQueryBuilder<Project> {
     const relatedEntitiesJoinsQuery = query
       .innerJoin('project.researchDepartments', 'researchDepartment')
@@ -105,15 +104,6 @@ export class QueryCreator {
       .leftJoin('project.interests', 'interest')
       .leftJoin('project.enrollments', 'enrollment')
       .leftJoin('enrollment.user', 'user');
-
-    if (currentUser) {
-      relatedEntitiesJoinsQuery
-        .leftJoin('project.bookmarks', 'bookmark')
-        .addSelect(
-          `CASE WHEN bookmark.userId IS NOT NULL AND bookmark.userId = ${currentUser.id} THEN TRUE ELSE FALSE END`,
-          'isBookmarked',
-        );
-    }
 
     if (filters.interestIds) {
       if (Array.isArray(filters.interestIds)) {
@@ -206,7 +196,6 @@ export class QueryCreator {
         },
       );
     }
-    this.logger.debug(relatedEntitiesJoinsQuery.getSql());
 
     return relatedEntitiesJoinsQuery;
   }
@@ -228,10 +217,24 @@ export class QueryCreator {
     return [query.orderBy(sortByProperty, orderDirection), orderByClause];
   }
 
+  /**
+   * applyPagination is a method that applies pagination to a query.
+   * First, a list of project ids is obtained from the sortedAndFilteredProjectsSubquery.
+   * Then, the project count is obtained from the subqueryProjectIds.
+   * Finally, the finalPaginatedQuery is created by joining the sortedAndFilteredProjectsSubquery with the subqueryProjectIds,
+   * applying additional projections and joins to the finalPaginatedQuery.
+   *
+   * @param sortedAndFilteredProjectsSubquery - The subquery with sorted and filtered projects
+   * @param paginationAttributes - The attributes for pagination
+   * @param orderByClause - The clause for ordering
+   * @param currentUser - The current user
+   * @returns A promise that resolves to a tuple containing the final paginated query and the project count
+   */
   async applyPagination(
     sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
     paginationAttributes: PaginationAttributes,
     orderByClause?: string,
+    currentUser?: CurrentUserWithoutTokens,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
     const subqueryProjectIds = sortedAndFilteredProjectsSubquery
       .select(
@@ -267,10 +270,20 @@ export class QueryCreator {
       .leftJoinAndSelect('project.interests', 'projectInterests')
       .leftJoinAndSelect('project.enrollments', 'enrollment')
       .leftJoinAndSelect('enrollment.user', 'user')
+      // Only embed users with leader or admin role
       .where(`enrollment is null OR enrollment.role = '${ProjectRole.Leader}'`)
       .orWhere(`enrollment is null OR enrollment.role = '${ProjectRole.Admin}'`)
       .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
+
+    if (currentUser) {
+      finalPaginatedQuery
+        .leftJoin('project.bookmarks', 'bookmark')
+        .addSelect(
+          `CASE WHEN bookmark.userId IS NOT NULL AND bookmark.userId = ${currentUser.id} THEN TRUE ELSE FALSE END`,
+          'project_isBookmarked',
+        );
+    }
 
     return [finalPaginatedQuery, projectCount];
   }
