@@ -68,16 +68,11 @@ export class ProjectService {
       filters,
       fuzzyTextSearchQuery,
     );
-    this.logger.debug(
-      { query: extraFiltersAppliedSearchQuery.getSql() },
-      'filtered',
-    );
 
     const [sortingAppliedQuery, orderByClause] = this.queryCreator.applySorting(
       sortAttributes,
       extraFiltersAppliedSearchQuery,
     );
-    this.logger.debug({ query: sortingAppliedQuery.getSql() }, 'sorted');
 
     const [paginationAppliedQuery, projectsCount] =
       await this.queryCreator.applyPagination(
@@ -86,21 +81,18 @@ export class ProjectService {
         orderByClause,
         currentUser,
       );
-    this.logger.debug(paginationAppliedQuery.getSql());
 
-    const { entities, raw } = await paginationAppliedQuery
-      .getRawAndEntities()
+    const projects = await paginationAppliedQuery
+      .getMany()
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
-
-    this.logger.debug(raw[0], 'raw results');
 
     this.logger.debug('Map projects to dto');
     return {
       projects: this.entityMapper.mapArray(
         ProjectInListDto,
-        entities.map((p) => this.propCompute.addIsDown(p)),
+        projects.map((p) => this.propCompute.addIsDown(p)),
       ),
       projectCount: projectsCount,
       suggestedSearchTerms: suggestedSearchTerms,
