@@ -218,7 +218,6 @@ export class QueryCreator {
   }
 
   /**
-   * applyPagination is a method that applies pagination to a query.
    * First, a list of project ids is obtained from the sortedAndFilteredProjectsSubquery.
    * Then, the project count is obtained from the subqueryProjectIds.
    * Finally, the finalPaginatedQuery is created by joining the sortedAndFilteredProjectsSubquery with the subqueryProjectIds,
@@ -230,7 +229,7 @@ export class QueryCreator {
    * @param currentUser - The current user
    * @returns A promise that resolves to a tuple containing the final paginated query and the project count
    */
-  async applyPagination(
+  async applyPaginationAndProjections(
     sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
     paginationAttributes: PaginationAttributes,
     orderByClause?: string,

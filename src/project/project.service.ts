@@ -75,7 +75,7 @@ export class ProjectService {
     );
 
     const [paginationAppliedQuery, projectsCount] =
-      await this.queryCreator.applyPagination(
+      await this.queryCreator.applyPaginationAndProjections(
         sortingAppliedQuery,
         paginationAttributes,
         orderByClause,
