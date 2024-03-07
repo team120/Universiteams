@@ -38,7 +38,7 @@ export class Project {
   web: string;
   @Column({ default: false })
   referenceOnly: boolean;
-  @Column({ select: false })
+  @Column({ select: false, nullable: true })
   isBookmarked?: boolean;
 
   @ManyToMany(
