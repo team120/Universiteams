@@ -301,11 +301,16 @@ export class QueryCreator {
 
     if (currentUser) {
       finalPaginatedQuery
-        .leftJoin('project.bookmarks', 'bookmark')
+        .leftJoin(
+          'project.bookmarks',
+          'bookmark',
+          'bookmark.userId = :userId and bookmark.projectId = project.id',
+        )
         .addSelect(
-          `CASE WHEN bookmark.userId IS NOT NULL AND bookmark.userId = ${currentUser.id} THEN TRUE ELSE FALSE END`,
+          `CASE WHEN bookmark.userId = :userId THEN TRUE ELSE FALSE END`,
           'project_isBookmarked',
-        );
+        )
+        .setParameter('userId', currentUser.id);
     }
 
     return [finalPaginatedQuery, projectCount];
