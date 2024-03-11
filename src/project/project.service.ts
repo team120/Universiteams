@@ -157,4 +157,41 @@ export class ProjectService {
       `Project#${project.id} successfully increased its bookmark count`,
     );
   }
+
+  async unbookmark(id: number, user: CurrentUserWithoutTokens) {
+    const project = await this.projectRepository.findOne({ where: { id: id } });
+    if (!project) throw new NotFound('Id does not match with any project');
+
+    const bookmark = await this.bookmarkRepository.findOne({
+      where: {
+        projectId: project.id,
+        userId: user.id,
+      },
+    });
+    if (!bookmark)
+      throw new BadRequest('This project has not been bookmarked by this user');
+
+    await this.bookmarkRepository
+      .delete({
+        projectId: project.id,
+        userId: user.id,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully unbookmarked by user#${user.id}`,
+    );
+
+    await this.projectRepository
+      .update(project.id, {
+        bookmarkCount: project.bookmarkCount - 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully decreased its bookmark count`,
+    );
+  }
 }

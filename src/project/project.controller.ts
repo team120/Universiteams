@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -45,5 +46,15 @@ export class ProjectController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     await this.projectService.bookmark(id, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Delete('bookmark/:id')
+  async unbookmark(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.projectService.unbookmark(id, request.currentUser);
   }
 }
