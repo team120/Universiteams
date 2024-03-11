@@ -67,6 +67,7 @@ export class ProjectService {
     const extraFiltersAppliedSearchQuery = this.queryCreator.applyExtraFilters(
       filters,
       fuzzyTextSearchQuery,
+      currentUser,
     );
 
     const [sortingAppliedQuery, orderByClause] = this.queryCreator.applySorting(

@@ -7,7 +7,7 @@ import {
   CURRENT_DATE_SERVICE,
   ICurrentDateService,
 } from '../utils/current-date';
-import { DbException } from '../utils/exceptions/exceptions';
+import { BadRequest, DbException } from '../utils/exceptions/exceptions';
 import {
   ProjectFilters,
   PaginationAttributes,
@@ -93,6 +93,7 @@ export class QueryCreator {
   applyExtraFilters(
     filters: ProjectFilters,
     query: SelectQueryBuilder<Project>,
+    currentUser?: CurrentUserWithoutTokens,
   ): SelectQueryBuilder<Project> {
     const relatedEntitiesJoinsQuery = query
       .innerJoin('project.researchDepartments', 'researchDepartment')
@@ -170,6 +171,29 @@ export class QueryCreator {
             currentDate: this.currentDate.get(),
           },
         );
+    }
+
+    if (filters.isBookmarked !== undefined) {
+      this.logger.debug('Applying bookmark filter');
+
+      if (!currentUser) {
+        throw new BadRequest('User must be provided to filter by bookmark');
+      }
+
+      relatedEntitiesJoinsQuery.leftJoin('project.bookmarks', 'bookmark');
+
+      if (filters.isBookmarked === true) {
+        relatedEntitiesJoinsQuery.andWhere('bookmark.userId = :userId', {
+          userId: currentUser.id,
+        });
+      } else {
+        relatedEntitiesJoinsQuery.andWhere(
+          'bookmark.userId IS NULL OR bookmark.userId != :userId',
+          {
+            userId: currentUser.id,
+          },
+        );
+      }
     }
 
     if (filters.userId) {

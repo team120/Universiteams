@@ -34,6 +34,11 @@ export class ProjectFindDto {
   @Expose()
   isDown?: boolean;
   @IsOptional()
+  @IsBoolean()
+  @ParseOptionalBoolean()
+  @Expose()
+  isBookmarked?: boolean;
+  @IsOptional()
   @IsNumber()
   @ExposeType(Number)
   researchDepartmentId?: number;
