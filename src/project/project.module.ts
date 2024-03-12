@@ -7,7 +7,6 @@ import {
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { ProjectController } from './project.controller';
 import { Project } from './project.entity';
-import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
 import { UniqueWordsService } from './unique-words.service';
@@ -27,7 +26,6 @@ import { Favorite } from '../favorite/favorite.entity';
     ProjectService,
     QueryCreator,
     UniqueWordsService,
-    ProjectPropCompute,
     { provide: CURRENT_DATE_SERVICE, useClass: CurrentDateService },
   ],
 })
