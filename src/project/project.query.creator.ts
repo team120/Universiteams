@@ -180,7 +180,13 @@ export class QueryCreator {
         throw new BadRequest('User must be provided to filter by favorite');
       }
 
-      relatedEntitiesJoinsQuery.leftJoin('project.favorites', 'favorite');
+      relatedEntitiesJoinsQuery
+        .leftJoin(
+          'project.favorites',
+          'favorite',
+          'favorite.userId = :userId and favorite.projectId = project.id',
+        )
+        .setParameter('userId', currentUser.id);
 
       if (filters.isFavorite === true) {
         relatedEntitiesJoinsQuery.andWhere('favorite.userId = :userId', {
