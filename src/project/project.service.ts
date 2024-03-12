@@ -132,7 +132,7 @@ export class ProjectService {
     });
     if (favorite)
       throw new BadRequest(
-        'This project has been already fav by this user',
+        'This project has been already favorited by this user',
       );
 
     await this.favoriteRepository
