@@ -7,7 +7,6 @@ import { CurrentDateServiceMock } from '../utils/current-date.mock';
 import { DbException, NotFound } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { Project } from './project.entity';
-import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
 
@@ -23,7 +22,6 @@ describe('ProjectService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProjectService,
-        ProjectPropCompute,
         {
           provide: getRepositoryToken(Project),
           useValue: {},
