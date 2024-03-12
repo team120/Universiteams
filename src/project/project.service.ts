@@ -22,7 +22,6 @@ import {
   ProjectsResult,
 } from './dtos/project.show.dto';
 import { Project } from './project.entity';
-import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 
 @Injectable()
@@ -35,7 +34,6 @@ export class ProjectService {
     private readonly queryCreator: QueryCreator,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
-    private readonly propCompute: ProjectPropCompute,
   ) {
     this.logger.setContext(ProjectService.name);
   }
@@ -91,10 +89,7 @@ export class ProjectService {
 
     this.logger.debug('Map projects to dto');
     return {
-      projects: this.entityMapper.mapArray(
-        ProjectInListDto,
-        projects.map((p) => this.propCompute.addIsDown(p)),
-      ),
+      projects: this.entityMapper.mapArray(ProjectInListDto, projects),
       projectCount: projectsCount,
       suggestedSearchTerms: suggestedSearchTerms,
     };
@@ -106,12 +101,9 @@ export class ProjectService {
     );
     const projectFindOneQuery = this.queryCreator.findOne(id);
 
-    const project = await projectFindOneQuery
-      .getOne()
-      .then((p) => this.propCompute.addIsDown(p))
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
+    const project = await projectFindOneQuery.getOne().catch((err: Error) => {
+      throw new DbException(err.message, err.stack);
+    });
 
     this.logger.debug(`Project ${project?.id} found`);
     if (!project) throw new NotFound('Id does not match with any project');

@@ -14,7 +14,7 @@ import {
   ProjectSortAttributes,
   SortByProperty,
 } from './dtos/project.find.dto';
-import { Project, isFavoriteColumn } from './project.entity';
+import { Project, isDownColumn, isFavoriteColumn } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 
@@ -282,6 +282,11 @@ export class QueryCreator {
 
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
+      .addSelect(
+        'COALESCE(project."endDate" < :currentDate, false)',
+        isDownColumn,
+      )
+      .setParameter('currentDate', this.currentDate.get())
       .innerJoin(
         `(${subqueryProjectIds.getQuery()})`,
         'projectIds',

@@ -19,6 +19,7 @@ export enum ProjectType {
 }
 
 export const isFavoriteColumn = 'project_isFavorite';
+export const isDownColumn = 'project_isDown';
 
 @Entity()
 export class Project {
@@ -40,7 +41,9 @@ export class Project {
   web: string;
   @Column({ default: false })
   referenceOnly: boolean;
-  @Column({ select: false, nullable: true})
+  @Column({ select: false, nullable: true })
+  isDown: boolean;
+  @Column({ select: false, nullable: true })
   isFavorite?: boolean;
 
   @ManyToMany(
