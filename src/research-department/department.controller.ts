@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AppValidationPipe } from 'src/utils/validation.pipe';
+import { AppValidationPipe } from '../utils/validation.pipe';
 import { ResearchDepartmentFindDto } from './dtos/department.find.dto';
 import { ResearchDepartmentService } from './department.service';
 

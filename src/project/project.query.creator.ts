@@ -7,15 +7,16 @@ import {
   CURRENT_DATE_SERVICE,
   ICurrentDateService,
 } from '../utils/current-date';
-import { DbException } from '../utils/exceptions/exceptions';
+import { BadRequest, DbException } from '../utils/exceptions/exceptions';
 import {
   ProjectFilters,
   PaginationAttributes,
   ProjectSortAttributes,
   SortByProperty,
 } from './dtos/project.find.dto';
-import { Project } from './project.entity';
+import { Project, isDownColumn, isFavoriteColumn } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
+import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 
 @Injectable()
 export class QueryCreator {
@@ -92,6 +93,7 @@ export class QueryCreator {
   applyExtraFilters(
     filters: ProjectFilters,
     query: SelectQueryBuilder<Project>,
+    currentUser?: CurrentUserWithoutTokens,
   ): SelectQueryBuilder<Project> {
     const relatedEntitiesJoinsQuery = query
       .innerJoin('project.researchDepartments', 'researchDepartment')
@@ -100,18 +102,18 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
-      .leftJoin('project.interests', 'interests')
+      .leftJoin('project.interests', 'interest')
       .leftJoin('project.enrollments', 'enrollment')
       .leftJoin('enrollment.user', 'user');
 
     if (filters.interestIds) {
       if (Array.isArray(filters.interestIds)) {
         relatedEntitiesJoinsQuery
-          .andWhere(`interests.id IN (:...interestIds)`, {
+          .andWhere(`interest.id IN (:...interestIds)`, {
             interestIds: filters.interestIds,
           })
           .groupBy('project.id')
-          .having('COUNT(DISTINCT interests.id) = :interestsCount', {
+          .having('COUNT(DISTINCT interest.id) = :interestsCount', {
             interestsCount: filters.interestIds.length,
           });
       } else {
@@ -171,6 +173,35 @@ export class QueryCreator {
         );
     }
 
+    if (filters.isFavorite !== undefined) {
+      this.logger.debug('Applying favorite filter');
+
+      if (!currentUser) {
+        throw new BadRequest('User must be provided to filter by favorite');
+      }
+
+      relatedEntitiesJoinsQuery
+        .leftJoin(
+          'project.favorites',
+          'favorite',
+          'favorite.userId = :userId and favorite.projectId = project.id',
+        )
+        .setParameter('userId', currentUser.id);
+
+      if (filters.isFavorite === true) {
+        relatedEntitiesJoinsQuery.andWhere('favorite.userId = :userId', {
+          userId: currentUser.id,
+        });
+      } else {
+        relatedEntitiesJoinsQuery.andWhere(
+          'favorite.userId IS NULL OR favorite.userId != :userId',
+          {
+            userId: currentUser.id,
+          },
+        );
+      }
+    }
+
     if (filters.userId) {
       relatedEntitiesJoinsQuery.andWhere('user.id = :userId', {
         userId: filters.userId,
@@ -195,7 +226,6 @@ export class QueryCreator {
         },
       );
     }
-    this.logger.debug(relatedEntitiesJoinsQuery.getSql());
 
     return relatedEntitiesJoinsQuery;
   }
@@ -217,10 +247,23 @@ export class QueryCreator {
     return [query.orderBy(sortByProperty, orderDirection), orderByClause];
   }
 
-  async applyPagination(
+  /**
+   * First, a list of project ids is obtained from the sortedAndFilteredProjectsSubquery.
+   * Then, the project count is obtained from the subqueryProjectIds.
+   * Finally, the finalPaginatedQuery is created by joining the sortedAndFilteredProjectsSubquery with the subqueryProjectIds,
+   * applying additional projections and joins to the finalPaginatedQuery.
+   *
+   * @param sortedAndFilteredProjectsSubquery - The subquery with sorted and filtered projects
+   * @param paginationAttributes - The attributes for pagination
+   * @param orderByClause - The clause for ordering
+   * @param currentUser - The current user
+   * @returns A promise that resolves to a tuple containing the final paginated query and the project count
+   */
+  async applyPaginationAndProjections(
     sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
     paginationAttributes: PaginationAttributes,
     orderByClause?: string,
+    currentUser?: CurrentUserWithoutTokens,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
     const subqueryProjectIds = sortedAndFilteredProjectsSubquery
       .select(
@@ -239,6 +282,11 @@ export class QueryCreator {
 
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
+      .addSelect(
+        'COALESCE(project."endDate" < :currentDate, false)',
+        isDownColumn,
+      )
+      .setParameter('currentDate', this.currentDate.get())
       .innerJoin(
         `(${subqueryProjectIds.getQuery()})`,
         'projectIds',
@@ -256,10 +304,25 @@ export class QueryCreator {
       .leftJoinAndSelect('project.interests', 'projectInterests')
       .leftJoinAndSelect('project.enrollments', 'enrollment')
       .leftJoinAndSelect('enrollment.user', 'user')
+      // Only embed users with leader or admin role
       .where(`enrollment is null OR enrollment.role = '${ProjectRole.Leader}'`)
       .orWhere(`enrollment is null OR enrollment.role = '${ProjectRole.Admin}'`)
       .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
+
+    if (currentUser) {
+      finalPaginatedQuery
+        .leftJoin(
+          'project.favorites',
+          'favorite',
+          'favorite.userId = :userId and favorite.projectId = project.id',
+        )
+        .addSelect(
+          `CASE WHEN favorite.userId = :userId THEN TRUE ELSE FALSE END`,
+          isFavoriteColumn,
+        )
+        .setParameter('userId', currentUser.id);
+    }
 
     return [finalPaginatedQuery, projectCount];
   }

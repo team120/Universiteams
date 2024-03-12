@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { CurrentUserDto } from '../../src/auth/dtos/current-user.dto';
-import { Bookmark } from '../../src/bookmark/bookmark.entity';
+import { Favorite } from '../../src/favorite/favorite.entity';
 import { Project } from '../../src/project/project.entity';
 import { createProjectTestingApp } from './project.e2e.module';
 import * as cookieParser from 'cookie-parser';
@@ -31,7 +31,7 @@ describe('Project Actions (e2e)', () => {
     await app.close();
   });
 
-  describe('Bookmark', () => {
+  describe('Favorite', () => {
     describe('when token', () => {
       describe('is valid', () => {
         const projectId = 1;
@@ -45,51 +45,51 @@ describe('Project Actions (e2e)', () => {
             loginResult = res.body;
             accessTokenCookie = res.header['set-cookie'][0];
           });
-          describe("hasn't been already bookmarked by user", () => {
-            it('should return status code 201 and the bookmark should be reflected in db', async () => {
+          describe("hasn't been already favorited by user", () => {
+            it('should return status code 201 and the favorite should be reflected in db', async () => {
               const res = await request(app.getHttpServer())
-                .post(`/projects/bookmark/${projectId}`)
+                .post(`/projects/favorite/${projectId}`)
                 .set('Cookie', accessTokenCookie);
               expect(res.status).toBe(201);
 
-              const bookmark = await conn
-                .getRepository(Bookmark)
+              const favorite = await conn
+                .getRepository(Favorite)
                 .findOne({where: { projectId: projectId, userId: loginResult.id }});
-              expect(bookmark.projectId).toBeDefined();
+              expect(favorite.projectId).toBeDefined();
             });
           });
-          describe('has been already bookmarked by user', () => {
-            it('should return status code 201 and the bookmark should be reflected in db', async () => {
+          describe('has been already favorited by user', () => {
+            it('should return status code 201 and the favorite should be reflected in db', async () => {
               await request(app.getHttpServer())
-                .post(`/projects/bookmark/${projectId}`)
+                .post(`/projects/favorite/${projectId}`)
                 .set('Cookie', accessTokenCookie);
 
-              const secondBookmarkTryRes = await request(app.getHttpServer())
-                .post(`/projects/bookmark/${projectId}`)
+              const secondfavoriteTryRes = await request(app.getHttpServer())
+                .post(`/projects/favorite/${projectId}`)
                 .set('Cookie', accessTokenCookie);
-              expect(secondBookmarkTryRes.status).toBe(400);
-              expect(secondBookmarkTryRes.body.message).toBe(
-                'This project has been already bookmarked by this user',
+              expect(secondfavoriteTryRes.status).toBe(400);
+              expect(secondfavoriteTryRes.body.message).toBe(
+                'This project has been already favorited by this user',
               );
 
-              const bookmarkCount = await conn
-                .getRepository(Bookmark)
+              const favoriteCount = await conn
+                .getRepository(Favorite)
                 .count({where: { projectId: projectId, userId: loginResult.id }});
-              expect(bookmarkCount).toBe(1);
+              expect(favoriteCount).toBe(1);
             });
           });
           afterEach(async () => {
             const project = await conn
               .getRepository(Project)
               .findOne({where: {id: projectId}});
-            expect(project.bookmarkCount).toBe(1);
+            expect(project.favoriteCount).toBe(1);
 
             await conn
-              .getRepository(Bookmark)
+              .getRepository(Favorite)
               .delete({ projectId: projectId, userId: loginResult.id });
             await conn
               .getRepository(Project)
-              .update(projectId, { bookmarkCount: project.bookmarkCount - 1 });
+              .update(projectId, { favoriteCount: project.favoriteCount - 1 });
           });
         });
         describe("but the user hasn't verified its email", () => {
@@ -104,24 +104,24 @@ describe('Project Actions (e2e)', () => {
           });
           it('should return Unauthorized', async () => {
             const res = await request(app.getHttpServer())
-              .post(`/projects/bookmark/${projectId}`)
+              .post(`/projects/favorite/${projectId}`)
               .set('Cookie', accessTokenCookie);
 
             expect(res.status).toBe(401);
             expect(res.body.message).toBe('Unauthorized');
           });
           afterEach(async () => {
-            const bookmark = await conn
-              .getRepository(Bookmark)
+            const favorite = await conn
+              .getRepository(Favorite)
               .findOne({where: { projectId: projectId, userId: loginResult.id }});
-            expect(bookmark).toBeNull();
+            expect(favorite).toBeNull();
           });
         });
       });
       describe('is not sent', () => {
         it('should return Unauthorized', async () => {
           await request(app.getHttpServer())
-            .post('/projects/bookmark/1')
+            .post('/projects/favorite/1')
             .then((res) => {
               expect(res.status).toBe(401);
               expect(res.body.message).toBe('Unauthorized');
@@ -135,7 +135,7 @@ describe('Project Actions (e2e)', () => {
           'accessToken=Bearer%20eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlciI6Ikp1YW4gUml6em8iLCJlbWFpbxQGV4YW1wbGUuY29tIiwiaWF0IjoxNjQ1NDIxMDB9.4IMEns6VuUJhYz_kgCn1PbMX_cAD_t2sfVXPQIHNqlk; Path=/; Expires=Thu, 24 Feb 2022 08:11:16 GMT; HttpOnly; SameSite=Strict',
         ])('should return Unauthorized', async (cookie: string) => {
           await request(app.getHttpServer())
-            .post('/projects/bookmark/1')
+            .post('/projects/favorite/1')
             .set('Cookie', cookie)
             .then((res) => {
               expect(res.status).toBe(401);
@@ -166,9 +166,9 @@ describe('Project Actions (e2e)', () => {
 
                 tokenExpirationTimes.restore();
               });
-              it('should bookmark the project and provide fresh tokens as response cookies', async () => {
+              it('should favorite the project and provide fresh tokens as response cookies', async () => {
                 const res = await request(app.getHttpServer())
-                  .post(`/projects/bookmark/${projectId}`)
+                  .post(`/projects/favorite/${projectId}`)
                   .set(
                     'Cookie',
                     `${validRefreshTokenCookie}; ${expiredAccessTokenCookie}`,
@@ -176,10 +176,10 @@ describe('Project Actions (e2e)', () => {
 
                 expect(res.status).toBe(201);
 
-                const bookmark = await conn
-                  .getRepository(Bookmark)
+                const favorite = await conn
+                  .getRepository(Favorite)
                   .findOne({where: { projectId: projectId, userId: loginResult.id }});
-                expect(bookmark.projectId).toBeDefined();
+                expect(favorite.projectId).toBeDefined();
 
                 const newAccessTokenCookie = setCookieParser.parse(
                   res.header['set-cookie'][0],
@@ -193,13 +193,13 @@ describe('Project Actions (e2e)', () => {
                 const project = await conn
                   .getRepository(Project)
                   .findOne({where: {id: projectId}});
-                expect(project.bookmarkCount).toBe(1);
+                expect(project.favoriteCount).toBe(1);
 
                 await conn
-                  .getRepository(Bookmark)
+                  .getRepository(Favorite)
                   .delete({ projectId: projectId, userId: loginResult.id });
                 await conn.getRepository(Project).update(projectId, {
-                  bookmarkCount: project.bookmarkCount - 1,
+                  favoriteCount: project.favoriteCount - 1,
                 });
               });
             });
@@ -221,7 +221,7 @@ describe('Project Actions (e2e)', () => {
               });
               it('should return Unauthorized', async () => {
                 const res = await request(app.getHttpServer())
-                  .post(`/projects/bookmark/${projectId}`)
+                  .post(`/projects/favorite/${projectId}`)
                   .set(
                     'Cookie',
                     `${expiredAccessTokenCookie}; ${validRefreshTokenCookie}`,
@@ -231,10 +231,10 @@ describe('Project Actions (e2e)', () => {
                 expect(res.body.message).toBe('Unauthorized');
               });
               afterEach(async () => {
-                const bookmark = await conn
-                  .getRepository(Bookmark)
+                const favorite = await conn
+                  .getRepository(Favorite)
                   .findOne({where: { projectId: projectId, userId: loginResult.id }});
-                expect(bookmark).toBeNull();
+                expect(favorite).toBeNull();
               });
             });
           });
@@ -258,7 +258,7 @@ describe('Project Actions (e2e)', () => {
             describe('is not provided', () => {
               it('should return Unauthorized', async () => {
                 await request(app.getHttpServer())
-                  .post(`/projects/bookmark/${projectId}`)
+                  .post(`/projects/favorite/${projectId}`)
                   .set('Cookie', expiredAccessTokenCookie)
                   .then((res) => {
                     expect(res.status).toBe(401);
@@ -282,7 +282,7 @@ describe('Project Actions (e2e)', () => {
               });
               it('should return Unauthorized', async () => {
                 await request(app.getHttpServer())
-                  .post(`/projects/bookmark/${projectId}`)
+                  .post(`/projects/favorite/${projectId}`)
                   .set('Cookie', expiredAccessTokenCookie)
                   .set('Cookie', expiredRefreshTokenCookie)
                   .then((res) => {
@@ -294,7 +294,7 @@ describe('Project Actions (e2e)', () => {
             describe('is incorrectly formatted', () => {
               it('should return Unauthorized', async () => {
                 await request(app.getHttpServer())
-                  .post(`/projects/bookmark/${projectId}`)
+                  .post(`/projects/favorite/${projectId}`)
                   .set('Cookie', expiredAccessTokenCookie)
                   .set(
                     'Cookie',
@@ -307,10 +307,10 @@ describe('Project Actions (e2e)', () => {
               });
             });
             afterEach(async () => {
-              const bookmark = await conn
-                .getRepository(Bookmark)
+              const favorite = await conn
+                .getRepository(Favorite)
                 .findOne({where: { projectId: projectId, userId: loginResult.id }});
-              expect(bookmark).toBeNull();
+              expect(favorite).toBeNull();
             });
           });
         });

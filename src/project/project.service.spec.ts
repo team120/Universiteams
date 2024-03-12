@@ -1,13 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Bookmark } from '../bookmark/bookmark.entity';
+import { Favorite } from '../favorite/favorite.entity';
 import { CURRENT_DATE_SERVICE } from '../utils/current-date';
 import { CurrentDateServiceMock } from '../utils/current-date.mock';
 import { DbException, NotFound } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { Project } from './project.entity';
-import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
 
@@ -23,13 +22,12 @@ describe('ProjectService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProjectService,
-        ProjectPropCompute,
         {
           provide: getRepositoryToken(Project),
           useValue: {},
         },
         {
-          provide: getRepositoryToken(Bookmark),
+          provide: getRepositoryToken(Favorite),
           useValue: {},
         },
         {

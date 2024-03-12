@@ -1,9 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InterestService } from './interest.service';
-import { AppValidationPipe } from 'src/utils/validation.pipe';
+import { AppValidationPipe } from '../utils/validation.pipe';
 import { InterestFindDto } from './dtos/interest.find.dto';
-import { Interest } from './interest.entity';
 
 @ApiTags('interests')
 @Controller('interests')

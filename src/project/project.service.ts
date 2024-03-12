@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
-import { Bookmark } from '../bookmark/bookmark.entity';
+import { Favorite } from '../favorite/favorite.entity';
 import {
   BadRequest,
   DbException,
@@ -22,7 +22,6 @@ import {
   ProjectsResult,
 } from './dtos/project.show.dto';
 import { Project } from './project.entity';
-import { ProjectPropCompute } from './project.prop-compute';
 import { QueryCreator } from './project.query.creator';
 
 @Injectable()
@@ -30,17 +29,19 @@ export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(Bookmark)
-    private readonly bookmarkRepository: Repository<Bookmark>,
+    @InjectRepository(Favorite)
+    private readonly favoriteRepository: Repository<Favorite>,
     private readonly queryCreator: QueryCreator,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
-    private readonly propCompute: ProjectPropCompute,
   ) {
     this.logger.setContext(ProjectService.name);
   }
 
-  async findProjects(findOptions: ProjectFindDto): Promise<ProjectsResult> {
+  async find(
+    findOptions: ProjectFindDto,
+    currentUser?: CurrentUserWithoutTokens,
+  ): Promise<ProjectsResult> {
     const filters: ProjectFilters = this.entityMapper.mapValue(
       ProjectFilters,
       findOptions,
@@ -64,6 +65,7 @@ export class ProjectService {
     const extraFiltersAppliedSearchQuery = this.queryCreator.applyExtraFilters(
       filters,
       fuzzyTextSearchQuery,
+      currentUser,
     );
 
     const [sortingAppliedQuery, orderByClause] = this.queryCreator.applySorting(
@@ -72,15 +74,15 @@ export class ProjectService {
     );
 
     const [paginationAppliedQuery, projectsCount] =
-      await this.queryCreator.applyPagination(
+      await this.queryCreator.applyPaginationAndProjections(
         sortingAppliedQuery,
         paginationAttributes,
         orderByClause,
+        currentUser,
       );
 
     const projects = await paginationAppliedQuery
       .getMany()
-      .then((projects) => projects?.map((p) => this.propCompute.addIsDown(p)))
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
@@ -99,12 +101,9 @@ export class ProjectService {
     );
     const projectFindOneQuery = this.queryCreator.findOne(id);
 
-    const project = await projectFindOneQuery
-      .getOne()
-      .then((p) => this.propCompute.addIsDown(p))
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
+    const project = await projectFindOneQuery.getOne().catch((err: Error) => {
+      throw new DbException(err.message, err.stack);
+    });
 
     this.logger.debug(`Project ${project?.id} found`);
     if (!project) throw new NotFound('Id does not match with any project');
@@ -113,20 +112,22 @@ export class ProjectService {
     return this.entityMapper.mapValue(ProjectSingleDto, project);
   }
 
-  async bookmark(id: number, user: CurrentUserWithoutTokens) {
-    const project = await this.projectRepository.findOne({where: {id: id}});
+  async favorite(id: number, user: CurrentUserWithoutTokens) {
+    const project = await this.projectRepository.findOne({ where: { id: id } });
     if (!project) throw new NotFound('Id does not match with any project');
 
-    const bookmark = await this.bookmarkRepository.findOne({where: {
-      projectId: project.id,
-      userId: user.id,
-    }});
-    if (bookmark)
+    const favorite = await this.favoriteRepository.findOne({
+      where: {
+        projectId: project.id,
+        userId: user.id,
+      },
+    });
+    if (favorite)
       throw new BadRequest(
-        'This project has been already bookmarked by this user',
+        'This project has been already favorited by this user',
       );
 
-    await this.bookmarkRepository
+    await this.favoriteRepository
       .insert({
         projectId: project.id,
         userId: user.id,
@@ -135,18 +136,55 @@ export class ProjectService {
         throw new DbException(e.message, e.stack);
       });
     this.logger.debug(
-      `Project#${project.id} successfully bookmarked by user#${user.id}`,
+      `Project#${project.id} successfully favorite by user#${user.id}`,
     );
 
     await this.projectRepository
       .update(project.id, {
-        bookmarkCount: project.bookmarkCount + 1,
+        favoriteCount: project.favoriteCount + 1,
       })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
     this.logger.debug(
-      `Project#${project.id} successfully increased its bookmark count`,
+      `Project#${project.id} successfully increased its favorite count`,
+    );
+  }
+
+  async unfavorite(id: number, user: CurrentUserWithoutTokens) {
+    const project = await this.projectRepository.findOne({ where: { id: id } });
+    if (!project) throw new NotFound('Id does not match with any project');
+
+    const favorite = await this.favoriteRepository.findOne({
+      where: {
+        projectId: project.id,
+        userId: user.id,
+      },
+    });
+    if (!favorite)
+      throw new BadRequest('This project has not been favorited by this user');
+
+    await this.favoriteRepository
+      .delete({
+        projectId: project.id,
+        userId: user.id,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully unfavorited by user#${user.id}`,
+    );
+
+    await this.projectRepository
+      .update(project.id, {
+        favoriteCount: project.favoriteCount - 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully decreased its favorite count`,
     );
   }
 }

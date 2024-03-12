@@ -11,12 +11,15 @@ import {
 } from 'typeorm';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
-import { Bookmark } from '../bookmark/bookmark.entity';
+import { Favorite } from '../favorite/favorite.entity';
 
 export enum ProjectType {
   Informal = 'Informal',
   Formal = 'Formal',
 }
+
+export const isFavoriteColumn = 'project_isFavorite';
+export const isDownColumn = 'project_isDown';
 
 @Entity()
 export class Project {
@@ -38,6 +41,10 @@ export class Project {
   web: string;
   @Column({ default: false })
   referenceOnly: boolean;
+  @Column({ select: false, nullable: true })
+  isDown: boolean;
+  @Column({ select: false, nullable: true })
+  isFavorite?: boolean;
 
   @ManyToMany(
     () => ResearchDepartment,
@@ -68,11 +75,12 @@ export class Project {
   interests: Interest[];
 
   @Column({ default: 0 })
-  bookmarkCount: number;
-  @OneToMany(() => Bookmark, (bookmark) => bookmark.project, {
+  favoriteCount: number;
+
+  @OneToMany(() => Favorite, (favorite) => favorite.project, {
     nullable: true,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
-  bookmarks: Bookmark[];
+  favorites: Favorite[];
 }

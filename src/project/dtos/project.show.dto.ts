@@ -15,12 +15,16 @@ export class ProjectInListDto {
   type: ProjectType;
   @ExposeType(Number)
   userCount: number;
+  @ExposeType(Number)
+  favoriteCount: number;
   @Expose()
   creationDate: string;
   @Expose()
   endDate: string;
   @ExposeType(Boolean)
   isDown: boolean;
+  @ExposeType(Boolean)
+  isFavorite?: boolean;
   @ExposeType(ResearchDepartmentShowDto)
   researchDepartments: ResearchDepartmentShowDto[];
   @ExposeType(InterestShowDto)

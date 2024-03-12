@@ -1,6 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { IsOptional, IsNumber, Min } from 'class-validator';
-import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
+import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 @Exclude()
 export class InstitutionFindDto {
