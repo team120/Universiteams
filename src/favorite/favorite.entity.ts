@@ -3,16 +3,16 @@ import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
 
 @Entity()
-export class Bookmark {
+export class Favorite {
   @PrimaryColumn()
   projectId: number;
-  @ManyToOne(() => Project, (project) => project.bookmarks)
+  @ManyToOne(() => Project, (project) => project.favorites)
   @JoinColumn({ name: 'projectId' })
   project: Project;
 
   @PrimaryColumn()
   userId: number;
-  @ManyToOne(() => User, (user) => user.bookmarks)
+  @ManyToOne(() => User, (user) => user.favorites)
   @JoinColumn({ name: 'userId' })
   user: User;
 }

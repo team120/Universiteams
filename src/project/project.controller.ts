@@ -40,21 +40,21 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Post('bookmark/:id')
-  async bookmark(
+  @Post('favorite/:id')
+  async favorite(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    await this.projectService.bookmark(id, request.currentUser);
+    await this.projectService.favorite(id, request.currentUser);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Delete('bookmark/:id')
-  async unbookmark(
+  @Delete('favorite/:id')
+  async unfavorite(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    await this.projectService.unbookmark(id, request.currentUser);
+    await this.projectService.unfavorite(id, request.currentUser);
   }
 }

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Bookmark } from '../bookmark/bookmark.entity';
+import { Favorite } from '../favorite/favorite.entity';
 import { CURRENT_DATE_SERVICE } from '../utils/current-date';
 import { CurrentDateServiceMock } from '../utils/current-date.mock';
 import { DbException, NotFound } from '../utils/exceptions/exceptions';
@@ -29,7 +29,7 @@ describe('ProjectService', () => {
           useValue: {},
         },
         {
-          provide: getRepositoryToken(Bookmark),
+          provide: getRepositoryToken(Favorite),
           useValue: {},
         },
         {

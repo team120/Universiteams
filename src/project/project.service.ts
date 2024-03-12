@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
-import { Bookmark } from '../bookmark/bookmark.entity';
+import { Favorite } from '../favorite/favorite.entity';
 import {
   BadRequest,
   DbException,
@@ -30,8 +30,8 @@ export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(Bookmark)
-    private readonly bookmarkRepository: Repository<Bookmark>,
+    @InjectRepository(Favorite)
+    private readonly favoriteRepository: Repository<Favorite>,
     private readonly queryCreator: QueryCreator,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
@@ -120,22 +120,22 @@ export class ProjectService {
     return this.entityMapper.mapValue(ProjectSingleDto, project);
   }
 
-  async bookmark(id: number, user: CurrentUserWithoutTokens) {
+  async favorite(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({ where: { id: id } });
     if (!project) throw new NotFound('Id does not match with any project');
 
-    const bookmark = await this.bookmarkRepository.findOne({
+    const favorite = await this.favoriteRepository.findOne({
       where: {
         projectId: project.id,
         userId: user.id,
       },
     });
-    if (bookmark)
+    if (favorite)
       throw new BadRequest(
-        'This project has been already bookmarked by this user',
+        'This project has been already fav by this user',
       );
 
-    await this.bookmarkRepository
+    await this.favoriteRepository
       .insert({
         projectId: project.id,
         userId: user.id,
@@ -144,35 +144,35 @@ export class ProjectService {
         throw new DbException(e.message, e.stack);
       });
     this.logger.debug(
-      `Project#${project.id} successfully bookmarked by user#${user.id}`,
+      `Project#${project.id} successfully favorite by user#${user.id}`,
     );
 
     await this.projectRepository
       .update(project.id, {
-        bookmarkCount: project.bookmarkCount + 1,
+        favoriteCount: project.favoriteCount + 1,
       })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
     this.logger.debug(
-      `Project#${project.id} successfully increased its bookmark count`,
+      `Project#${project.id} successfully increased its favorite count`,
     );
   }
 
-  async unbookmark(id: number, user: CurrentUserWithoutTokens) {
+  async unfavorite(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({ where: { id: id } });
     if (!project) throw new NotFound('Id does not match with any project');
 
-    const bookmark = await this.bookmarkRepository.findOne({
+    const favorite = await this.favoriteRepository.findOne({
       where: {
         projectId: project.id,
         userId: user.id,
       },
     });
-    if (!bookmark)
-      throw new BadRequest('This project has not been bookmarked by this user');
+    if (!favorite)
+      throw new BadRequest('This project has not been favorited by this user');
 
-    await this.bookmarkRepository
+    await this.favoriteRepository
       .delete({
         projectId: project.id,
         userId: user.id,
@@ -181,18 +181,18 @@ export class ProjectService {
         throw new DbException(e.message, e.stack);
       });
     this.logger.debug(
-      `Project#${project.id} successfully unbookmarked by user#${user.id}`,
+      `Project#${project.id} successfully unfavorited by user#${user.id}`,
     );
 
     await this.projectRepository
       .update(project.id, {
-        bookmarkCount: project.bookmarkCount - 1,
+        favoriteCount: project.favoriteCount - 1,
       })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
     this.logger.debug(
-      `Project#${project.id} successfully decreased its bookmark count`,
+      `Project#${project.id} successfully decreased its favorite count`,
     );
   }
 }

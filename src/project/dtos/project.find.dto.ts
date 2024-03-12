@@ -37,7 +37,7 @@ export class ProjectFindDto {
   @IsBoolean()
   @ParseOptionalBoolean()
   @Expose()
-  isBookmarked?: boolean;
+  isFavorite?: boolean;
   @IsOptional()
   @IsNumber()
   @ExposeType(Number)

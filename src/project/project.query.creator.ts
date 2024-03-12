@@ -14,7 +14,7 @@ import {
   ProjectSortAttributes,
   SortByProperty,
 } from './dtos/project.find.dto';
-import { Project } from './project.entity';
+import { Project, isFavoriteColumn } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 
@@ -173,22 +173,22 @@ export class QueryCreator {
         );
     }
 
-    if (filters.isBookmarked !== undefined) {
-      this.logger.debug('Applying bookmark filter');
+    if (filters.isFavorite !== undefined) {
+      this.logger.debug('Applying favorite filter');
 
       if (!currentUser) {
-        throw new BadRequest('User must be provided to filter by bookmark');
+        throw new BadRequest('User must be provided to filter by favorite');
       }
 
-      relatedEntitiesJoinsQuery.leftJoin('project.bookmarks', 'bookmark');
+      relatedEntitiesJoinsQuery.leftJoin('project.favorites', 'favorite');
 
-      if (filters.isBookmarked === true) {
-        relatedEntitiesJoinsQuery.andWhere('bookmark.userId = :userId', {
+      if (filters.isFavorite === true) {
+        relatedEntitiesJoinsQuery.andWhere('favorite.userId = :userId', {
           userId: currentUser.id,
         });
       } else {
         relatedEntitiesJoinsQuery.andWhere(
-          'bookmark.userId IS NULL OR bookmark.userId != :userId',
+          'favorite.userId IS NULL OR favorite.userId != :userId',
           {
             userId: currentUser.id,
           },
@@ -302,13 +302,13 @@ export class QueryCreator {
     if (currentUser) {
       finalPaginatedQuery
         .leftJoin(
-          'project.bookmarks',
-          'bookmark',
-          'bookmark.userId = :userId and bookmark.projectId = project.id',
+          'project.favorites',
+          'favorite',
+          'favorite.userId = :userId and favorite.projectId = project.id',
         )
         .addSelect(
-          `CASE WHEN bookmark.userId = :userId THEN TRUE ELSE FALSE END`,
-          'project_isBookmarked',
+          `CASE WHEN favorite.userId = :userId THEN TRUE ELSE FALSE END`,
+          isFavoriteColumn,
         )
         .setParameter('userId', currentUser.id);
     }

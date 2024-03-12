@@ -16,7 +16,7 @@ export class ProjectInListDto {
   @ExposeType(Number)
   userCount: number;
   @ExposeType(Number)
-  bookmarkCount: number;
+  favoriteCount: number;
   @Expose()
   creationDate: string;
   @Expose()
@@ -24,7 +24,7 @@ export class ProjectInListDto {
   @ExposeType(Boolean)
   isDown: boolean;
   @ExposeType(Boolean)
-  isBookmarked?: boolean;
+  isFavorite?: boolean;
   @ExposeType(ResearchDepartmentShowDto)
   researchDepartments: ResearchDepartmentShowDto[];
   @ExposeType(InterestShowDto)
