@@ -117,7 +117,7 @@ export class QueryCreator {
             interestsCount: filters.interestIds.length,
           });
       } else {
-        relatedEntitiesJoinsQuery.andWhere('interests.id = :interestId', {
+        relatedEntitiesJoinsQuery.andWhere('interest.id = :interestId', {
           interestId: filters.interestIds,
         });
       }
@@ -274,6 +274,7 @@ export class QueryCreator {
       .groupBy('project.id')
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
+    this.logger.info(subqueryProjectIds.getSql());
     const projectCount = await subqueryProjectIds
       .getCount()
       .catch((err: Error) => {
