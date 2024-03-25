@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
   Req,
@@ -26,6 +27,8 @@ import { RegisterDto } from './dtos/register.dto';
 import { VerifyDto } from './dtos/verify.dto';
 import { IsAuthGuard } from './is-auth.guard';
 import { TokenService } from './token.service';
+import { Unauthorized } from '../utils/exceptions/exceptions';
+import { IsAuthService } from './is-auth.service';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -33,6 +36,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
+    private readonly isAuthService: IsAuthService,
     private readonly entityMapper: EntityMapperService,
   ) {}
 
@@ -105,5 +109,14 @@ export class AuthController {
     @Body(AppValidationPipe) resetPasswordDto: ResetPasswordDto,
   ) {
     await this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Get('me')
+  async getCurrentUser(@Req() request: RequestWithUser) {
+    if (!request.cookies) throw new Unauthorized('Cookie not provided');
+
+    return this.isAuthService.getCurrentUserDisplayInfo(
+      request.cookies['accessToken'],
+    );
   }
 }

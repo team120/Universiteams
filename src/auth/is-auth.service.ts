@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Unauthorized } from '../utils/exceptions/exceptions';
@@ -18,6 +18,23 @@ export class IsAuthService {
     private readonly tokenService: TokenService,
     private readonly entityMapper: EntityMapperService,
   ) {}
+
+  getCurrentUserDisplayInfo = (accessTokenCookie: string) => {
+    const accessToken: string | undefined = accessTokenCookie?.replace(
+      'Bearer ',
+      '',
+    );
+
+    if (!accessToken) throw new Unauthorized('AccessToken cookie not provided');
+
+    const accessTokenVerificationResult =
+      this.tokenService.checkAccessToken(accessToken);
+
+    if (!accessTokenVerificationResult.isValid)
+      throw new Unauthorized('Not valid access token');
+
+    return accessTokenVerificationResult.decodedToken;
+  };
 
   async setCurrentUser(httpContext: HttpArgumentsHost) {
     const request: RequestWithUser = httpContext.getRequest();
