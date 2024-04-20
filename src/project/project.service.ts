@@ -23,6 +23,7 @@ import {
 } from './dtos/project.show.dto';
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
+import { Enrollment, RequestState } from '../enrollment/enrolment.entity';
 
 @Injectable()
 export class ProjectService {
@@ -31,6 +32,8 @@ export class ProjectService {
     private readonly projectRepository: Repository<Project>,
     @InjectRepository(Favorite)
     private readonly favoriteRepository: Repository<Favorite>,
+    @InjectRepository(Enrollment)
+    private readonly enrollmentRepository: Repository<Enrollment>,
     private readonly queryCreator: QueryCreator,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
@@ -185,6 +188,43 @@ export class ProjectService {
       });
     this.logger.debug(
       `Project#${project.id} successfully decreased its favorite count`,
+    );
+  }
+
+  async requestEnroll(projectId: number, user: CurrentUserWithoutTokens) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+    });
+    if (!project) throw new NotFound('Id does not match with any project');
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: user.id,
+        },
+      },
+    });
+    if (enrollment)
+      throw new BadRequest('This user is already enrolled in this project');
+
+    await this.enrollmentRepository
+      .insert({
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: user.id,
+        },
+        requestState: RequestState.Pending,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully requested enrollment by user#${user.id}`,
     );
   }
 }

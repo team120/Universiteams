@@ -8,12 +8,20 @@ export enum ProjectRole {
   Member = 'Member',
 }
 
+export enum RequestState {
+  Pending = 'Pending',
+  Accepted = 'Accepted',
+  Rejected = 'Rejected',
+}
+
 @Entity()
 export class Enrollment {
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ default: ProjectRole.Member })
   role: ProjectRole;
+  @Column({ default: RequestState.Pending })
+  requestState: RequestState;
   @ManyToOne(() => User, (user) => user.enrollments, {
     nullable: false,
     cascade: ['insert', 'update'],

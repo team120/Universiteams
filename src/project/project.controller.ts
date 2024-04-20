@@ -57,4 +57,14 @@ export class ProjectController {
   ) {
     await this.projectService.unfavorite(id, request.currentUser);
   }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Post('request-enroll/:id')
+  async enroll(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.projectService.requestEnroll(id, request.currentUser);
+  }
 }
