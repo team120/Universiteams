@@ -274,7 +274,18 @@ export class QueryCreator {
       .groupBy('project.id')
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
-    this.logger.info(subqueryProjectIds.getSql());
+
+    if (currentUser) {
+      subqueryProjectIds
+        .leftJoin('project.favorites', 'favorite', 'favorite.userId = :userId')
+        .addSelect(
+          `CASE WHEN favorite.userId = :userId THEN TRUE ELSE FALSE END`,
+          isFavoriteColumn,
+        )
+        .addGroupBy('favorite.userId')
+        .setParameter('userId', currentUser.id);
+    }
+
     const projectCount = await subqueryProjectIds
       .getCount()
       .catch((err: Error) => {
@@ -312,17 +323,7 @@ export class QueryCreator {
       .setParameters(subqueryProjectIds.getParameters());
 
     if (currentUser) {
-      finalPaginatedQuery
-        .leftJoin(
-          'project.favorites',
-          'favorite',
-          'favorite.userId = :userId and favorite.projectId = project.id',
-        )
-        .addSelect(
-          `CASE WHEN favorite.userId = :userId THEN TRUE ELSE FALSE END`,
-          isFavoriteColumn,
-        )
-        .setParameter('userId', currentUser.id);
+      finalPaginatedQuery.addSelect(`"projectIds"."${isFavoriteColumn}"`);
     }
 
     return [finalPaginatedQuery, projectCount];
