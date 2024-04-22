@@ -1,4 +1,4 @@
-import { Enrollment } from '../enrollment/enrolment.entity';
+import { Enrollment, RequestState } from '../enrollment/enrolment.entity';
 import {
   Column,
   CreateDateColumn,
@@ -20,6 +20,7 @@ export enum ProjectType {
 
 export const isFavoriteColumn = 'project_isFavorite';
 export const isDownColumn = 'project_isDown';
+export const requestStateColumn = 'project_requestState';
 
 @Entity()
 export class Project {
@@ -45,6 +46,8 @@ export class Project {
   isDown: boolean;
   @Column({ select: false, nullable: true })
   isFavorite?: boolean;
+  @Column({ select: false, nullable: true })
+  requestState?: RequestState;
 
   @ManyToMany(
     () => ResearchDepartment,

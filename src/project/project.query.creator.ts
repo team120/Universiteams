@@ -14,7 +14,12 @@ import {
   ProjectSortAttributes,
   SortByProperty,
 } from './dtos/project.find.dto';
-import { Project, isDownColumn, isFavoriteColumn } from './project.entity';
+import {
+  Project,
+  isDownColumn,
+  isFavoriteColumn,
+  requestStateColumn,
+} from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 
@@ -275,14 +280,24 @@ export class QueryCreator {
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
 
+    let subqueryCurrentUserData: SelectQueryBuilder<Project>;
     if (currentUser) {
-      subqueryProjectIds
-        .leftJoin('project.favorites', 'favorite', 'favorite.userId = :userId')
+      subqueryCurrentUserData = this.initialProjectQuery()
+        .select('project.id as id')
         .addSelect(
           `CASE WHEN favorite.userId = :userId THEN TRUE ELSE FALSE END`,
           isFavoriteColumn,
         )
+        .addSelect('enrollment.requestState', requestStateColumn)
+        .leftJoin('project.favorites', 'favorite', 'favorite.userId = :userId')
+        .leftJoin(
+          'project.enrollments',
+          'enrollment',
+          'enrollment.userId = :userId',
+        )
+        .groupBy('project.id')
         .addGroupBy('favorite.userId')
+        .addGroupBy('enrollment.requestState')
         .setParameter('userId', currentUser.id);
     }
 
@@ -323,7 +338,15 @@ export class QueryCreator {
       .setParameters(subqueryProjectIds.getParameters());
 
     if (currentUser) {
-      finalPaginatedQuery.addSelect(`"projectIds"."${isFavoriteColumn}"`);
+      finalPaginatedQuery
+        .innerJoin(
+          `(${subqueryCurrentUserData.getQuery()})`,
+          'currentUserData',
+          'project.id = "currentUserData".id',
+        )
+        .addSelect(`"currentUserData"."${isFavoriteColumn}"`)
+        .addSelect(`"currentUserData"."${requestStateColumn}"`)
+        .setParameters(subqueryCurrentUserData.getParameters());
     }
 
     return [finalPaginatedQuery, projectCount];

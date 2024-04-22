@@ -4,6 +4,7 @@ import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
 import { ProjectType } from '../project.entity';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
+import { RequestState } from '../../enrollment/enrolment.entity';
 
 @Exclude()
 export class ProjectInListDto {
@@ -25,6 +26,8 @@ export class ProjectInListDto {
   isDown: boolean;
   @ExposeType(Boolean)
   isFavorite?: boolean;
+  @Expose()
+  requestState?: RequestState;
   @ExposeType(ResearchDepartmentShowDto)
   researchDepartments: ResearchDepartmentShowDto[];
   @ExposeType(InterestShowDto)
