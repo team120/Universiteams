@@ -232,6 +232,22 @@ export class QueryCreator {
       );
     }
 
+    if (filters.requestState) {
+      if (!currentUser) {
+        throw new BadRequest(
+          'User must be provided to filter by request state',
+        );
+      }
+
+      relatedEntitiesJoinsQuery
+        .andWhere('enrollment.userId = :userId', {
+          userId: currentUser.id,
+        })
+        .andWhere('enrollment.requestState = :requestState', {
+          requestState: filters.requestState,
+        });
+    }
+
     return relatedEntitiesJoinsQuery;
   }
 

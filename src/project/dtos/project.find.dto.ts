@@ -12,6 +12,7 @@ import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { IsAfter } from '../../utils/decorators/is-after.validator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
+import { RequestState } from '../../enrollment/enrolment.entity';
 
 export enum SortByProperty {
   name = 'name',
@@ -54,6 +55,10 @@ export class ProjectFindDto {
   @IsNumber()
   @ExposeType(Number)
   userId?: number;
+  @IsOptional()
+  @IsEnum(RequestState)
+  @Expose()
+  requestState?: RequestState;
   @IsOptional()
   @IsNumber({}, { each: true })
   @ExposeType(Number)
