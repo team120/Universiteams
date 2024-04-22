@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2';
-import { Enrollment, ProjectRole } from '../enrollment/enrolment.entity';
+import { Enrollment, ProjectRole, RequestState } from '../enrollment/enrolment.entity';
 import { Facility } from '../facility/facility.entity';
 import { Institution } from '../institution/institution.entity';
 import { Interest } from '../interest/interest.entity';
@@ -402,10 +402,12 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.rizzoJuan,
+            requestState: RequestState.Accepted,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.villaCamila,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
         ],
@@ -421,20 +423,24 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.villaCamila,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Admin,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.sanchezMarcos,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.dellepianeJuan,
+            requestState: RequestState.Accepted,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.albaJuan,
+            requestState: RequestState.Accepted,
           }),
         ],
       }),
@@ -450,6 +456,7 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.fanaroJose,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
         ],
@@ -467,6 +474,7 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.beniaSol,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
         ],
@@ -489,15 +497,18 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.musoSebastian,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.obregonMario,
+            requestState: RequestState.Accepted,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.lizcovichHernan,
+            requestState: RequestState.Accepted,
           }),
         ],
       }),
@@ -517,15 +528,18 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.chiavoniMarcela,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.albaJuan,
+            requestState: RequestState.Accepted,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.dellepianeJuan,
+            requestState: RequestState.Accepted,
           }),
         ],
       }),
@@ -541,6 +555,7 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.martinezRosa,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
         ],
@@ -561,15 +576,18 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.bernalPablo,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.albaJuan,
+            requestState: RequestState.Accepted,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.rizzoJuan,
+            requestState: RequestState.Accepted,
           }),
         ],
       }),
@@ -586,6 +604,7 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.scaniaNicola,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
         ],
@@ -602,11 +621,13 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.scaniaNicola,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.lizcovichHernan,
+            requestState: RequestState.Accepted,
           }),
         ],
       }),
@@ -623,11 +644,13 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.albaJuan,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.rizzoJuan,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Admin,
           }),
         ],
@@ -645,15 +668,18 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.bernalPablo,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.inmhofCamila,
+            requestState: RequestState.Accepted,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.alcazarPablo,
+            requestState: RequestState.Accepted,
           }),
         ],
       }),
@@ -674,11 +700,13 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.federEdgardo,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.troiloAlessandro,
+            requestState: RequestState.Accepted,
           }),
         ],
       }),
@@ -697,20 +725,24 @@ export class Seed {
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.denarisSilvia,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Leader,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.sanchezMarcos,
+            requestState: RequestState.Accepted,
             role: ProjectRole.Admin,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.dellepianeJuan,
+            requestState: RequestState.Accepted,
           }),
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
             user: users.troiloAlessandro,
+            requestState: RequestState.Accepted,
           }),
         ],
       }),
