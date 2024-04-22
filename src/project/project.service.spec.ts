@@ -9,6 +9,7 @@ import { SerializationModule } from '../utils/serialization/serialization.module
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
+import { Enrollment } from '../enrollment/enrolment.entity';
 
 describe('ProjectService', () => {
   let service: ProjectService;
@@ -28,6 +29,10 @@ describe('ProjectService', () => {
         },
         {
           provide: getRepositoryToken(Favorite),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(Enrollment),
           useValue: {},
         },
         {
