@@ -57,8 +57,8 @@ export class IsValidPasswordValidator implements ValidatorConstraintInterface {
     );
   }
 
-  defaultMessage({ property }: ValidationArguments) {
-    const startingMessage = `${property} debe cumplir al menos 4 de las 5 pautas contiguas:`;
+  defaultMessage() {
+    const startingMessage = `La clave debe cumplir al menos 4 de las 5 pautas contiguas:`;
     const validationLabels = requirements.map(
       (requirement) => requirement.label,
     );
