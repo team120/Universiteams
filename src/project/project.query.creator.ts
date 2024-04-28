@@ -189,19 +189,19 @@ export class QueryCreator {
         .leftJoin(
           'project.favorites',
           'favorite',
-          'favorite.userId = :userId and favorite.projectId = project.id',
+          'favorite.userId = :currentUserId and favorite.projectId = project.id',
         )
-        .setParameter('userId', currentUser.id);
+        .setParameter('currentUserId', currentUser.id);
 
       if (filters.isFavorite === true) {
-        relatedEntitiesJoinsQuery.andWhere('favorite.userId = :userId', {
-          userId: currentUser.id,
+        relatedEntitiesJoinsQuery.andWhere('favorite.userId = :currentUserId', {
+          currentUserId: currentUser.id,
         });
       } else {
         relatedEntitiesJoinsQuery.andWhere(
-          'favorite.userId IS NULL OR favorite.userId != :userId',
+          'favorite.userId IS NULL OR favorite.userId != :currentUserId',
           {
-            userId: currentUser.id,
+            currentUserId: currentUser.id,
           },
         );
       }
@@ -240,8 +240,8 @@ export class QueryCreator {
       }
 
       relatedEntitiesJoinsQuery
-        .andWhere('enrollment.userId = :userId', {
-          userId: currentUser.id,
+        .andWhere('enrollment.userId = :currentUserId', {
+          currentUserId: currentUser.id,
         })
         .andWhere('enrollment.requestState = :requestState', {
           requestState: filters.requestState,
@@ -296,27 +296,6 @@ export class QueryCreator {
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
 
-    let subqueryCurrentUserData: SelectQueryBuilder<Project>;
-    if (currentUser) {
-      subqueryCurrentUserData = this.initialProjectQuery()
-        .select('project.id as id')
-        .addSelect(
-          `CASE WHEN favorite.userId = :userId THEN TRUE ELSE FALSE END`,
-          isFavoriteColumn,
-        )
-        .addSelect('enrollment.requestState', requestStateColumn)
-        .leftJoin('project.favorites', 'favorite', 'favorite.userId = :userId')
-        .leftJoin(
-          'project.enrollments',
-          'enrollment',
-          'enrollment.userId = :userId',
-        )
-        .groupBy('project.id')
-        .addGroupBy('favorite.userId')
-        .addGroupBy('enrollment.requestState')
-        .setParameter('userId', currentUser.id);
-    }
-
     const projectCount = await subqueryProjectIds
       .getCount()
       .catch((err: Error) => {
@@ -354,6 +333,28 @@ export class QueryCreator {
       .setParameters(subqueryProjectIds.getParameters());
 
     if (currentUser) {
+      const subqueryCurrentUserData = this.initialProjectQuery()
+        .select('project.id as id')
+        .addSelect(
+          `CASE WHEN favorite.userId = :currentUserId THEN TRUE ELSE FALSE END`,
+          isFavoriteColumn,
+        )
+        .addSelect('enrollment.requestState', requestStateColumn)
+        .leftJoin(
+          'project.favorites',
+          'favorite',
+          'favorite.userId = :currentUserId',
+        )
+        .leftJoin(
+          'project.enrollments',
+          'enrollment',
+          'enrollment.userId = :currentUserId',
+        )
+        .groupBy('project.id')
+        .addGroupBy('favorite.userId')
+        .addGroupBy('enrollment.requestState')
+        .setParameter('currentUserId', currentUser.id);
+
       finalPaginatedQuery
         .innerJoin(
           `(${subqueryCurrentUserData.getQuery()})`,
