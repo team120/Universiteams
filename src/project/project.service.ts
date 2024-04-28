@@ -229,4 +229,40 @@ export class ProjectService {
       `Project#${project.id} successfully requested enrollment by user#${user.id}`,
     );
   }
+
+  async cancelEnroll(projectId: number, user: CurrentUserWithoutTokens) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+    });
+    if (!project) throw new NotFound('Id does not match with any project');
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: user.id,
+        },
+      },
+    });
+    if (!enrollment)
+      throw new BadRequest('This user is not enrolled in this project');
+
+    await this.enrollmentRepository
+      .softDelete({
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: user.id,
+        },
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully canceled enrollment by user#${user.id}`,
+    );
+  }
 }

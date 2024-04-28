@@ -60,11 +60,21 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Post('request-enroll/:id')
+  @Post('enroll-request/:id')
   async enroll(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ) {
     await this.projectService.requestEnroll(id, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Delete('enroll/:id')
+  async cancelEnroll(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.projectService.cancelEnroll(id, request.currentUser);
   }
 }
