@@ -290,10 +290,7 @@ describe('auth', () => {
             .then(async (res) => {
               expect(res.status).toBe(400);
               expect(res.body.message).toContain(
-                'password must be longer than or equal to 8 characters',
-              );
-              expect(res.body.message).toContain(
-                'password must include at least: one uppercase alphabetic character, one number, one non-alphanumeric character (#,$,%,etc)',
+                'La clave debe cumplir al menos 4 de las 5 pautas contiguas:Tiene al menos 8 caracteres, Incluye un número, Incluye una letra minúscula, Incluye una letra mayúscula, Incluye un símbolo especial',
               );
               expect(res.body.accessToken).not.toBeDefined();
 
@@ -316,7 +313,7 @@ describe('auth', () => {
             .then(async (res) => {
               expect(res.status).toBe(400);
               expect(res.body.message[0]).toBe(
-                'password must include at least: one number, one non-alphanumeric character (#,$,%,etc)',
+                'La clave debe cumplir al menos 4 de las 5 pautas contiguas:Tiene al menos 8 caracteres, Incluye un número, Incluye una letra minúscula, Incluye una letra mayúscula, Incluye un símbolo especial',
               );
               expect(res.body.accessToken).not.toBeDefined();
 
@@ -338,9 +335,6 @@ describe('auth', () => {
             .send(registrationAttempt)
             .then(async (res) => {
               expect(res.status).toBe(400);
-              expect(res.body.message).toContain(
-                'password must include at least: one non-alphanumeric character (#,$,%,etc)',
-              );
               expect(res.body.message).toContain('email must be an email');
               expect(res.body.accessToken).not.toBeDefined();
 
@@ -670,24 +664,19 @@ describe('auth', () => {
     });
 
     describe('when password is invalid', () => {
-      it('should return BadRequest',
-        async () => {
-          const res = await request(app.getHttpServer())
-            .post('/auth/reset-password')
-            .send({
-              password: 'Password87',
-              verificationToken: 'asasoheqjleqlhkjqelkhjHOJkljh',
-            });
+      it('should return BadRequest', async () => {
+        const res = await request(app.getHttpServer())
+          .post('/auth/reset-password')
+          .send({
+            password: 'Password87',
+            verificationToken: 'asasoheqjleqlhkjqelkhjHOJkljh',
+          });
 
-          expect(res.status).toBe(400);
-          expect(res.body.message).toContain(
-            'password must include at least: one non-alphanumeric character (#,$,%,etc)',
-          );
-          expect(res.body.message).toContain(
-            'verificationToken must be a jwt string',
-          );
-        },
-      );
+        expect(res.status).toBe(400);
+        expect(res.body.message).toContain(
+          'verificationToken must be a jwt string',
+        );
+      });
     });
     describe('when embedded email address in jwt token is either not a verified email or is not associated with a personal user account', () => {
       it('should return BadRequest', async () => {
@@ -700,14 +689,14 @@ describe('auth', () => {
             email: 'other@example.com',
           })
           .then((url) => url.split('token=')[1]);
-  
+
         const res = await request(app.getHttpServer())
           .post('/auth/reset-password')
           .send({
             password: 'Password_14',
             verificationToken: verificationTokenInUrl,
           } as ResetPasswordDto);
-  
+
         expect(res.status).toBe(400);
         expect(res.body.message).toBe(
           'That address is either not a verified email or is not associated with a personal user account',
