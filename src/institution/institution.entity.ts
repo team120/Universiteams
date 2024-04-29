@@ -1,10 +1,21 @@
-import { PrimaryGeneratedColumn, Column, OneToMany, Entity } from 'typeorm';
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  Entity,
+  CreateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 import { Facility } from '../facility/facility.entity';
 
 @Entity()
 export class Institution {
   @PrimaryGeneratedColumn()
   id: number;
+  @CreateDateColumn({ type: 'date' })
+  creationDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @Column()
   name: string;
   @Column()

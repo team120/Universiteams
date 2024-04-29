@@ -1,5 +1,7 @@
 import {
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
@@ -12,6 +14,10 @@ import { ResearchDepartment } from '../research-department/department.entity';
 export class Facility {
   @PrimaryGeneratedColumn()
   id: number;
+  @CreateDateColumn({ type: 'date' })
+  creationDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @Column()
   name: string;
   @Column()

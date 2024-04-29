@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
 
@@ -18,6 +18,10 @@ export enum RequestState {
 export class Enrollment {
   @PrimaryGeneratedColumn()
   id: number;
+  @CreateDateColumn({ type: 'date' })
+  creationDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @Column({ default: ProjectRole.Member })
   role: ProjectRole;
   @Column({ default: RequestState.Pending })

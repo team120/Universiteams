@@ -7,6 +7,8 @@ import {
   OneToMany,
   JoinTable,
   Generated,
+  CreateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Interest } from '../interest/interest.entity';
@@ -16,6 +18,10 @@ import { Favorite } from '../favorite/favorite.entity';
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
+  @CreateDateColumn({ type: 'date' })
+  creationDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @Column({ unique: true })
   email: string;
   @Column({ default: false })

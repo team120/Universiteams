@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
 
@@ -6,6 +13,10 @@ import { User } from '../user/user.entity';
 export class Interest {
   @PrimaryGeneratedColumn()
   id: number;
+  @CreateDateColumn({ type: 'date' })
+  creationDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @Column()
   name: string;
   @Column({ default: 0 })

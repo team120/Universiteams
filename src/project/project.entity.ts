@@ -26,14 +26,14 @@ export const requestStateColumn = 'project_requestState';
 export class Project {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column()
-  name: string;
   @CreateDateColumn({ type: 'date' })
   creationDate: string;
-  @Column({ type: 'date', nullable: true })
-  endDate: string;
   @DeleteDateColumn()
   logicalDeleteDate: Date;
+  @Column()
+  name: string;
+  @Column({ type: 'date', nullable: true })
+  endDate: string;
   @Column()
   type: ProjectType;
   @Column({ default: 'spanish' })
