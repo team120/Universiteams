@@ -24,6 +24,7 @@ import {
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { Enrollment, RequestState } from '../enrollment/enrolment.entity';
+import { EnrollmentRequestDto } from './dtos/enrollment.request.dto';
 
 @Injectable()
 export class ProjectService {
@@ -193,7 +194,11 @@ export class ProjectService {
     );
   }
 
-  async requestEnroll(projectId: number, user: CurrentUserWithoutTokens) {
+  async requestEnroll(
+    projectId: number,
+    user: CurrentUserWithoutTokens,
+    enrollmentRequest: EnrollmentRequestDto,
+  ) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
     });
@@ -221,6 +226,7 @@ export class ProjectService {
           id: user.id,
         },
         requestState: RequestState.Pending,
+        requesterMessage: enrollmentRequest.message,
       })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);

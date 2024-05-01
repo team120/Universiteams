@@ -1,4 +1,11 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
 
@@ -26,6 +33,10 @@ export class Enrollment {
   role: ProjectRole;
   @Column({ default: RequestState.Pending })
   requestState: RequestState;
+  @Column({ nullable: true })
+  requesterMessage: string;
+  @Column({ nullable: true })
+  adminMessage: string;
   @ManyToOne(() => User, (user) => user.enrollments, {
     nullable: false,
     cascade: ['insert', 'update'],

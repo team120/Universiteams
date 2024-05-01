@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -18,6 +19,8 @@ import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectsResult } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
+import { Enrollment } from '../enrollment/enrolment.entity';
+import { EnrollmentRequestDto } from './dtos/enrollment.request.dto';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -64,8 +67,13 @@ export class ProjectController {
   async enroll(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
+    @Body() enrollmentRequest: EnrollmentRequestDto,
   ) {
-    await this.projectService.requestEnroll(id, request.currentUser);
+    await this.projectService.requestEnroll(
+      id,
+      request.currentUser,
+      enrollmentRequest,
+    );
   }
 
   @UseGuards(...IsEmailVerifiedGuard)
