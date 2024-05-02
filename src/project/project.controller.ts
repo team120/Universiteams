@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -21,6 +22,7 @@ import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
 import { Enrollment } from '../enrollment/enrolment.entity';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
+import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -78,11 +80,26 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Delete('enroll/:id')
-  async cancelEnroll(
+  @Delete('enroll-request/:id')
+  async cancelEnrollRequest(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    await this.projectService.cancelEnroll(id, request.currentUser);
+    await this.projectService.cancelEnrollRequest(id, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put('unenroll/:id')
+  async unenroll(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() unenrollOptions: UnenrollDto,
+  ) {
+    await this.projectService.unenroll(
+      id,
+      request.currentUser,
+      unenrollOptions,
+    );
   }
 }

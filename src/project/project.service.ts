@@ -25,6 +25,7 @@ import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { Enrollment, RequestState } from '../enrollment/enrolment.entity';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
+import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
 
 @Injectable()
 export class ProjectService {
@@ -236,7 +237,7 @@ export class ProjectService {
     );
   }
 
-  async cancelEnroll(projectId: number, user: CurrentUserWithoutTokens) {
+  async cancelEnrollRequest(projectId: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
     });
@@ -269,6 +270,65 @@ export class ProjectService {
       });
     this.logger.debug(
       `Project#${project.id} successfully canceled enrollment by user#${user.id}`,
+    );
+  }
+
+  async unenroll(
+    projectId: number,
+    user: CurrentUserWithoutTokens,
+    unenrollOptions: UnenrollDto,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+    });
+    if (!project) throw new NotFound('Id does not match with any project');
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: user.id,
+        },
+      },
+    });
+    if (!enrollment)
+      throw new BadRequest('This user is not enrolled in this project');
+
+    // move to unenroll request state and add message
+    await this.enrollmentRepository
+      .update(
+        {
+          project: {
+            id: project.id,
+          },
+          user: {
+            id: user.id,
+          },
+        },
+        {
+          requestState: RequestState.Unenrolled,
+          requesterMessage: unenrollOptions.message,
+        },
+      )
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully unenrolled by user#${user.id}`,
+    );
+
+    // decrease project member count
+    await this.projectRepository
+      .update(project.id, {
+        userCount: project.userCount - 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully decreased its member count`,
     );
   }
 }
