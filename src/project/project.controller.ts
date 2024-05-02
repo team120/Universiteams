@@ -20,7 +20,7 @@ import { ProjectsResult } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
 import { Enrollment } from '../enrollment/enrolment.entity';
-import { EnrollmentRequestDto } from './dtos/enrollment.request.dto';
+import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 
 @ApiTags('projects')
 @Controller('projects')

@@ -24,7 +24,7 @@ import {
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { Enrollment, RequestState } from '../enrollment/enrolment.entity';
-import { EnrollmentRequestDto } from './dtos/enrollment.request.dto';
+import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 
 @Injectable()
 export class ProjectService {
