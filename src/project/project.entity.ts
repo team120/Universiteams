@@ -21,6 +21,7 @@ export enum ProjectType {
 export const isFavoriteColumn = 'project_isFavorite';
 export const isDownColumn = 'project_isDown';
 export const requestStateColumn = 'project_requestState';
+export const requesterMessageColumn = 'project_requesterMessage';
 
 @Entity()
 export class Project {
@@ -48,6 +49,8 @@ export class Project {
   isFavorite?: boolean;
   @Column({ select: false, nullable: true })
   requestState?: RequestState;
+  @Column({ select: false, nullable: true })
+  requesterMessage?: string;
 
   @ManyToMany(
     () => ResearchDepartment,

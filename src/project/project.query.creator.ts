@@ -19,6 +19,7 @@ import {
   isDownColumn,
   isFavoriteColumn,
   requestStateColumn,
+  requesterMessageColumn,
 } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
@@ -340,6 +341,7 @@ export class QueryCreator {
           isFavoriteColumn,
         )
         .addSelect('enrollment.requestState', requestStateColumn)
+        .addSelect('enrollment.requesterMessage', requesterMessageColumn)
         .leftJoin(
           'project.favorites',
           'favorite',
@@ -353,6 +355,7 @@ export class QueryCreator {
         .groupBy('project.id')
         .addGroupBy('favorite.userId')
         .addGroupBy('enrollment.requestState')
+        .addGroupBy('enrollment.requesterMessage')
         .setParameter('currentUserId', currentUser.id);
 
       finalPaginatedQuery
@@ -363,6 +366,7 @@ export class QueryCreator {
         )
         .addSelect(`"currentUserData"."${isFavoriteColumn}"`)
         .addSelect(`"currentUserData"."${requestStateColumn}"`)
+        .addSelect(`"currentUserData"."${requesterMessageColumn}"`)
         .setParameters(subqueryCurrentUserData.getParameters());
     }
 

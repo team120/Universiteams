@@ -28,6 +28,8 @@ export class ProjectInListDto {
   isFavorite?: boolean;
   @Expose()
   requestState?: RequestState;
+  @Expose()
+  requesterMessage?: string;
   @ExposeType(ResearchDepartmentShowDto)
   researchDepartments: ResearchDepartmentShowDto[];
   @ExposeType(InterestShowDto)
