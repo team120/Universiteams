@@ -237,6 +237,70 @@ export class ProjectService {
     );
   }
 
+  async updateEnrollRequest(
+    projectId: number,
+    user: CurrentUserWithoutTokens,
+    enrollmentRequest: EnrollmentRequestDto,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+    });
+    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: user.id,
+        },
+      },
+    });
+    if (!enrollment)
+      throw new BadRequest('Este usuario no está inscrito en este proyecto');
+
+    switch (enrollment.requestState) {
+      case RequestState.Pending:
+        break;
+      case RequestState.Accepted:
+        throw new BadRequest(
+          'Este usuario ya está inscrito en este proyecto, no se puede actualizar la solicitud',
+        );
+      case RequestState.Unenrolled:
+        throw new BadRequest(
+          'Este usuario no está inscrito en este proyecto, no se puede actualizar la solicitud',
+        );
+      case RequestState.Rejected:
+        throw new BadRequest(
+          'Esta solicitud ha sido rechazada, no se puede actualizar',
+        );
+      default:
+        throw new BadRequest('Estado de solicitud inválido');
+    }
+
+    await this.enrollmentRepository
+      .update(
+        {
+          project: {
+            id: project.id,
+          },
+          user: {
+            id: user.id,
+          },
+        },
+        {
+          requesterMessage: enrollmentRequest.message,
+        },
+      )
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully updated enrollment request by user#${user.id}`,
+    );
+  }
+
   async cancelEnrollRequest(projectId: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
