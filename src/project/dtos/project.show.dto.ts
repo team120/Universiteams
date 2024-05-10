@@ -39,7 +39,10 @@ export class ProjectInListDto {
 }
 
 @Exclude()
-export class ProjectSingleDto extends ProjectInListDto {}
+export class ProjectSingleDto extends ProjectInListDto {
+  @Expose()
+  description: string;
+}
 
 export class ProjectsResult {
   projects: ProjectInListDto[];

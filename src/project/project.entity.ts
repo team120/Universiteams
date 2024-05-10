@@ -33,6 +33,8 @@ export class Project {
   logicalDeleteDate: Date;
   @Column()
   name: string;
+  @Column('text', { select: false, nullable: true })
+  description: string;
   @Column({ type: 'date', nullable: true })
   endDate: string;
   @Column()
