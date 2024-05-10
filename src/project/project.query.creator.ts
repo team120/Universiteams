@@ -403,6 +403,7 @@ export class QueryCreator {
       )
       .leftJoinAndSelect('userResearchDepartment.facility', 'userFacility')
       .leftJoinAndSelect('userFacility.institution', 'userInstitution')
+      .leftJoinAndSelect('user.interests', 'userInterests')
       .leftJoinAndSelect('project.interests', 'interests')
       .where('project.id = :projectId', { projectId: id });
 
