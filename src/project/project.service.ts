@@ -102,15 +102,20 @@ export class ProjectService {
     };
   }
 
-  async findOne(id: number): Promise<ProjectSingleDto> {
+  async findOne(
+    id: number,
+    currentUser?: CurrentUserWithoutTokens,
+  ): Promise<ProjectSingleDto> {
     this.logger.debug(
       'Find project with matching ids and their related department, users, user institution and department institution',
     );
-    const projectFindOneQuery = this.queryCreator.findOne(id);
 
-    const project = await projectFindOneQuery.getOne().catch((err: Error) => {
-      throw new DbException(err.message, err.stack);
-    });
+    const project = await this.queryCreator
+      .findOne(id, currentUser)
+      .getOne()
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
 
     this.logger.debug(`Project ${project?.id} found`);
     if (!project) throw new NotFound('Id does not match with any project');

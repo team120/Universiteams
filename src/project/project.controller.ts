@@ -20,7 +20,6 @@ import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectsResult } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
-import { Enrollment } from '../enrollment/enrolment.entity';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
 
@@ -38,9 +37,13 @@ export class ProjectController {
     return this.projectService.find(findOptions, request.currentUser);
   }
 
+  @UseInterceptors(SetCurrentUserInterceptor)
   @Get(':id')
-  async getOne(@Param('id', ParseIntPipe) projectId: number) {
-    return this.projectService.findOne(projectId);
+  async getOne(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) projectId: number,
+  ) {
+    return this.projectService.findOne(projectId, request.currentUser);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)

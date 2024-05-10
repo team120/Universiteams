@@ -373,9 +373,18 @@ export class QueryCreator {
     return [finalPaginatedQuery, projectCount];
   }
 
-  findOne(id: number): SelectQueryBuilder<Project> {
-    return this.projectRepository
+  findOne(
+    id: number,
+    currentUser?: CurrentUserWithoutTokens,
+  ): SelectQueryBuilder<Project> {
+    const query = this.projectRepository
       .createQueryBuilder('project')
+      .addSelect('project.description')
+      .addSelect(
+        'COALESCE(project."endDate" < :currentDate, false)',
+        isDownColumn,
+      )
+      .setParameter('currentDate', this.currentDate.get())
       .innerJoinAndSelect('project.researchDepartments', 'researchDepartment')
       .innerJoinAndSelect(
         'researchDepartment.facility',
@@ -396,6 +405,24 @@ export class QueryCreator {
       .leftJoinAndSelect('userFacility.institution', 'userInstitution')
       .leftJoinAndSelect('project.interests', 'interests')
       .where('project.id = :projectId', { projectId: id });
+
+    if (currentUser) {
+      query
+        .addSelect(
+          'COALESCE(favorite.userId = :currentUserId, false)',
+          isFavoriteColumn,
+        )
+        .addSelect('enrollment.requestState', requestStateColumn)
+        .addSelect('enrollment.requesterMessage', requesterMessageColumn)
+        .leftJoin(
+          'project.favorites',
+          'favorite',
+          'favorite.userId = :currentUserId',
+        )
+        .setParameter('currentUserId', currentUser.id);
+    }
+
+    return query;
   }
 
   initialProjectQuery(): SelectQueryBuilder<Project> {
