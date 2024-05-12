@@ -9,7 +9,7 @@ import { SerializationModule } from '../utils/serialization/serialization.module
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
-import { Enrollment } from '../enrollment/enrolment.entity';
+import { Enrollment } from '../enrollment/enrollment.entity';
 
 describe('ProjectService', () => {
   let service: ProjectService;

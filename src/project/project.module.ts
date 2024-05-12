@@ -14,7 +14,7 @@ import { UniqueWords } from './unique-words.entity';
 import { StopWords } from '../database/stop-words.entity';
 import { AuthModule } from '../auth/auth.module';
 import { Favorite } from '../favorite/favorite.entity';
-import { Enrollment } from '../enrollment/enrolment.entity';
+import { Enrollment } from '../enrollment/enrollment.entity';
 
 @Module({
   imports: [

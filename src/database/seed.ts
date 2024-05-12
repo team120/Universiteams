@@ -3,7 +3,7 @@ import {
   Enrollment,
   ProjectRole,
   RequestState,
-} from '../enrollment/enrolment.entity';
+} from '../enrollment/enrollment.entity';
 import { Facility } from '../facility/facility.entity';
 import { Institution } from '../institution/institution.entity';
 import { Interest } from '../interest/interest.entity';

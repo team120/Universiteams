@@ -23,7 +23,7 @@ import {
 } from './dtos/project.show.dto';
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
-import { Enrollment, RequestState } from '../enrollment/enrolment.entity';
+import { Enrollment, RequestState } from '../enrollment/enrollment.entity';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
 

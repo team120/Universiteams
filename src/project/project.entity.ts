@@ -1,4 +1,4 @@
-import { Enrollment, RequestState } from '../enrollment/enrolment.entity';
+import { Enrollment, RequestState } from '../enrollment/enrollment.entity';
 import {
   Column,
   CreateDateColumn,

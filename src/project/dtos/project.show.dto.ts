@@ -4,7 +4,7 @@ import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
 import { ProjectType } from '../project.entity';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
-import { RequestState } from '../../enrollment/enrolment.entity';
+import { RequestState } from '../../enrollment/enrollment.entity';
 
 @Exclude()
 export class ProjectInListDto {

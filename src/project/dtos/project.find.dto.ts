@@ -12,7 +12,7 @@ import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { IsAfter } from '../../utils/decorators/is-after.validator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
-import { RequestState } from '../../enrollment/enrolment.entity';
+import { RequestState } from '../../enrollment/enrollment.entity';
 
 export enum SortByProperty {
   name = 'name',

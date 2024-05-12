@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { ProjectRole } from '../enrollment/enrolment.entity';
+import { ProjectRole } from '../enrollment/enrollment.entity';
 import {
   CURRENT_DATE_SERVICE,
   ICurrentDateService,
