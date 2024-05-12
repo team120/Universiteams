@@ -48,7 +48,7 @@ describe('Project Actions (e2e)', () => {
           describe("hasn't been already favorited by user", () => {
             it('should return status code 201 and the favorite should be reflected in db', async () => {
               const res = await request(app.getHttpServer())
-                .post(`/projects/favorite/${projectId}`)
+                .post(`/projects/${projectId}/favorite`)
                 .set('Cookie', accessTokenCookie);
               expect(res.status).toBe(201);
 
@@ -61,11 +61,11 @@ describe('Project Actions (e2e)', () => {
           describe('has been already favorited by user', () => {
             it('should return status code 201 and the favorite should be reflected in db', async () => {
               await request(app.getHttpServer())
-                .post(`/projects/favorite/${projectId}`)
+                .post(`/projects/${projectId}/favorite`)
                 .set('Cookie', accessTokenCookie);
 
               const secondfavoriteTryRes = await request(app.getHttpServer())
-                .post(`/projects/favorite/${projectId}`)
+                .post(`/projects/${projectId}/favorite`)
                 .set('Cookie', accessTokenCookie);
               expect(secondfavoriteTryRes.status).toBe(400);
               expect(secondfavoriteTryRes.body.message).toBe(
@@ -104,7 +104,7 @@ describe('Project Actions (e2e)', () => {
           });
           it('should return Unauthorized', async () => {
             const res = await request(app.getHttpServer())
-              .post(`/projects/favorite/${projectId}`)
+              .post(`/projects/${projectId}/favorite`)
               .set('Cookie', accessTokenCookie);
 
             expect(res.status).toBe(401);
@@ -121,7 +121,7 @@ describe('Project Actions (e2e)', () => {
       describe('is not sent', () => {
         it('should return Unauthorized', async () => {
           await request(app.getHttpServer())
-            .post('/projects/favorite/1')
+            .post('/projects/1/favorite')
             .then((res) => {
               expect(res.status).toBe(401);
               expect(res.body.message).toBe('Unauthorized');
@@ -135,7 +135,7 @@ describe('Project Actions (e2e)', () => {
           'accessToken=Bearer%20eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlciI6Ikp1YW4gUml6em8iLCJlbWFpbxQGV4YW1wbGUuY29tIiwiaWF0IjoxNjQ1NDIxMDB9.4IMEns6VuUJhYz_kgCn1PbMX_cAD_t2sfVXPQIHNqlk; Path=/; Expires=Thu, 24 Feb 2022 08:11:16 GMT; HttpOnly; SameSite=Strict',
         ])('should return Unauthorized', async (cookie: string) => {
           await request(app.getHttpServer())
-            .post('/projects/favorite/1')
+            .post('/projects/1/favorite')
             .set('Cookie', cookie)
             .then((res) => {
               expect(res.status).toBe(401);
@@ -168,7 +168,7 @@ describe('Project Actions (e2e)', () => {
               });
               it('should favorite the project and provide fresh tokens as response cookies', async () => {
                 const res = await request(app.getHttpServer())
-                  .post(`/projects/favorite/${projectId}`)
+                  .post(`/projects/${projectId}/favorite`)
                   .set(
                     'Cookie',
                     `${validRefreshTokenCookie}; ${expiredAccessTokenCookie}`,
@@ -221,7 +221,7 @@ describe('Project Actions (e2e)', () => {
               });
               it('should return Unauthorized', async () => {
                 const res = await request(app.getHttpServer())
-                  .post(`/projects/favorite/${projectId}`)
+                  .post(`/projects/${projectId}/favorite`)
                   .set(
                     'Cookie',
                     `${expiredAccessTokenCookie}; ${validRefreshTokenCookie}`,
@@ -258,7 +258,7 @@ describe('Project Actions (e2e)', () => {
             describe('is not provided', () => {
               it('should return Unauthorized', async () => {
                 await request(app.getHttpServer())
-                  .post(`/projects/favorite/${projectId}`)
+                  .post(`/projects/${projectId}/favorite`)
                   .set('Cookie', expiredAccessTokenCookie)
                   .then((res) => {
                     expect(res.status).toBe(401);
@@ -282,7 +282,7 @@ describe('Project Actions (e2e)', () => {
               });
               it('should return Unauthorized', async () => {
                 await request(app.getHttpServer())
-                  .post(`/projects/favorite/${projectId}`)
+                  .post(`/projects/${projectId}/favorite`)
                   .set('Cookie', expiredAccessTokenCookie)
                   .set('Cookie', expiredRefreshTokenCookie)
                   .then((res) => {
@@ -294,7 +294,7 @@ describe('Project Actions (e2e)', () => {
             describe('is incorrectly formatted', () => {
               it('should return Unauthorized', async () => {
                 await request(app.getHttpServer())
-                  .post(`/projects/favorite/${projectId}`)
+                  .post(`/projects/${projectId}/favorite`)
                   .set('Cookie', expiredAccessTokenCookie)
                   .set(
                     'Cookie',
