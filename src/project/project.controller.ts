@@ -48,7 +48,7 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Post('favorite/:id')
+  @Post(':id/favorite')
   async favorite(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -58,7 +58,7 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Delete('favorite/:id')
+  @Delete(':id/favorite')
   async unfavorite(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -68,7 +68,7 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Post('enroll-request/:id')
+  @Post(':id/enroll-request')
   async enroll(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -81,10 +81,9 @@ export class ProjectController {
     );
   }
 
-  // PUT /projects/enroll-request/:id
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Put('enroll-request/:id')
+  @Put(':id/enroll-request')
   async updateEnrollRequest(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -99,7 +98,7 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Delete('enroll-request/:id')
+  @Delete(':id/enroll-request')
   async cancelEnrollRequest(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -109,7 +108,7 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Put('unenroll/:id')
+  @Put(':id/unenroll')
   async unenroll(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
