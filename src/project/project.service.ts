@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { Favorite } from '../favorite/favorite.entity';
 import {
   BadRequest,
   DbException,
   NotFound,
+  Unauthorized,
 } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import {
@@ -23,9 +24,14 @@ import {
 } from './dtos/project.show.dto';
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
-import { Enrollment, RequestState } from '../enrollment/enrollment.entity';
+import {
+  Enrollment,
+  ProjectRole,
+  RequestState,
+} from '../enrollment/enrollment.entity';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
+import { EnrollmentRequestShowDto } from '../enrollment/dtos/enrollment-request.show.dto';
 
 @Injectable()
 export class ProjectService {
@@ -218,6 +224,7 @@ export class ProjectService {
         user: {
           id: user.id,
         },
+        requestState: In([RequestState.Pending, RequestState.Accepted]),
       },
     });
     if (enrollment)
@@ -340,6 +347,60 @@ export class ProjectService {
     this.logger.debug(
       `Project#${project.id} successfully canceled enrollment by user#${user.id}`,
     );
+  }
+
+  async getEnrollRequests(
+    projectId: number,
+    currentUser: CurrentUserWithoutTokens,
+  ) {
+    if (!currentUser)
+      throw new BadRequest('Current user is required to fetch enroll requests');
+
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id'],
+    });
+
+    if (!project) {
+      throw new NotFound('Project not found');
+    }
+
+    const currentUserEnrollment = await this.enrollmentRepository
+      .createQueryBuilder('enrollment')
+      .where('enrollment.userId = :userId', { userId: currentUser.id })
+      .andWhere('enrollment.projectId = :projectId', { projectId })
+      .andWhere('enrollment.role IN (:...roles)', {
+        roles: [ProjectRole.Admin, ProjectRole.Leader],
+      })
+      .getOne();
+
+    if (!currentUserEnrollment)
+      throw new Unauthorized(
+        'Current user is not allowed to fetch enroll requests',
+      );
+
+    const enrollments = await this.enrollmentRepository.find({
+      where: {
+        project: {
+          id: projectId,
+        },
+        requestState: RequestState.Pending,
+      },
+      relations: [
+        'user',
+        'user.interests',
+        'user.userAffiliations',
+        'user.userAffiliations.researchDepartment',
+        'user.userAffiliations.researchDepartment.facility',
+        'user.userAffiliations.researchDepartment.facility.institution',
+      ],
+    });
+    this.logger.debug(
+      `Project#${projectId} successfully fetched enroll requests`,
+    );
+    this.logger.debug(enrollments);
+
+    return this.entityMapper.mapArray(EnrollmentRequestShowDto, enrollments);
   }
 
   async unenroll(

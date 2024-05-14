@@ -96,6 +96,17 @@ export class ProjectController {
     );
   }
 
+  // enroll-requests
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Get(':id/enroll-requests')
+  async getEnrollRequests(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.projectService.getEnrollRequests(id, request.currentUser);
+  }
+
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Delete(':id/enroll-request')
