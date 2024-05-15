@@ -109,7 +109,12 @@ export class QueryCreator {
         'researchDepartmentInstitution',
       )
       .leftJoin('project.interests', 'interest')
-      .leftJoin('project.enrollments', 'enrollment')
+      .leftJoin(
+        'project.enrollments',
+        'enrollment',
+        'enrollment.requestState = :status',
+        { status: RequestState.Accepted },
+      )
       .leftJoin('enrollment.user', 'user');
 
     if (filters.interestIds) {
