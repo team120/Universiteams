@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { ProjectRole } from '../enrollment/enrollment.entity';
+import { ProjectRole, RequestState } from '../enrollment/enrollment.entity';
 import {
   CURRENT_DATE_SERVICE,
   ICurrentDateService,
@@ -394,8 +394,14 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
-      .leftJoinAndSelect('project.enrollments', 'enrollment')
-      .leftJoinAndSelect('enrollment.user', 'user')
+      .innerJoinAndSelect('project.interests', 'interests')
+      .innerJoinAndSelect(
+        'project.enrollments',
+        'enrollment',
+        'enrollment.requestState = :status',
+        { status: RequestState.Accepted },
+      )
+      .innerJoinAndSelect('enrollment.user', 'user')
       .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
       .leftJoinAndSelect(
         'userAffiliation.researchDepartment',
@@ -404,7 +410,6 @@ export class QueryCreator {
       .leftJoinAndSelect('userResearchDepartment.facility', 'userFacility')
       .leftJoinAndSelect('userFacility.institution', 'userInstitution')
       .leftJoinAndSelect('user.interests', 'userInterests')
-      .leftJoinAndSelect('project.interests', 'interests')
       .where('project.id = :projectId', { projectId: id });
 
     if (currentUser) {

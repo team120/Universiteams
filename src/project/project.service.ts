@@ -127,7 +127,7 @@ export class ProjectService {
       });
 
     this.logger.debug(`Project ${project?.id} found`);
-    if (!project) throw new NotFound('Id does not match with any project');
+    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
 
     this.logger.debug('Map project to dto');
     return this.entityMapper.mapValue(ProjectSingleDto, project);
