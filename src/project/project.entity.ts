@@ -67,6 +67,8 @@ export class Project {
 
   @Column({ default: 0 })
   userCount: number;
+  @Column({ select: false, default: 0 })
+  requestEnrollmentCount: number;
   @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {
     nullable: false,
     cascade: ['insert', 'update'],

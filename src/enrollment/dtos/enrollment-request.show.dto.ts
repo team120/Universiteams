@@ -13,3 +13,11 @@ export class EnrollmentRequestShowDto {
   @ExposeType(UserShowDto)
   user: UserShowDto;
 }
+
+@Exclude()
+export class EnrollmentRequestsShowDto {
+  @ExposeType(EnrollmentRequestShowDto)
+  enrollmentRequests: EnrollmentRequestShowDto[];
+  @ExposeType(Number)
+  requestEnrollmentCount: number;
+}

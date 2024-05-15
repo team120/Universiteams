@@ -31,7 +31,10 @@ import {
 } from '../enrollment/enrollment.entity';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
-import { EnrollmentRequestShowDto } from '../enrollment/dtos/enrollment-request.show.dto';
+import {
+  EnrollmentRequestShowDto,
+  EnrollmentRequestsShowDto,
+} from '../enrollment/dtos/enrollment-request.show.dto';
 
 @Injectable()
 export class ProjectService {
@@ -213,6 +216,7 @@ export class ProjectService {
   ) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
+      select: ['id', 'requestEnrollmentCount'],
     });
     if (!project) throw new NotFound('Id does not match with any project');
 
@@ -244,6 +248,16 @@ export class ProjectService {
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
+
+    // Increase project enrollment request count
+    await this.projectRepository
+      .update(project.id, {
+        requestEnrollmentCount: project.requestEnrollmentCount + 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
     this.logger.debug(
       `Project#${project.id} successfully requested enrollment by user#${user.id}`,
     );
@@ -316,6 +330,7 @@ export class ProjectService {
   async cancelEnrollRequest(projectId: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
+      select: ['id', 'requestEnrollmentCount'],
     });
     if (!project) throw new NotFound('Id does not match with any project');
 
@@ -344,6 +359,16 @@ export class ProjectService {
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
+
+    // Reduce project enrollment request count
+    await this.projectRepository
+      .update(project.id, {
+        requestEnrollmentCount: project.requestEnrollmentCount - 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
     this.logger.debug(
       `Project#${project.id} successfully canceled enrollment by user#${user.id}`,
     );
@@ -352,13 +377,13 @@ export class ProjectService {
   async getEnrollRequests(
     projectId: number,
     currentUser: CurrentUserWithoutTokens,
-  ) {
+  ): Promise<EnrollmentRequestsShowDto> {
     if (!currentUser)
       throw new BadRequest('Current user is required to fetch enroll requests');
 
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
-      select: ['id'],
+      select: ['id', 'requestEnrollmentCount'],
     });
 
     if (!project) {
@@ -367,6 +392,7 @@ export class ProjectService {
 
     const currentUserEnrollment = await this.enrollmentRepository
       .createQueryBuilder('enrollment')
+      .select('enrollment.id')
       .where('enrollment.userId = :userId', { userId: currentUser.id })
       .andWhere('enrollment.projectId = :projectId', { projectId })
       .andWhere('enrollment.role IN (:...roles)', {
@@ -400,7 +426,13 @@ export class ProjectService {
     );
     this.logger.debug(enrollments);
 
-    return this.entityMapper.mapArray(EnrollmentRequestShowDto, enrollments);
+    return {
+      enrollmentRequests: this.entityMapper.mapArray(
+        EnrollmentRequestShowDto,
+        enrollments,
+      ),
+      requestEnrollmentCount: project.requestEnrollmentCount,
+    };
   }
 
   async unenroll(
