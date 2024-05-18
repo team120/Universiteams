@@ -96,7 +96,6 @@ export class ProjectController {
     );
   }
 
-  // enroll-requests
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Get(':id/enroll-requests')
@@ -129,6 +128,21 @@ export class ProjectController {
       id,
       request.currentUser,
       unenrollOptions,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enroll-requests/:userId/approve')
+  async approveEnrollRequest(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    await this.projectService.approveEnrollRequest(
+      id,
+      userId,
+      request.currentUser,
     );
   }
 }

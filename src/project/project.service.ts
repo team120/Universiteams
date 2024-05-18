@@ -394,20 +394,12 @@ export class ProjectService {
       throw new NotFound('Project not found');
     }
 
-    const currentUserEnrollment = await this.enrollmentRepository
-      .createQueryBuilder('enrollment')
-      .select('enrollment.id')
-      .where('enrollment.userId = :userId', { userId: currentUser.id })
-      .andWhere('enrollment.projectId = :projectId', { projectId })
-      .andWhere('enrollment.role IN (:...roles)', {
-        roles: [ProjectRole.Admin, ProjectRole.Leader],
-      })
-      .getOne();
-
-    if (!currentUserEnrollment)
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
       throw new Unauthorized(
-        'Current user is not allowed to fetch enroll requests',
+        'No tienes autorización para obtener las solicitudes de inscripción de este proyecto',
       );
+    }
 
     const enrollments = await this.enrollmentRepository.find({
       where: {
@@ -496,5 +488,97 @@ export class ProjectService {
     this.logger.debug(
       `Project#${project.id} successfully decreased its member count`,
     );
+  }
+
+  async approveEnrollRequest(
+    projectId: number,
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id', 'userCount', 'requestEnrollmentCount'],
+    });
+    if (!project) throw projectNotFoundError;
+
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para aprobar solicitudes de inscripción en este proyecto',
+      );
+    }
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: userId,
+        },
+      },
+      select: ['id', 'requestState'],
+    });
+    if (!enrollment)
+      throw new BadRequest('Este usuario no tiene una solicitud pendiente');
+
+    if (enrollment.requestState !== RequestState.Pending) {
+      throw new BadRequest('Esta solicitud no está pendiente');
+    }
+
+    // move to accepted state
+    await this.enrollmentRepository
+      .update(enrollment.id, {
+        requestState: RequestState.Accepted,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully approved enrollment request by user#${userId}`,
+    );
+
+    // increase project member count
+    await this.projectRepository
+      .update(project.id, {
+        userCount: project.userCount + 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully increased its member count`,
+    );
+
+    // decrease project enrollment request count
+    await this.projectRepository
+      .update(project.id, {
+        requestEnrollmentCount: project.requestEnrollmentCount - 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully decreased its enrollment request count`,
+    );
+  }
+
+  private async isUserAdmin(
+    currentUser: CurrentUserWithoutTokens,
+    projectId: number,
+  ) {
+    const currentUserEnrollment = await this.enrollmentRepository
+      .createQueryBuilder('enrollment')
+      .select('enrollment.id')
+      .where('enrollment.userId = :userId', { userId: currentUser.id })
+      .andWhere('enrollment.projectId = :projectId', { projectId })
+      .andWhere('enrollment.role IN (:...roles)', {
+        roles: [ProjectRole.Admin, ProjectRole.Leader],
+      })
+      .getOne();
+
+    if (!currentUserEnrollment) return false;
+
+    return true;
   }
 }
