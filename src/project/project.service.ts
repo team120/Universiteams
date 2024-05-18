@@ -36,6 +36,10 @@ import {
   EnrollmentRequestsShowDto,
 } from '../enrollment/dtos/enrollment-request.show.dto';
 
+const projectNotFoundError = new NotFound(
+  'El ID no coincide con ningún proyecto',
+);
+
 @Injectable()
 export class ProjectService {
   constructor(
@@ -135,7 +139,7 @@ export class ProjectService {
 
   async favorite(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({ where: { id: id } });
-    if (!project) throw new NotFound('Id does not match with any project');
+    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
 
     const favorite = await this.favoriteRepository.findOne({
       where: {
@@ -174,7 +178,7 @@ export class ProjectService {
 
   async unfavorite(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({ where: { id: id } });
-    if (!project) throw new NotFound('Id does not match with any project');
+    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
 
     const favorite = await this.favoriteRepository.findOne({
       where: {
@@ -218,7 +222,7 @@ export class ProjectService {
       where: { id: projectId },
       select: ['id', 'requestEnrollmentCount'],
     });
-    if (!project) throw new NotFound('Id does not match with any project');
+    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
 
     const enrollment = await this.enrollmentRepository.findOne({
       where: {
@@ -332,7 +336,7 @@ export class ProjectService {
       where: { id: projectId },
       select: ['id', 'requestEnrollmentCount'],
     });
-    if (!project) throw new NotFound('Id does not match with any project');
+    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
 
     const enrollment = await this.enrollmentRepository.findOne({
       where: {
@@ -443,7 +447,7 @@ export class ProjectService {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
     });
-    if (!project) throw new NotFound('Id does not match with any project');
+    if (!project) throw projectNotFoundError;
 
     const enrollment = await this.enrollmentRepository.findOne({
       where: {

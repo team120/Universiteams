@@ -66,7 +66,7 @@ describe('ProjectService', () => {
         getOneMock.getOne.mockResolvedValue(undefined);
         await service.findOne(noMatchingId).catch((error) => {
           expect(error).toBeInstanceOf(NotFound);
-          expect(error.response).toBe('Id does not match with any project');
+          expect(error.response).toBe('El ID no coincide con ningún proyecto');
         });
         expect.assertions(2);
       });

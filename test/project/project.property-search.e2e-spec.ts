@@ -31,7 +31,7 @@ describe('Project Actions (e2e)', () => {
         .get(`/projects/${id}`)
         .then((res) => {
           expect(res.status).toBe(404);
-          expect(res.body.message).toBe('Id does not match with any project');
+          expect(res.body.message).toBe('El ID no coincide con ningún proyecto');
         });
     });
 
