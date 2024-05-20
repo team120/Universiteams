@@ -35,6 +35,7 @@ import {
   EnrollmentRequestShowDto,
   EnrollmentRequestsShowDto,
 } from '../enrollment/dtos/enrollment-request.show.dto';
+import { EnrollmentRequestRejectDto } from '../enrollment/dtos/enrollment-request-reject.dto';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -232,23 +233,33 @@ export class ProjectService {
         user: {
           id: user.id,
         },
-        requestState: In([RequestState.Pending, RequestState.Accepted]),
       },
     });
-    if (enrollment)
-      throw new BadRequest('This user is already enrolled in this project');
+    switch (enrollment?.requestState) {
+      case RequestState.Pending:
+        throw new BadRequest(
+          'Este usuario ya ha solicitado la inscripción en este proyecto',
+        );
+      case RequestState.Accepted:
+        throw new BadRequest('Este usuario ya está inscrito en este proyecto');
+      default:
+        break;
+    }
 
     await this.enrollmentRepository
-      .insert({
-        project: {
-          id: project.id,
+      .upsert(
+        {
+          project: {
+            id: project.id,
+          },
+          user: {
+            id: user.id,
+          },
+          requestState: RequestState.Pending,
+          requesterMessage: enrollmentRequest.message,
         },
-        user: {
-          id: user.id,
-        },
-        requestState: RequestState.Pending,
-        requesterMessage: enrollmentRequest.message,
-      })
+        { conflictPaths: ['project', 'user'] },
+      )
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
