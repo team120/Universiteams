@@ -22,6 +22,7 @@ import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
+import { EnrollmentRequestRejectDto } from '../enrollment/dtos/enrollment-request-reject.dto';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -143,6 +144,23 @@ export class ProjectController {
       id,
       userId,
       request.currentUser,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enroll-requests/:userId/reject')
+  async rejectEnrollRequest(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() rejectEnrollRequestDto: EnrollmentRequestRejectDto,
+  ) {
+    await this.projectService.rejectEnrollRequest(
+      id,
+      userId,
+      request.currentUser,
+      rejectEnrollRequestDto,
     );
   }
 }

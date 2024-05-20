@@ -563,6 +563,69 @@ export class ProjectService {
     );
   }
 
+  async rejectEnrollRequest(
+    projectId: number,
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+    rejectEnrollRequestDto: EnrollmentRequestRejectDto,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id', 'requestEnrollmentCount'],
+    });
+    if (!project) throw projectNotFoundError;
+
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para rechazar solicitudes de inscripción en este proyecto',
+      );
+    }
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: userId,
+        },
+      },
+      select: ['id', 'requestState'],
+    });
+    if (!enrollment)
+      throw new BadRequest('Este usuario no tiene una solicitud pendiente');
+
+    if (enrollment.requestState !== RequestState.Pending) {
+      throw new BadRequest('Esta solicitud no está pendiente');
+    }
+
+    // move to rejected state and include admin message
+    await this.enrollmentRepository
+      .update(enrollment.id, {
+        requestState: RequestState.Rejected,
+        adminMessage: rejectEnrollRequestDto.message,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully rejected enrollment request by user#${userId}`,
+    );
+
+    // decrease project enrollment request count
+    await this.projectRepository
+      .update(project.id, {
+        requestEnrollmentCount: project.requestEnrollmentCount - 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully decreased its enrollment request count`,
+    );
+  }
+
   private async isUserAdmin(
     currentUser: CurrentUserWithoutTokens,
     projectId: number,
