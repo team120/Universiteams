@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -24,6 +25,7 @@ export enum RequestState {
 }
 
 @Entity()
+@Index(['user', 'project'], { unique: true })
 export class Enrollment {
   @PrimaryGeneratedColumn()
   id: number;
