@@ -358,12 +358,13 @@ export class ProjectService {
           id: user.id,
         },
       },
+      select: ['id'],
     });
     if (!enrollment)
       throw new BadRequest('This user is not enrolled in this project');
 
     await this.enrollmentRepository
-      .softDelete({
+      .delete({
         project: {
           id: project.id,
         },
