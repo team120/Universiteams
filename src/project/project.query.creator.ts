@@ -109,12 +109,7 @@ export class QueryCreator {
         'researchDepartmentInstitution',
       )
       .leftJoin('project.interests', 'interest')
-      .leftJoin(
-        'project.enrollments',
-        'enrollment',
-        'enrollment.requestState = :status',
-        { status: RequestState.Accepted },
-      )
+      .leftJoin('project.enrollments', 'enrollment')
       .leftJoin('enrollment.user', 'user');
 
     if (filters.interestIds) {
@@ -217,6 +212,13 @@ export class QueryCreator {
       relatedEntitiesJoinsQuery.andWhere('user.id = :userId', {
         userId: filters.userId,
       });
+
+      if (!filters.requestState) {
+        relatedEntitiesJoinsQuery.andWhere(
+          'enrollment.requestState = :status',
+          { status: RequestState.Accepted },
+        );
+      }
     }
 
     if (filters.dateFrom) {
