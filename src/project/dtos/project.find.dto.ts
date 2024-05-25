@@ -1,5 +1,5 @@
 import { OmitType, PickType } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
@@ -7,6 +7,7 @@ import {
   IsNumber,
   IsOptional,
   Min,
+  MinLength,
 } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { IsAfter } from '../../utils/decorators/is-after.validator';
@@ -24,6 +25,8 @@ export enum SortByProperty {
 @Exclude()
 export class ProjectFindDto {
   @Expose()
+  @IsOptional()
+  @MinLength(3)
   generalSearch?: string;
   @IsOptional()
   @IsEnum(ProjectType)
@@ -56,9 +59,9 @@ export class ProjectFindDto {
   @ExposeType(Number)
   userId?: number;
   @IsOptional()
-  @IsEnum(RequestState)
+  @IsEnum(RequestState, { each: true })
   @Expose()
-  requestState?: RequestState;
+  requestStates?: RequestState[];
   @IsOptional()
   @IsNumber({}, { each: true })
   @ExposeType(Number)

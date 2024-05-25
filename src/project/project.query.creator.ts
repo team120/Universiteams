@@ -213,7 +213,7 @@ export class QueryCreator {
         userId: filters.userId,
       });
 
-      if (!filters.requestState) {
+      if (!filters.requestStates) {
         relatedEntitiesJoinsQuery.andWhere(
           'enrollment.requestState = :status',
           { status: RequestState.Accepted },
@@ -240,20 +240,27 @@ export class QueryCreator {
       );
     }
 
-    if (filters.requestState) {
+    if (filters.requestStates) {
       if (!currentUser) {
         throw new BadRequest(
           'User must be provided to filter by request state',
         );
       }
 
-      relatedEntitiesJoinsQuery
-        .andWhere('enrollment.userId = :currentUserId', {
-          currentUserId: currentUser.id,
-        })
-        .andWhere('enrollment.requestState = :requestState', {
-          requestState: filters.requestState,
-        });
+      relatedEntitiesJoinsQuery.andWhere('enrollment.userId = :currentUserId', {
+        currentUserId: currentUser.id,
+      });
+
+      const requestStates = Array.isArray(filters.requestStates)
+        ? filters.requestStates
+        : [filters.requestStates];
+
+      relatedEntitiesJoinsQuery.andWhere(
+        'enrollment.requestState IN (:...requestStates)',
+        {
+          requestStates: requestStates,
+        },
+      );
     }
 
     return relatedEntitiesJoinsQuery;
