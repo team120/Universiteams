@@ -355,15 +355,16 @@ export class ProjectService {
           id: user.id,
         },
       },
-      select: ['id'],
+      select: ['id', 'requestState'],
     });
     if (!enrollment)
       throw new BadRequest('Este usuario no tiene una solicitud pendiente');
 
-    if (enrollment.requestState === RequestState.Accepted) {
-      throw new BadRequest(
-        'Este usuario ya está inscrito en este proyecto, no se puede cancelar la solicitud',
-      );
+    if (
+      enrollment.requestState !== RequestState.Pending &&
+      enrollment.requestState !== RequestState.Rejected
+    ) {
+      throw new BadRequest('Esta solicitud no está pendiente o fue rechazada');
     }
 
     await this.enrollmentRepository
@@ -380,6 +381,7 @@ export class ProjectService {
       });
 
     // Reduce project enrollment request count only if the request was not rejected
+    // As rejected requests are not counted in the requestEnrollmentCount
     if (enrollment.requestState !== RequestState.Rejected) {
       await this.projectRepository
         .update(project.id, {
