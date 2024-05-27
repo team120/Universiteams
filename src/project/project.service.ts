@@ -247,19 +247,16 @@ export class ProjectService {
     }
 
     await this.enrollmentRepository
-      .upsert(
-        {
-          project: {
-            id: project.id,
-          },
-          user: {
-            id: user.id,
-          },
-          requestState: RequestState.Pending,
-          requesterMessage: enrollmentRequest.message,
+      .insert({
+        project: {
+          id: project.id,
         },
-        { conflictPaths: ['project', 'user'] },
-      )
+        user: {
+          id: user.id,
+        },
+        requestState: RequestState.Pending,
+        requesterMessage: enrollmentRequest.message,
+      })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
@@ -361,7 +358,13 @@ export class ProjectService {
       select: ['id'],
     });
     if (!enrollment)
-      throw new BadRequest('This user is not enrolled in this project');
+      throw new BadRequest('Este usuario no tiene una solicitud pendiente');
+
+    if (enrollment.requestState === RequestState.Accepted) {
+      throw new BadRequest(
+        'Este usuario ya está inscrito en este proyecto, no se puede cancelar la solicitud',
+      );
+    }
 
     await this.enrollmentRepository
       .delete({
@@ -376,14 +379,16 @@ export class ProjectService {
         throw new DbException(e.message, e.stack);
       });
 
-    // Reduce project enrollment request count
-    await this.projectRepository
-      .update(project.id, {
-        requestEnrollmentCount: project.requestEnrollmentCount - 1,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+    // Reduce project enrollment request count only if the request was not rejected
+    if (enrollment.requestState !== RequestState.Rejected) {
+      await this.projectRepository
+        .update(project.id, {
+          requestEnrollmentCount: project.requestEnrollmentCount - 1,
+        })
+        .catch((e: Error) => {
+          throw new DbException(e.message, e.stack);
+        });
+    }
 
     this.logger.debug(
       `Project#${project.id} successfully canceled enrollment by user#${user.id}`,
