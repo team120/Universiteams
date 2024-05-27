@@ -16,6 +16,7 @@ import {
 } from './dtos/project.find.dto';
 import {
   Project,
+  adminMessageColumn,
   isDownColumn,
   isFavoriteColumn,
   requestStateColumn,
@@ -356,6 +357,7 @@ export class QueryCreator {
         )
         .addSelect('enrollment.requestState', requestStateColumn)
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
+        .addSelect('enrollment.adminMessage', adminMessageColumn)
         .leftJoin(
           'project.favorites',
           'favorite',
@@ -370,6 +372,7 @@ export class QueryCreator {
         .addGroupBy('favorite.userId')
         .addGroupBy('enrollment.requestState')
         .addGroupBy('enrollment.requesterMessage')
+        .addGroupBy('enrollment.adminMessage')
         .setParameter('currentUserId', currentUser.id);
 
       finalPaginatedQuery
@@ -381,6 +384,7 @@ export class QueryCreator {
         .addSelect(`"currentUserData"."${isFavoriteColumn}"`)
         .addSelect(`"currentUserData"."${requestStateColumn}"`)
         .addSelect(`"currentUserData"."${requesterMessageColumn}"`)
+        .addSelect(`"currentUserData"."${adminMessageColumn}"`)
         .setParameters(subqueryCurrentUserData.getParameters());
     }
 
@@ -434,6 +438,7 @@ export class QueryCreator {
         )
         .addSelect('enrollment.requestState', requestStateColumn)
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
+        .addSelect('enrollment.adminMessage', adminMessageColumn)
         .leftJoin(
           'project.favorites',
           'favorite',

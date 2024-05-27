@@ -22,6 +22,7 @@ export const isFavoriteColumn = 'project_isFavorite';
 export const isDownColumn = 'project_isDown';
 export const requestStateColumn = 'project_requestState';
 export const requesterMessageColumn = 'project_requesterMessage';
+export const adminMessageColumn = 'project_adminMessage';
 
 @Entity()
 export class Project {
@@ -53,6 +54,8 @@ export class Project {
   requestState?: RequestState;
   @Column({ select: false, nullable: true })
   requesterMessage?: string;
+  @Column({ select: false, nullable: true })
+  adminMessage?: string;
 
   @ManyToMany(
     () => ResearchDepartment,
