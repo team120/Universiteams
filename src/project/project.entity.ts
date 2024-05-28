@@ -23,6 +23,7 @@ export const isDownColumn = 'project_isDown';
 export const requestStateColumn = 'project_requestState';
 export const requesterMessageColumn = 'project_requesterMessage';
 export const adminMessageColumn = 'project_adminMessage';
+export const requestEnrollmentCountColumn = 'project_requestEnrollmentCount';
 
 @Entity()
 export class Project {

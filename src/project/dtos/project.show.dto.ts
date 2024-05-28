@@ -32,6 +32,8 @@ export class ProjectInListDto {
   requesterMessage?: string;
   @Expose()
   adminMessage?: string;
+  @ExposeType(Number)
+  requestEnrollmentCount: number;
   @ExposeType(ResearchDepartmentShowDto)
   researchDepartments: ResearchDepartmentShowDto[];
   @ExposeType(InterestShowDto)

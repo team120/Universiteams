@@ -19,6 +19,7 @@ import {
   adminMessageColumn,
   isDownColumn,
   isFavoriteColumn,
+  requestEnrollmentCountColumn,
   requestStateColumn,
   requesterMessageColumn,
 } from './project.entity';
@@ -358,6 +359,10 @@ export class QueryCreator {
         .addSelect('enrollment.requestState', requestStateColumn)
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
         .addSelect('enrollment.adminMessage', adminMessageColumn)
+        .addSelect(
+          'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
+          requestEnrollmentCountColumn,
+        )
         .leftJoin(
           'project.favorites',
           'favorite',
@@ -373,7 +378,9 @@ export class QueryCreator {
         .addGroupBy('enrollment.requestState')
         .addGroupBy('enrollment.requesterMessage')
         .addGroupBy('enrollment.adminMessage')
-        .setParameter('currentUserId', currentUser.id);
+        .addGroupBy('enrollment.role')
+        .setParameter('currentUserId', currentUser.id)
+        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
 
       finalPaginatedQuery
         .innerJoin(
@@ -385,6 +392,7 @@ export class QueryCreator {
         .addSelect(`"currentUserData"."${requestStateColumn}"`)
         .addSelect(`"currentUserData"."${requesterMessageColumn}"`)
         .addSelect(`"currentUserData"."${adminMessageColumn}"`)
+        .addSelect(`"currentUserData"."${requestEnrollmentCountColumn}"`)
         .setParameters(subqueryCurrentUserData.getParameters());
     }
 
