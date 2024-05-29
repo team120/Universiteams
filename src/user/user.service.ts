@@ -1,4 +1,4 @@
-import { Injectable, Param } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { UserShowDto } from './dtos/user.show.dto';
 import { User } from './user.entity';
 import { DbException, NotFound } from '../utils/exceptions/exceptions';
-import { find } from 'rxjs';
 
 @Injectable()
 export class UserService {
@@ -39,17 +38,18 @@ export class UserService {
     });
   }
 
-  async findOne(userId: number): Promise<UserShowDto>{
+  async findOne(userId: number): Promise<UserShowDto> {
     this.logger.debug('Find a user by id and its relations');
     const user = await this.userRepository
-      .find({
+      .findOne({
         relations: [
           'userAffiliations',
           'userAffiliations.researchDepartment',
           'userAffiliations.researchDepartment.facility',
           'userAffiliations.researchDepartment.facility.institution',
-          'interests'],
-        where: {id : userId} 
+          'interests',
+        ],
+        where: { id: userId },
       })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
@@ -58,5 +58,3 @@ export class UserService {
     return this.entityMapper.mapValue(UserShowDto, user);
   }
 }
-
-

@@ -670,24 +670,22 @@ describe('auth', () => {
     });
 
     describe('when password is invalid', () => {
-      it('should return BadRequest',
-        async () => {
-          const res = await request(app.getHttpServer())
-            .post('/auth/reset-password')
-            .send({
-              password: 'Password87',
-              verificationToken: 'asasoheqjleqlhkjqelkhjHOJkljh',
-            });
+      it('should return BadRequest', async () => {
+        const res = await request(app.getHttpServer())
+          .post('/auth/reset-password')
+          .send({
+            password: 'Password87',
+            verificationToken: 'asasoheqjleqlhkjqelkhjHOJkljh',
+          });
 
-          expect(res.status).toBe(400);
-          expect(res.body.message).toContain(
-            'password must include at least: one non-alphanumeric character (#,$,%,etc)',
-          );
-          expect(res.body.message).toContain(
-            'verificationToken must be a jwt string',
-          );
-        },
-      );
+        expect(res.status).toBe(400);
+        expect(res.body.message).toContain(
+          'password must include at least: one non-alphanumeric character (#,$,%,etc)',
+        );
+        expect(res.body.message).toContain(
+          'verificationToken must be a jwt string',
+        );
+      });
     });
     describe('when embedded email address in jwt token is either not a verified email or is not associated with a personal user account', () => {
       it('should return BadRequest', async () => {
@@ -700,14 +698,14 @@ describe('auth', () => {
             email: 'other@example.com',
           })
           .then((url) => url.split('token=')[1]);
-  
+
         const res = await request(app.getHttpServer())
           .post('/auth/reset-password')
           .send({
             password: 'Password_14',
             verificationToken: verificationTokenInUrl,
           } as ResetPasswordDto);
-  
+
         expect(res.status).toBe(400);
         expect(res.body.message).toBe(
           'That address is either not a verified email or is not associated with a personal user account',
