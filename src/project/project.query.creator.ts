@@ -31,6 +31,7 @@ export class QueryCreator {
   private sortBy = new Map([
     [SortByProperty.name, 'project.name'],
     [SortByProperty.creationDate, 'project.creationDate'],
+    [SortByProperty.requestEnrollmentCount, 'project.requestEnrollmentCount'],
   ]);
 
   constructor(
@@ -350,7 +351,8 @@ export class QueryCreator {
       .setParameters(subqueryProjectIds.getParameters());
 
     if (currentUser) {
-      const subqueryCurrentUserData = this.initialProjectQuery()
+      const subqueryCurrentUserData = this.projectRepository
+        .createQueryBuilder('project')
         .select('project.id as id')
         .addSelect(
           `CASE WHEN favorite.userId = :currentUserId THEN TRUE ELSE FALSE END`,

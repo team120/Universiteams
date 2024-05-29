@@ -20,6 +20,7 @@ export enum SortByProperty {
   researchDepartment = 'researchDepartment',
   facility = 'facility',
   creationDate = 'creationDate',
+  requestEnrollmentCount = 'requestEnrollmentCount',
 }
 
 @Exclude()
