@@ -56,6 +56,6 @@ jobs:
       - name: 'Run Formatter'
         run: docker compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run format
       - name: 'Apply Linter and Formatter Changes'
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Apply eslint and prettier code changes
