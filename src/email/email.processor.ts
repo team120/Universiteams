@@ -48,7 +48,7 @@ export class EmailProcessor {
     const message: EmailMessage = {
       from: {
         email: `${this.config.get(SecretsVaultKeys.EMAIL_USER)}`,
-        name: 'Alejandro',
+        name: 'Universiteams',
       },
       to: { email: user.email, name: `${user.firstName} ${user.lastName}` },
       subject: 'Please confirm your email',
