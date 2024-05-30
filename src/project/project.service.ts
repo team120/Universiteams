@@ -248,16 +248,19 @@ export class ProjectService {
     }
 
     await this.enrollmentRepository
-      .insert({
-        project: {
-          id: project.id,
+      .upsert(
+        {
+          project: {
+            id: project.id,
+          },
+          user: {
+            id: user.id,
+          },
+          requestState: RequestState.Pending,
+          requesterMessage: enrollmentRequest.message,
         },
-        user: {
-          id: user.id,
-        },
-        requestState: RequestState.Pending,
-        requesterMessage: enrollmentRequest.message,
-      })
+        ['project', 'user'],
+      )
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
