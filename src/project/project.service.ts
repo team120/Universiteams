@@ -96,6 +96,7 @@ export class ProjectService {
       await this.queryCreator.applyPaginationAndProjections(
         sortingAppliedQuery,
         paginationAttributes,
+        sortAttributes,
         orderByClause,
         currentUser,
       );

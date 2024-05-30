@@ -274,6 +274,8 @@ export class QueryCreator {
     query: SelectQueryBuilder<Project>,
   ): [SelectQueryBuilder<Project>, string] {
     if (!sortAttributes.sortBy) return [query, undefined];
+    if (sortAttributes.sortBy === SortByProperty.requestEnrollmentCount)
+      return [query, undefined];
 
     const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
 
@@ -301,18 +303,28 @@ export class QueryCreator {
   async applyPaginationAndProjections(
     sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
     paginationAttributes: PaginationAttributes,
+    sortAttributes: ProjectSortAttributes,
     orderByClause?: string,
     currentUser?: CurrentUserWithoutTokens,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
+    const orderKey = 'orderKey';
+
     const subqueryProjectIds = sortedAndFilteredProjectsSubquery
-      .select(
-        `project.id as id, row_number() over (${
-          orderByClause ? 'ORDER BY ' + orderByClause : ''
-        }) as orderKey`,
-      )
+      .select('project.id as id')
       .groupBy('project.id')
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
+
+    if (
+      sortAttributes.sortBy !== SortByProperty.requestEnrollmentCount ||
+      !currentUser
+    ) {
+      subqueryProjectIds.addSelect(
+        `row_number() over (${
+          orderByClause ? 'ORDER BY ' + orderByClause : ''
+        }) as ${orderKey}`,
+      );
+    }
 
     const projectCount = await subqueryProjectIds
       .getCount()
@@ -347,10 +359,11 @@ export class QueryCreator {
       // Only embed users with leader or admin role
       .where(`enrollment is null OR enrollment.role = '${ProjectRole.Leader}'`)
       .orWhere(`enrollment is null OR enrollment.role = '${ProjectRole.Admin}'`)
-      .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
 
     if (currentUser) {
+      const requestEnrollmentCountSelect =
+        'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END';
       const subqueryCurrentUserData = this.projectRepository
         .createQueryBuilder('project')
         .select('project.id as id')
@@ -361,10 +374,7 @@ export class QueryCreator {
         .addSelect('enrollment.requestState', requestStateColumn)
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
         .addSelect('enrollment.adminMessage', adminMessageColumn)
-        .addSelect(
-          'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
-          requestEnrollmentCountColumn,
-        )
+        .addSelect(requestEnrollmentCountSelect, requestEnrollmentCountColumn)
         .leftJoin(
           'project.favorites',
           'favorite',
@@ -384,6 +394,24 @@ export class QueryCreator {
         .setParameter('currentUserId', currentUser.id)
         .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
 
+      if (sortAttributes.sortBy === SortByProperty.requestEnrollmentCount) {
+        const orderDirection =
+          sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
+        const nullsLast = 'NULLS LAST';
+
+        subqueryCurrentUserData
+          .addSelect(
+            `row_number() over (
+              ORDER BY ${requestEnrollmentCountSelect} ${orderDirection} ${nullsLast}
+            ) as ${orderKey}`,
+          )
+          .orderBy(
+            `"${requestEnrollmentCountColumn}"`,
+            orderDirection,
+            nullsLast,
+          );
+      }
+
       finalPaginatedQuery
         .innerJoin(
           `(${subqueryCurrentUserData.getQuery()})`,
@@ -397,6 +425,8 @@ export class QueryCreator {
         .addSelect(`"currentUserData"."${requestEnrollmentCountColumn}"`)
         .setParameters(subqueryCurrentUserData.getParameters());
     }
+
+    finalPaginatedQuery.orderBy(orderKey);
 
     return [finalPaginatedQuery, projectCount];
   }
