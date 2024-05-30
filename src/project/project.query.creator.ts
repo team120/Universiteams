@@ -399,17 +399,11 @@ export class QueryCreator {
           sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
         const nullsLast = 'NULLS LAST';
 
-        subqueryCurrentUserData
-          .addSelect(
-            `row_number() over (
+        subqueryCurrentUserData.addSelect(
+          `row_number() over (
               ORDER BY ${requestEnrollmentCountSelect} ${orderDirection} ${nullsLast}
             ) as ${orderKey}`,
-          )
-          .orderBy(
-            `"${requestEnrollmentCountColumn}"`,
-            orderDirection,
-            nullsLast,
-          );
+        );
       }
 
       finalPaginatedQuery
