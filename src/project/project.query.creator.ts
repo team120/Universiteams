@@ -283,6 +283,15 @@ export class QueryCreator {
     sortAttributes: ProjectSortAttributes,
     currentUser?: CurrentUserWithoutTokens,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
+    if (
+      sortAttributes.sortBy === SortByProperty.requestEnrollmentCount &&
+      !currentUser
+    ) {
+      throw new BadRequest(
+        'No es posible ordenar por cantidad de solicitudes de inscripción sin un usuario autenticado.',
+      );
+    }
+
     const orderKey = 'orderKey';
     const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
     const orderDirection =
@@ -294,10 +303,7 @@ export class QueryCreator {
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
 
-    if (
-      sortAttributes.sortBy !== SortByProperty.requestEnrollmentCount ||
-      !currentUser
-    ) {
+    if (sortAttributes.sortBy !== SortByProperty.requestEnrollmentCount) {
       subqueryProjectIds.addSelect(
         `row_number() over (${
           sortByProperty ? `ORDER BY ${sortByProperty} ${orderDirection}` : ''
