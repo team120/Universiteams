@@ -87,17 +87,11 @@ export class ProjectService {
       currentUser,
     );
 
-    const [sortingAppliedQuery, orderByClause] = this.queryCreator.applySorting(
-      sortAttributes,
-      extraFiltersAppliedSearchQuery,
-    );
-
     const [paginationAppliedQuery, projectsCount] =
-      await this.queryCreator.applyPaginationAndProjections(
-        sortingAppliedQuery,
+      await this.queryCreator.applySortingAndPagination(
+        extraFiltersAppliedSearchQuery,
         paginationAttributes,
         sortAttributes,
-        orderByClause,
         currentUser,
       );
 

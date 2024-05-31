@@ -269,47 +269,26 @@ export class QueryCreator {
     return relatedEntitiesJoinsQuery;
   }
 
-  applySorting(
-    sortAttributes: ProjectSortAttributes,
-    query: SelectQueryBuilder<Project>,
-  ): [SelectQueryBuilder<Project>, string] {
-    if (!sortAttributes.sortBy) return [query, undefined];
-    if (sortAttributes.sortBy === SortByProperty.requestEnrollmentCount)
-      return [query, undefined];
-
-    const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
-
-    if (!sortByProperty) return [query, undefined];
-
-    const orderDirection =
-      sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
-    const orderByClause = `${sortByProperty} ${orderDirection}`;
-    this.logger.debug(orderByClause);
-    return [query.orderBy(sortByProperty, orderDirection), orderByClause];
-  }
-
   /**
    * First, a list of project ids is obtained from the sortedAndFilteredProjectsSubquery.
    * Then, the project count is obtained from the subqueryProjectIds.
    * Finally, the finalPaginatedQuery is created by joining the sortedAndFilteredProjectsSubquery with the subqueryProjectIds,
    * applying additional projections and joins to the finalPaginatedQuery.
    *
-   * @param sortedAndFilteredProjectsSubquery - The subquery with sorted and filtered projects
-   * @param paginationAttributes - The attributes for pagination
-   * @param orderByClause - The clause for ordering
-   * @param currentUser - The current user
    * @returns A promise that resolves to a tuple containing the final paginated query and the project count
    */
-  async applyPaginationAndProjections(
-    sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
+  async applySortingAndPagination(
+    filteredProjectsSubquery: SelectQueryBuilder<Project>,
     paginationAttributes: PaginationAttributes,
     sortAttributes: ProjectSortAttributes,
-    orderByClause?: string,
     currentUser?: CurrentUserWithoutTokens,
   ): Promise<[SelectQueryBuilder<Project>, number]> {
     const orderKey = 'orderKey';
+    const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
+    const orderDirection =
+      sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
 
-    const subqueryProjectIds = sortedAndFilteredProjectsSubquery
+    const subqueryProjectIds = filteredProjectsSubquery
       .select('project.id as id')
       .groupBy('project.id')
       .offset(paginationAttributes.offset)
@@ -321,7 +300,7 @@ export class QueryCreator {
     ) {
       subqueryProjectIds.addSelect(
         `row_number() over (${
-          orderByClause ? 'ORDER BY ' + orderByClause : ''
+          sortByProperty ? `ORDER BY ${sortByProperty} ${orderDirection}` : ''
         }) as ${orderKey}`,
       );
     }
@@ -395,8 +374,6 @@ export class QueryCreator {
         .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
 
       if (sortAttributes.sortBy === SortByProperty.requestEnrollmentCount) {
-        const orderDirection =
-          sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
         const nullsLast = 'NULLS LAST';
 
         subqueryCurrentUserData.addSelect(
