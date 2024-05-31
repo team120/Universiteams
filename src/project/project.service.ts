@@ -35,7 +35,7 @@ import {
   EnrollmentRequestShowDto,
   EnrollmentRequestsShowDto,
 } from '../enrollment/dtos/enrollment-request.show.dto';
-import { EnrollmentRequestRejectDto } from '../enrollment/dtos/enrollment-request-reject.dto';
+import { EnrollmentRequestAdminDto as EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -507,10 +507,12 @@ export class ProjectService {
     );
   }
 
-  async approveEnrollRequest(
+  async manageEnrollRequest(
     projectId: number,
     userId: number,
     currentUser: CurrentUserWithoutTokens,
+    enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    action: 'approve' | 'reject',
   ) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
@@ -521,7 +523,9 @@ export class ProjectService {
     const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
     if (!isUserAdmin) {
       throw new Unauthorized(
-        'No tienes autorización para aprobar solicitudes de inscripción en este proyecto',
+        `No tienes autorización para ${
+          action === 'approve' ? 'aprobar' : 'rechazar'
+        } solicitudes de inscripción en este proyecto`,
       );
     }
 
@@ -543,92 +547,35 @@ export class ProjectService {
       throw new BadRequest('Esta solicitud no está pendiente');
     }
 
-    // move to accepted state
+    // move to accepted or rejected state
     await this.enrollmentRepository
       .update(enrollment.id, {
-        requestState: RequestState.Accepted,
+        requestState:
+          action === 'approve' ? RequestState.Accepted : RequestState.Rejected,
+        adminMessage: enrollRequestAdminDto.message,
       })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
     this.logger.debug(
-      `Project#${project.id} successfully approved enrollment request by user#${userId}`,
+      `Project#${project.id} successfully ${
+        action === 'approve' ? 'approved' : 'rejected'
+      } enrollment request by user#${userId}`,
     );
 
-    // increase project member count
-    await this.projectRepository
-      .update(project.id, {
-        userCount: project.userCount + 1,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
-    this.logger.debug(
-      `Project#${project.id} successfully increased its member count`,
-    );
-
-    // decrease project enrollment request count
-    await this.projectRepository
-      .update(project.id, {
-        requestEnrollmentCount: project.requestEnrollmentCount - 1,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
-    this.logger.debug(
-      `Project#${project.id} successfully decreased its enrollment request count`,
-    );
-  }
-
-  async rejectEnrollRequest(
-    projectId: number,
-    userId: number,
-    currentUser: CurrentUserWithoutTokens,
-    rejectEnrollRequestDto: EnrollmentRequestRejectDto,
-  ) {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-      select: ['id', 'requestEnrollmentCount'],
-    });
-    if (!project) throw projectNotFoundError;
-
-    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
-    if (!isUserAdmin) {
-      throw new Unauthorized(
-        'No tienes autorización para rechazar solicitudes de inscripción en este proyecto',
+    // increase project member count if approved
+    if (action === 'approve') {
+      await this.projectRepository
+        .update(project.id, {
+          userCount: project.userCount + 1,
+        })
+        .catch((e: Error) => {
+          throw new DbException(e.message, e.stack);
+        });
+      this.logger.debug(
+        `Project#${project.id} successfully increased its member count`,
       );
     }
-
-    const enrollment = await this.enrollmentRepository.findOne({
-      where: {
-        project: {
-          id: project.id,
-        },
-        user: {
-          id: userId,
-        },
-      },
-      select: ['id', 'requestState'],
-    });
-    if (!enrollment)
-      throw new BadRequest('Este usuario no tiene una solicitud pendiente');
-
-    if (enrollment.requestState !== RequestState.Pending) {
-      throw new BadRequest('Esta solicitud no está pendiente');
-    }
-
-    // move to rejected state and include admin message
-    await this.enrollmentRepository
-      .update(enrollment.id, {
-        requestState: RequestState.Rejected,
-        adminMessage: rejectEnrollRequestDto.message,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
-    this.logger.debug(
-      `Project#${project.id} successfully rejected enrollment request by user#${userId}`,
-    );
 
     // decrease project enrollment request count
     await this.projectRepository

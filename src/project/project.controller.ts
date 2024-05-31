@@ -22,7 +22,7 @@ import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
-import { EnrollmentRequestRejectDto } from '../enrollment/dtos/enrollment-request-reject.dto';
+import { EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -139,11 +139,14 @@ export class ProjectController {
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
+    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
   ) {
-    await this.projectService.approveEnrollRequest(
+    await this.projectService.manageEnrollRequest(
       id,
       userId,
       request.currentUser,
+      enrollRequestAdminDto,
+      'approve',
     );
   }
 
@@ -154,13 +157,14 @@ export class ProjectController {
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() rejectEnrollRequestDto: EnrollmentRequestRejectDto,
+    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
   ) {
-    await this.projectService.rejectEnrollRequest(
+    await this.projectService.manageEnrollRequest(
       id,
       userId,
       request.currentUser,
-      rejectEnrollRequestDto,
+      enrollRequestAdminDto,
+      'reject',
     );
   }
 }

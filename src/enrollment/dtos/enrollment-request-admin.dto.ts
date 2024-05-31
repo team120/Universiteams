@@ -8,7 +8,7 @@ import { IsOptional } from 'class-validator';
 import * as sanitizeHtml from 'sanitize-html';
 
 @Exclude()
-export class EnrollmentRequestRejectDto {
+export class EnrollmentRequestAdminDto {
   @Expose()
   @IsOptional()
   @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
