@@ -55,7 +55,7 @@ export class ProjectService {
       findOptions,
     );
 
-    const query = this.queryCreator.initialProjectQuery();
+    const query = this.queryCreator.initialQuery();
 
     const searchQuery = this.queryCreator.applyTextSearch(filters, query);
 

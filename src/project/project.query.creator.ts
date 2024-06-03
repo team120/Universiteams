@@ -17,9 +17,10 @@ import {
 import { Project, isDownColumn, isFavoriteColumn } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
+import { EntityQueryCreator } from 'src/utils/query.creator';
 
 @Injectable()
-export class QueryCreator {
+export class QueryCreator extends EntityQueryCreator<Project> {
   private sortBy = new Map([
     [SortByProperty.name, 'project.name'],
     [SortByProperty.creationDate, 'project.creationDate'],
@@ -33,6 +34,7 @@ export class QueryCreator {
     @Inject(CURRENT_DATE_SERVICE)
     private readonly currentDate: ICurrentDateService,
   ) {
+    super(projectRepository);
     this.logger.setContext(QueryCreator.name);
   }
 
@@ -351,9 +353,5 @@ export class QueryCreator {
       .leftJoinAndSelect('userFacility.institution', 'userInstitution')
       .leftJoinAndSelect('project.interests', 'interests')
       .where('project.id = :projectId', { projectId: id });
-  }
-
-  initialProjectQuery(): SelectQueryBuilder<Project> {
-    return this.projectRepository.createQueryBuilder('project');
   }
 }
