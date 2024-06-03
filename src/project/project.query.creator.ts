@@ -456,6 +456,11 @@ export class QueryCreator {
         .addSelect('enrollment.requestState', requestStateColumn)
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
         .addSelect('enrollment.adminMessage', adminMessageColumn)
+        .addSelect(
+          'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
+          requestEnrollmentCountColumn,
+        )
+        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin])
         .leftJoin(
           'project.favorites',
           'favorite',
