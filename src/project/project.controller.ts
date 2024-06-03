@@ -167,4 +167,22 @@ export class ProjectController {
       'reject',
     );
   }
+
+  // Kick user from project
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enrollments/:userId/kick')
+  async kickUser(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+  ) {
+    await this.projectService.kickUser(
+      id,
+      userId,
+      request.currentUser,
+      enrollRequestAdminDto,
+    );
+  }
 }

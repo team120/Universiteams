@@ -6,7 +6,6 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
@@ -22,6 +21,7 @@ export enum RequestState {
   Accepted = 'Accepted',
   Rejected = 'Rejected',
   Unenrolled = 'Unenrolled',
+  Kicked = 'Kicked',
 }
 
 @Entity()

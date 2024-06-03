@@ -590,6 +590,66 @@ export class ProjectService {
     );
   }
 
+  async kickUser(
+    projectId: number,
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+    enrollRequestAdminDto: EnrollmentRequestAdminDto,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id', 'userCount'],
+    });
+    if (!project) throw projectNotFoundError;
+
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para expulsar a los usuarios de este proyecto',
+      );
+    }
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: userId,
+        },
+      },
+      select: ['id', 'requestState'],
+    });
+    if (!enrollment || enrollment.requestState !== RequestState.Accepted) {
+      throw new BadRequest('Este usuario no está inscrito en este proyecto');
+    }
+
+    // move to Kicked state
+    await this.enrollmentRepository
+      .update(enrollment.id, {
+        requestState: RequestState.Kicked,
+        adminMessage: enrollRequestAdminDto.message,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully kicked user#${userId}`,
+    );
+
+    // decrease project member count
+    await this.projectRepository
+      .update(project.id, {
+        userCount: project.userCount - 1,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully decreased its member count`,
+    );
+  }
+
   private async isUserAdmin(
     currentUser: CurrentUserWithoutTokens,
     projectId: number,
