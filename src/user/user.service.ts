@@ -3,9 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { Repository } from 'typeorm';
-import { UserShowDto } from './dtos/user.show.dto';
+import { UserShowDto, UsersResult } from './dtos/user.show.dto';
 import { User } from './user.entity';
 import { DbException } from '../utils/exceptions/exceptions';
+import { UserFilters, UserFindDto } from './dtos/user.find.dto';
+import { QueryCreator } from './user.query.creator';
 
 @Injectable()
 export class UserService {
@@ -13,6 +15,7 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
+    private readonly queryCreator: QueryCreator,
   ) {
     this.logger.setContext(UserService.name);
   }
@@ -36,5 +39,14 @@ export class UserService {
     return this.entityMapper.mapArray(UserShowDto, users, {
       groups: ['admin'],
     });
+  }
+
+  async find(findOptions: UserFindDto): Promise<UsersResult> {
+    const filters: UserFilters = this.entityMapper.mapValue(
+      UserFilters,
+      findOptions,
+    );
+    const query = this.queryCreator.initialQuery();
+    return;
   }
 }
