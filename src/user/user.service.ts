@@ -47,6 +47,13 @@ export class UserService {
       findOptions,
     );
     const query = this.queryCreator.initialQuery();
-    return;
+    const queryWithFilters = this.queryCreator.applyFilters(filters, query);
+    const users = await queryWithFilters.getMany().catch((err: Error) => {
+      throw new DbException(err.message, err.stack);
+    });
+    return {
+      users: this.entityMapper.mapArray(UserShowDto, users),
+      usersCount: users.length,
+    };
   }
 }
