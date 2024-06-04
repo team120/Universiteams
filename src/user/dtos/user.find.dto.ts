@@ -5,12 +5,15 @@ import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
 
 @Exclude()
 export class UserFindDto {
+  @IsOptional()
   @Expose()
-  firstName: string;
+  firstName?: string;
+  @IsOptional()
   @Expose()
-  lastName: string;
+  lastName?: string;
+  @IsOptional()
   @Expose()
-  email: string;
+  email?: string;
   @IsOptional()
   @IsNumber({}, { each: true })
   @ExposeType(Number)

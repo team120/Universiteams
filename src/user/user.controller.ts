@@ -11,12 +11,7 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
-  async get() {
-    return this.userService.findAll();
-  }
-
-  @Get()
-  async find(
+  async get(
     @Query(AppValidationPipe) findOptions: UserFindDto,
   ): Promise<UsersResult> {
     return this.userService.find(findOptions);
