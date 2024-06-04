@@ -116,20 +116,13 @@ export class QueryCreator {
       .leftJoin('enrollment.user', 'user');
 
     if (filters.interestIds) {
-      if (Array.isArray(filters.interestIds)) {
-        relatedEntitiesJoinsQuery
-          .andWhere(`interest.id IN (:...interestIds)`, {
-            interestIds: filters.interestIds,
-          })
-          .groupBy('project.id')
-          .having('COUNT(DISTINCT interest.id) = :interestsCount', {
-            interestsCount: filters.interestIds.length,
-          });
-      } else {
-        relatedEntitiesJoinsQuery.andWhere('interest.id = :interestId', {
-          interestId: filters.interestIds,
-        });
-      }
+      const interestIds = Array.isArray(filters.interestIds)
+        ? filters.interestIds
+        : [filters.interestIds];
+
+      relatedEntitiesJoinsQuery.andWhere(`interest.id IN (:...interestIds)`, {
+        interestIds: interestIds,
+      });
     }
 
     if (filters.institutionId) {
