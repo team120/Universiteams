@@ -23,6 +23,7 @@ import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
 import { EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
+import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -179,6 +180,23 @@ export class ProjectController {
     @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
   ) {
     await this.projectService.kickUser(
+      id,
+      userId,
+      request.currentUser,
+      enrollRequestAdminDto,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enrollments/:userId/change-role')
+  async changeUserRole(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() enrollRequestAdminDto: EnrollmentChangeRole,
+  ) {
+    await this.projectService.changeUserRole(
       id,
       userId,
       request.currentUser,

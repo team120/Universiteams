@@ -36,6 +36,7 @@ import {
   EnrollmentRequestsShowDto,
 } from '../enrollment/dtos/enrollment-request.show.dto';
 import { EnrollmentRequestAdminDto as EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
+import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -647,6 +648,52 @@ export class ProjectService {
       });
     this.logger.debug(
       `Project#${project.id} successfully decreased its member count`,
+    );
+  }
+
+  async changeUserRole(
+    projectId: number,
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+    enrollRequestAdminDto: EnrollmentChangeRole,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id'],
+    });
+    if (!project) throw projectNotFoundError;
+
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para cambiar los roles de los usuarios en este proyecto',
+      );
+    }
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: userId,
+        },
+      },
+      select: ['id', 'requestState'],
+    });
+    if (!enrollment || enrollment.requestState !== RequestState.Accepted) {
+      throw new BadRequest('Este usuario no está inscrito en este proyecto');
+    }
+
+    await this.enrollmentRepository
+      .update(enrollment.id, {
+        role: enrollRequestAdminDto.role,
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully changed user#${userId} role`,
     );
   }
 
