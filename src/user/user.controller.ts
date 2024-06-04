@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 
@@ -10,5 +10,10 @@ export class UserController {
   @Get()
   async get() {
     return this.userService.findAll();
+  }
+
+  @Get(':id')
+  async getOne(@Param('id', ParseIntPipe) userId: number) {
+    return this.userService.findOne(userId);
   }
 }

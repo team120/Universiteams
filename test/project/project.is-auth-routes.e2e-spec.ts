@@ -52,11 +52,9 @@ describe('Project Actions (e2e)', () => {
                 .set('Cookie', accessTokenCookie);
               expect(res.status).toBe(201);
 
-              const favorite = await conn
-                .getRepository(Favorite)
-                .findOne({
-                  where: { projectId: projectId, userId: loginResult.id },
-                });
+              const favorite = await conn.getRepository(Favorite).findOne({
+                where: { projectId: projectId, userId: loginResult.id },
+              });
               expect(favorite.projectId).toBeDefined();
             });
           });
@@ -74,11 +72,9 @@ describe('Project Actions (e2e)', () => {
                 'This project has been already favorited by this user',
               );
 
-              const favoriteCount = await conn
-                .getRepository(Favorite)
-                .count({
-                  where: { projectId: projectId, userId: loginResult.id },
-                });
+              const favoriteCount = await conn.getRepository(Favorite).count({
+                where: { projectId: projectId, userId: loginResult.id },
+              });
               expect(favoriteCount).toBe(1);
             });
           });
@@ -115,11 +111,9 @@ describe('Project Actions (e2e)', () => {
             expect(res.body.message).toBe('Unauthorized');
           });
           afterEach(async () => {
-            const favorite = await conn
-              .getRepository(Favorite)
-              .findOne({
-                where: { projectId: projectId, userId: loginResult.id },
-              });
+            const favorite = await conn.getRepository(Favorite).findOne({
+              where: { projectId: projectId, userId: loginResult.id },
+            });
             expect(favorite).toBeNull();
           });
         });
@@ -182,11 +176,9 @@ describe('Project Actions (e2e)', () => {
 
                 expect(res.status).toBe(201);
 
-                const favorite = await conn
-                  .getRepository(Favorite)
-                  .findOne({
-                    where: { projectId: projectId, userId: loginResult.id },
-                  });
+                const favorite = await conn.getRepository(Favorite).findOne({
+                  where: { projectId: projectId, userId: loginResult.id },
+                });
                 expect(favorite.projectId).toBeDefined();
 
                 const newAccessTokenCookie = setCookieParser.parse(
@@ -239,11 +231,9 @@ describe('Project Actions (e2e)', () => {
                 expect(res.body.message).toBe('Unauthorized');
               });
               afterEach(async () => {
-                const favorite = await conn
-                  .getRepository(Favorite)
-                  .findOne({
-                    where: { projectId: projectId, userId: loginResult.id },
-                  });
+                const favorite = await conn.getRepository(Favorite).findOne({
+                  where: { projectId: projectId, userId: loginResult.id },
+                });
                 expect(favorite).toBeNull();
               });
             });
@@ -317,11 +307,9 @@ describe('Project Actions (e2e)', () => {
               });
             });
             afterEach(async () => {
-              const favorite = await conn
-                .getRepository(Favorite)
-                .findOne({
-                  where: { projectId: projectId, userId: loginResult.id },
-                });
+              const favorite = await conn.getRepository(Favorite).findOne({
+                where: { projectId: projectId, userId: loginResult.id },
+              });
               expect(favorite).toBeNull();
             });
           });

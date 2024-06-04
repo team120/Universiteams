@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Unauthorized } from '../utils/exceptions/exceptions';
