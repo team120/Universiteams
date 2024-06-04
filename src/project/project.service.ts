@@ -396,6 +396,52 @@ export class ProjectService {
     );
   }
 
+  async ackKick(
+    projectId: number,
+    user: CurrentUserWithoutTokens,
+  ): Promise<void> {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+    });
+    if (!project) throw projectNotFoundError;
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: user.id,
+        },
+      },
+      select: ['id', 'requestState'],
+    });
+    if (!enrollment)
+      throw new BadRequest('Este usuario no está inscrito en este proyecto');
+
+    if (enrollment.requestState !== RequestState.Kicked) {
+      throw new BadRequest(
+        'Este usuario no ha sido expulsado de este proyecto',
+      );
+    }
+
+    await this.enrollmentRepository
+      .delete({
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: user.id,
+        },
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `Project#${project.id} successfully acknowledged kick by user#${user.id}`,
+    );
+  }
+
   async getEnrollRequests(
     projectId: number,
     currentUser: CurrentUserWithoutTokens,

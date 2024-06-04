@@ -120,7 +120,7 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Put(':id/unenroll')
+  @Put(':id/enrollment/unenroll')
   async unenroll(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -131,6 +131,16 @@ export class ProjectController {
       request.currentUser,
       unenrollOptions,
     );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Delete(':id/enrollment')
+  async ackKick(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.projectService.ackKick(id, request.currentUser);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)
@@ -169,7 +179,6 @@ export class ProjectController {
     );
   }
 
-  // Kick user from project
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Put(':id/enrollments/:userId/kick')
