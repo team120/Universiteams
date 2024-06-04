@@ -54,7 +54,9 @@ describe('Project Actions (e2e)', () => {
 
               const favorite = await conn
                 .getRepository(Favorite)
-                .findOne({where: { projectId: projectId, userId: loginResult.id }});
+                .findOne({
+                  where: { projectId: projectId, userId: loginResult.id },
+                });
               expect(favorite.projectId).toBeDefined();
             });
           });
@@ -74,14 +76,16 @@ describe('Project Actions (e2e)', () => {
 
               const favoriteCount = await conn
                 .getRepository(Favorite)
-                .count({where: { projectId: projectId, userId: loginResult.id }});
+                .count({
+                  where: { projectId: projectId, userId: loginResult.id },
+                });
               expect(favoriteCount).toBe(1);
             });
           });
           afterEach(async () => {
             const project = await conn
               .getRepository(Project)
-              .findOne({where: {id: projectId}});
+              .findOne({ where: { id: projectId } });
             expect(project.favoriteCount).toBe(1);
 
             await conn
@@ -113,7 +117,9 @@ describe('Project Actions (e2e)', () => {
           afterEach(async () => {
             const favorite = await conn
               .getRepository(Favorite)
-              .findOne({where: { projectId: projectId, userId: loginResult.id }});
+              .findOne({
+                where: { projectId: projectId, userId: loginResult.id },
+              });
             expect(favorite).toBeNull();
           });
         });
@@ -178,7 +184,9 @@ describe('Project Actions (e2e)', () => {
 
                 const favorite = await conn
                   .getRepository(Favorite)
-                  .findOne({where: { projectId: projectId, userId: loginResult.id }});
+                  .findOne({
+                    where: { projectId: projectId, userId: loginResult.id },
+                  });
                 expect(favorite.projectId).toBeDefined();
 
                 const newAccessTokenCookie = setCookieParser.parse(
@@ -192,7 +200,7 @@ describe('Project Actions (e2e)', () => {
               afterEach(async () => {
                 const project = await conn
                   .getRepository(Project)
-                  .findOne({where: {id: projectId}});
+                  .findOne({ where: { id: projectId } });
                 expect(project.favoriteCount).toBe(1);
 
                 await conn
@@ -233,7 +241,9 @@ describe('Project Actions (e2e)', () => {
               afterEach(async () => {
                 const favorite = await conn
                   .getRepository(Favorite)
-                  .findOne({where: { projectId: projectId, userId: loginResult.id }});
+                  .findOne({
+                    where: { projectId: projectId, userId: loginResult.id },
+                  });
                 expect(favorite).toBeNull();
               });
             });
@@ -309,7 +319,9 @@ describe('Project Actions (e2e)', () => {
             afterEach(async () => {
               const favorite = await conn
                 .getRepository(Favorite)
-                .findOne({where: { projectId: projectId, userId: loginResult.id }});
+                .findOne({
+                  where: { projectId: projectId, userId: loginResult.id },
+                });
               expect(favorite).toBeNull();
             });
           });
