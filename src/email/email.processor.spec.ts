@@ -16,9 +16,9 @@ describe('Email processor', () => {
   const verificationMessagesServiceMock = {
     generateVerifyEmailUrl: jest.fn(),
     generateForgetPasswordUrl: jest.fn(),
-  } as Partial<
-    { [key in keyof VerificationMessagesService]: jest.Mock<any, any> }
-  >;
+  } as Partial<{
+    [key in keyof VerificationMessagesService]: jest.Mock<any, any>;
+  }>;
   beforeEach(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [ConfigModule],

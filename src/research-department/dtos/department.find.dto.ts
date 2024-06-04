@@ -1,12 +1,7 @@
 import { PickType } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
-import {
-  IsNumber,
-  IsOptional,
-  Min,
-} from 'class-validator';
+import { IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
-
 
 @Exclude()
 export class ResearchDepartmentFindDto {
