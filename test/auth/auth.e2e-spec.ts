@@ -290,10 +290,7 @@ describe('auth', () => {
             .then(async (res) => {
               expect(res.status).toBe(400);
               expect(res.body.message).toContain(
-                'password must be longer than or equal to 8 characters',
-              );
-              expect(res.body.message).toContain(
-                'password must include at least: one uppercase alphabetic character, one number, one non-alphanumeric character (#,$,%,etc)',
+                'La clave debe cumplir al menos 4 de las 5 pautas contiguas:Tiene al menos 8 caracteres, Incluye un número, Incluye una letra minúscula, Incluye una letra mayúscula, Incluye un símbolo especial',
               );
               expect(res.body.accessToken).not.toBeDefined();
 
@@ -316,7 +313,7 @@ describe('auth', () => {
             .then(async (res) => {
               expect(res.status).toBe(400);
               expect(res.body.message[0]).toBe(
-                'password must include at least: one number, one non-alphanumeric character (#,$,%,etc)',
+                'La clave debe cumplir al menos 4 de las 5 pautas contiguas:Tiene al menos 8 caracteres, Incluye un número, Incluye una letra minúscula, Incluye una letra mayúscula, Incluye un símbolo especial',
               );
               expect(res.body.accessToken).not.toBeDefined();
 
@@ -338,9 +335,6 @@ describe('auth', () => {
             .send(registrationAttempt)
             .then(async (res) => {
               expect(res.status).toBe(400);
-              expect(res.body.message).toContain(
-                'password must include at least: one non-alphanumeric character (#,$,%,etc)',
-              );
               expect(res.body.message).toContain('email must be an email');
               expect(res.body.accessToken).not.toBeDefined();
 
@@ -363,7 +357,7 @@ describe('auth', () => {
           .send(registrationAttempt)
           .then(async (res) => {
             expect(res.status).toBe(400);
-            expect(res.body.message).toBe('user1@example.com is already taken');
+            expect(res.body.message).toBe('user1@example.com ya esta tomado');
             expect(res.body.accessToken).not.toBeDefined();
 
             const usersInDbWithThatEmail = await conn
@@ -679,9 +673,6 @@ describe('auth', () => {
           });
 
         expect(res.status).toBe(400);
-        expect(res.body.message).toContain(
-          'password must include at least: one non-alphanumeric character (#,$,%,etc)',
-        );
         expect(res.body.message).toContain(
           'verificationToken must be a jwt string',
         );

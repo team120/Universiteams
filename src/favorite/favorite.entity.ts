@@ -1,4 +1,11 @@
-import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { Project } from '../project/project.entity';
 import { User } from '../user/user.entity';
 
@@ -15,4 +22,9 @@ export class Favorite {
   @ManyToOne(() => User, (user) => user.favorites)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @CreateDateColumn({ type: 'date' })
+  creationDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
 }

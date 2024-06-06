@@ -5,6 +5,8 @@ import {
   Entity,
   OneToMany,
   ManyToMany,
+  CreateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Project } from '../project/project.entity';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
@@ -14,6 +16,10 @@ import { Facility } from '../facility/facility.entity';
 export class ResearchDepartment {
   @PrimaryGeneratedColumn()
   id: number;
+  @CreateDateColumn({ type: 'date' })
+  creationDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @Column()
   name: string;
   @Column()

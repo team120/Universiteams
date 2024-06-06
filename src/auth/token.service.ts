@@ -31,8 +31,8 @@ export class TokenService {
       id: user.id,
       user: `${user.firstName} ${user.lastName}`,
       email: user.email,
+      isEmailVerified: user.isEmailVerified,
     };
-
     return this.entityMapper.mapValue(CurrentUserDto, {
       ...user,
       accessToken: `Bearer ${jwt.sign(

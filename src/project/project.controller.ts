@@ -1,10 +1,12 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -18,6 +20,10 @@ import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectsResult } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
+import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
+import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
+import { EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
+import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -33,14 +39,18 @@ export class ProjectController {
     return this.projectService.find(findOptions, request.currentUser);
   }
 
+  @UseInterceptors(SetCurrentUserInterceptor)
   @Get(':id')
-  async getOne(@Param('id', ParseIntPipe) projectId: number) {
-    return this.projectService.findOne(projectId);
+  async getOne(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) projectId: number,
+  ) {
+    return this.projectService.findOne(projectId, request.currentUser);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Post('favorite/:id')
+  @Post(':id/favorite')
   async favorite(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -50,11 +60,156 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Delete('favorite/:id')
+  @Delete(':id/favorite')
   async unfavorite(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ) {
     await this.projectService.unfavorite(id, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Post(':id/enroll-request')
+  async enroll(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() enrollmentRequest: EnrollmentRequestDto,
+  ) {
+    await this.projectService.requestEnroll(
+      id,
+      request.currentUser,
+      enrollmentRequest,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enroll-request')
+  async updateEnrollRequest(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() enrollmentRequest: EnrollmentRequestDto,
+  ) {
+    await this.projectService.updateEnrollRequest(
+      id,
+      request.currentUser,
+      enrollmentRequest,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Get(':id/enroll-requests')
+  async getEnrollRequests(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.projectService.getEnrollRequests(id, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Delete(':id/enroll-request')
+  async cancelEnrollRequest(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.projectService.cancelEnrollRequest(id, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enrollment/unenroll')
+  async unenroll(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() unenrollOptions: UnenrollDto,
+  ) {
+    await this.projectService.unenroll(
+      id,
+      request.currentUser,
+      unenrollOptions,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Delete(':id/enrollment')
+  async ackKick(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.projectService.ackKick(id, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enroll-requests/:userId/approve')
+  async approveEnrollRequest(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+  ) {
+    await this.projectService.manageEnrollRequest(
+      id,
+      userId,
+      request.currentUser,
+      enrollRequestAdminDto,
+      'approve',
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enroll-requests/:userId/reject')
+  async rejectEnrollRequest(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+  ) {
+    await this.projectService.manageEnrollRequest(
+      id,
+      userId,
+      request.currentUser,
+      enrollRequestAdminDto,
+      'reject',
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enrollments/:userId/kick')
+  async kickUser(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+  ) {
+    await this.projectService.kickUser(
+      id,
+      userId,
+      request.currentUser,
+      enrollRequestAdminDto,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/enrollments/:userId/change-role')
+  async changeUserRole(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() enrollRequestAdminDto: EnrollmentChangeRole,
+  ) {
+    await this.projectService.changeUserRole(
+      id,
+      userId,
+      request.currentUser,
+      enrollRequestAdminDto,
+    );
   }
 }
