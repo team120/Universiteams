@@ -5,7 +5,6 @@ export class EntityQueryCreator<T> {
 
   initialQuery(): SelectQueryBuilder<T> {
     return this.repository.createQueryBuilder(
-      // Toma por ejemplo el nombre de la clase Project, luego pasa como parametro 'project'
       this.repository.metadata.targetName.toLowerCase(),
     );
   }

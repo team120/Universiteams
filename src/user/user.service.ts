@@ -46,8 +46,12 @@ export class UserService {
       UserFilters,
       findOptions,
     );
+
     const query = this.queryCreator.initialQuery();
     const queryWithFilters = this.queryCreator.applyFilters(filters, query);
+
+    this.logger.debug('SQL After applying filters');
+    this.logger.debug(queryWithFilters.getSql());
     const users = await queryWithFilters.getMany().catch((err: Error) => {
       throw new DbException(err.message, err.stack);
     });

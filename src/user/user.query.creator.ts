@@ -21,8 +21,40 @@ export class QueryCreator extends EntityQueryCreator<User> {
     userFilters: UserFilters,
     query: SelectQueryBuilder<User>,
   ): SelectQueryBuilder<User> {
-    this.logger.debug('Applying filters');
-    if (Array.isArray(userFilters.interestIds)) {
+    this.logger.debug('SQL Before applying filters');
+    this.logger.debug(query.getSql());
+    const entitiesJoinQuery = query
+      .innerJoinAndSelect('user.userAffiliations', 'affiliations')
+      .innerJoinAndSelect(
+        'affiliations.researchDepartment',
+        'researchDepartment',
+      )
+      .innerJoinAndSelect('researchDepartment.facility', 'rdFacility')
+      .innerJoinAndSelect('rdFacility.institution', 'institution')
+      .innerJoinAndSelect('user.interests', 'interests');
+
+    if (userFilters.institutionId) {
+      entitiesJoinQuery.andWhere(`institution.id = :institutionId`, {
+        institutionId: userFilters.institutionId,
+      });
+    }
+
+    if (userFilters.facilityId) {
+      entitiesJoinQuery.andWhere('rdFacility.id = :rdFacilityId', {
+        rdFacilityId: userFilters.facilityId,
+      });
+    }
+
+    if (userFilters.researchDepartmentId) {
+      entitiesJoinQuery.andWhere(
+        'researchDepartment.id = :researchDepartmentId',
+        {
+          researchDepartmentId: userFilters.researchDepartmentId,
+        },
+      );
+    }
+    /*
+    if (Array.isArray(userFilters)) {
       query.innerJoinAndSelect(
         'user.interests',
         'interest',
@@ -35,9 +67,8 @@ export class QueryCreator extends EntityQueryCreator<User> {
         .andWhere('interest.id = :id', {
           id: userFilters.interestIds,
         });
-    }
-    // Discuss business logic: if we want to return users with partial and exact interests OR only those matching
-    // the exact same interests that are passed as parameter in request (e.g. interests 4 and 7).
-    return query;
+    }*/
+
+    return entitiesJoinQuery;
   }
 }

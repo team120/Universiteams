@@ -1,27 +1,28 @@
-import { OmitType } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
 import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
 
 @Exclude()
 export class UserFindDto {
   @IsOptional()
-  @Expose()
-  firstName?: string;
+  @IsNumber()
+  @ExposeType(Number)
+  researchDepartmentId?: number;
   @IsOptional()
-  @Expose()
-  lastName?: string;
+  @IsNumber()
+  @ExposeType(Number)
+  facilityId?: number;
   @IsOptional()
-  @Expose()
-  email?: string;
+  @IsNumber()
+  @ExposeType(Number)
+  institutionId?: number;
   @IsOptional()
   @IsNumber({}, { each: true })
   @ExposeType(Number)
   interestIds?: number[];
+  // TO-DO:  SORT BY, LIMIT, OFFSET
 }
 
-export class UserFilters extends OmitType(UserFindDto, [
-  'firstName',
-  'lastName',
-  'email',
-]) {}
+export class UserFilters extends UserFindDto {}
+// Will be adding sortBy, limit, offset, etc
+// When sorting and pagination is implemented
