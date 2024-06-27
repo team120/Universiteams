@@ -31,7 +31,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       )
       .innerJoinAndSelect('researchDepartment.facility', 'rdFacility')
       .innerJoinAndSelect('rdFacility.institution', 'institution')
-      .innerJoinAndSelect('user.interests', 'interests');
+      .leftJoinAndSelect('user.interests', 'interests');
 
     if (userFilters.institutionId) {
       entitiesJoinQuery.andWhere(`institution.id = :institutionId`, {
@@ -53,21 +53,19 @@ export class QueryCreator extends EntityQueryCreator<User> {
         },
       );
     }
-    /*
-    if (Array.isArray(userFilters)) {
-      query.innerJoinAndSelect(
-        'user.interests',
-        'interest',
-        'interest.id IN (:...ids)',
-        { ids: userFilters.interestIds },
-      );
-    } else {
-      query
-        .innerJoinAndSelect('user.interests', 'interest')
-        .andWhere('interest.id = :id', {
-          id: userFilters.interestIds,
-        });
-    }*/
+    if (userFilters.interestIds) {
+      entitiesJoinQuery.andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('interests.userId')
+          .from('user_interest', 'interests')
+          .where('interests.interestId IN (:...interestIds)', {
+            interestIds: userFilters.interestIds,
+          })
+          .getQuery();
+        return 'user.id IN ' + subQuery;
+      });
+    }
 
     return entitiesJoinQuery;
   }

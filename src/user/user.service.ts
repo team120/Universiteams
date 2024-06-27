@@ -55,9 +55,10 @@ export class UserService {
     const users = await queryWithFilters.getMany().catch((err: Error) => {
       throw new DbException(err.message, err.stack);
     });
+    const usersCount = await queryWithFilters.getCount();
     return {
       users: this.entityMapper.mapArray(UserShowDto, users),
-      usersCount: users.length,
+      usersCount: usersCount,
     };
   }
 }
