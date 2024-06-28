@@ -357,7 +357,7 @@ describe('auth', () => {
           .send(registrationAttempt)
           .then(async (res) => {
             expect(res.status).toBe(400);
-            expect(res.body.message).toBe('user1@example.com ya esta tomado');
+            expect(res.body.message).toBe('user1@example.com ya esta en uso');
             expect(res.body.accessToken).not.toBeDefined();
 
             const usersInDbWithThatEmail = await conn

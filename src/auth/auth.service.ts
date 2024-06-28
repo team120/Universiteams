@@ -60,7 +60,7 @@ export class AuthService {
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
-    if (user) throw new BadRequest(`${registerDto.email} ya esta tomado`);
+    if (user) throw new BadRequest(`${registerDto.email} ya esta en uso`);
 
     const userToInsert = {
       ...registerDto,
