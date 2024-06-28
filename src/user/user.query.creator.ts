@@ -4,7 +4,7 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { EntityQueryCreator } from 'src/utils/query.creator';
-import { UserFilters } from './dtos/user.find.dto';
+import { PaginationAttributes, UserFilters } from './dtos/user.find.dto';
 
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<User> {
@@ -23,7 +23,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
   ): SelectQueryBuilder<User> {
     this.logger.debug('SQL Before applying filters');
     this.logger.debug(query.getSql());
-    const entitiesJoinQuery = query
+    const relatedEntitiesQuery = query
       .select('user.id', 'id')
       .innerJoin('user.userAffiliations', 'affiliations')
       .innerJoin('affiliations.researchDepartment', 'researchDepartment')
@@ -33,19 +33,19 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .groupBy('user.id');
 
     if (userFilters.institutionId) {
-      entitiesJoinQuery.andWhere(`institution.id = :institutionId`, {
+      relatedEntitiesQuery.andWhere(`institution.id = :institutionId`, {
         institutionId: userFilters.institutionId,
       });
     }
 
     if (userFilters.facilityId) {
-      entitiesJoinQuery.andWhere('rdFacility.id = :rdFacilityId', {
+      relatedEntitiesQuery.andWhere('rdFacility.id = :rdFacilityId', {
         rdFacilityId: userFilters.facilityId,
       });
     }
 
     if (userFilters.researchDepartmentId) {
-      entitiesJoinQuery.andWhere(
+      relatedEntitiesQuery.andWhere(
         'researchDepartment.id = :researchDepartmentId',
         {
           researchDepartmentId: userFilters.researchDepartmentId,
@@ -57,7 +57,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       const interestsIds = Array.isArray(userFilters.interestIds)
         ? userFilters.interestIds
         : [userFilters.interestIds];
-      entitiesJoinQuery
+      relatedEntitiesQuery
         .andWhere(`interest.id IN (:...interestIds)`, {
           interestIds: interestsIds,
         })
@@ -66,7 +66,17 @@ export class QueryCreator extends EntityQueryCreator<User> {
         });
     }
 
-    return entitiesJoinQuery;
+    return relatedEntitiesQuery;
+  }
+
+  applyPaginations(
+    filteredQuery: SelectQueryBuilder<User>,
+    paginationAttributes: PaginationAttributes,
+  ): SelectQueryBuilder<User> {
+    const paginationQuery = filteredQuery
+      .limit(paginationAttributes.limit)
+      .offset(paginationAttributes.offset);
+    return paginationQuery;
   }
 
   applyProjections(

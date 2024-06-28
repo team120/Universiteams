@@ -6,7 +6,11 @@ import { Repository } from 'typeorm';
 import { UserShowDto, UsersResult } from './dtos/user.show.dto';
 import { User } from './user.entity';
 import { DbException } from '../utils/exceptions/exceptions';
-import { UserFilters, UserFindDto } from './dtos/user.find.dto';
+import {
+  PaginationAttributes,
+  UserFilters,
+  UserFindDto,
+} from './dtos/user.find.dto';
 import { QueryCreator } from './user.query.creator';
 
 @Injectable()
@@ -46,22 +50,24 @@ export class UserService {
       UserFilters,
       findOptions,
     );
-
+    const paginationAttributes: PaginationAttributes =
+      this.entityMapper.mapValue(PaginationAttributes, findOptions);
     const query = this.queryCreator.initialQuery();
     const queryWithFilters = this.queryCreator.applyFilters(filters, query);
-    const queryWithPaginations =
-      this.queryCreator.applyProjections(queryWithFilters);
-
-    this.logger.debug('SQL asdasd');
-    this.logger.debug(queryWithFilters.getSql());
+    const queryWithPagination = this.queryCreator.applyPaginations(
+      queryWithFilters,
+      paginationAttributes,
+    );
+    const queryWithProjections =
+      this.queryCreator.applyProjections(queryWithPagination);
 
     this.logger.debug('SQL After applying filters and pagination');
-    this.logger.debug(queryWithPaginations.getSql());
+    this.logger.debug(queryWithProjections.getSql());
 
-    const users = await queryWithPaginations.getMany().catch((err: Error) => {
+    const users = await queryWithProjections.getMany().catch((err: Error) => {
       throw new DbException(err.message, err.stack);
     });
-    const usersCount = await queryWithPaginations.getCount();
+    const usersCount = await queryWithProjections.getCount();
     return {
       users: this.entityMapper.mapArray(UserShowDto, users),
       usersCount: usersCount,
