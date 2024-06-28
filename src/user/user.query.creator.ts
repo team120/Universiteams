@@ -24,14 +24,13 @@ export class QueryCreator extends EntityQueryCreator<User> {
     this.logger.debug('SQL Before applying filters');
     this.logger.debug(query.getSql());
     const entitiesJoinQuery = query
-      .innerJoinAndSelect('user.userAffiliations', 'affiliations')
-      .innerJoinAndSelect(
-        'affiliations.researchDepartment',
-        'researchDepartment',
-      )
-      .innerJoinAndSelect('researchDepartment.facility', 'rdFacility')
-      .innerJoinAndSelect('rdFacility.institution', 'institution')
-      .leftJoinAndSelect('user.interests', 'interests');
+      .select('user.id', 'id')
+      .innerJoin('user.userAffiliations', 'affiliations')
+      .innerJoin('affiliations.researchDepartment', 'researchDepartment')
+      .innerJoin('researchDepartment.facility', 'rdFacility')
+      .innerJoin('rdFacility.institution', 'institution')
+      .innerJoin('user.interests', 'interest')
+      .groupBy('user.id');
 
     if (userFilters.institutionId) {
       entitiesJoinQuery.andWhere(`institution.id = :institutionId`, {
@@ -53,20 +52,42 @@ export class QueryCreator extends EntityQueryCreator<User> {
         },
       );
     }
+
     if (userFilters.interestIds) {
-      entitiesJoinQuery.andWhere((qb) => {
-        const subQuery = qb
-          .subQuery()
-          .select('interests.userId')
-          .from('user_interest', 'interests')
-          .where('interests.interestId IN (:...interestIds)', {
-            interestIds: userFilters.interestIds,
-          })
-          .getQuery();
-        return 'user.id IN ' + subQuery;
-      });
+      const interestsIds = Array.isArray(userFilters.interestIds)
+        ? userFilters.interestIds
+        : [userFilters.interestIds];
+      entitiesJoinQuery
+        .andWhere(`interest.id IN (:...interestIds)`, {
+          interestIds: interestsIds,
+        })
+        .having('COUNT(DISTINCT interest.id) = :interestCount', {
+          interestCount: interestsIds.length,
+        });
     }
 
     return entitiesJoinQuery;
+  }
+
+  applyProjections(
+    filteredQuery: SelectQueryBuilder<User>,
+  ): SelectQueryBuilder<User> {
+    const projectionsQuery = this.initialQuery()
+      .innerJoin(
+        `(${filteredQuery.getQuery()})`,
+        'userIds',
+        'user.id = "userIds".id',
+      )
+      .innerJoinAndSelect('user.userAffiliations', 'affiliations')
+      .innerJoinAndSelect(
+        'affiliations.researchDepartment',
+        'researchDepartment',
+      )
+      .innerJoinAndSelect('researchDepartment.facility', 'rdFacility')
+      .innerJoinAndSelect('rdFacility.institution', 'institution')
+      .innerJoinAndSelect('user.interests', 'interests')
+      .setParameters(filteredQuery.getParameters());
+
+    return projectionsQuery;
   }
 }

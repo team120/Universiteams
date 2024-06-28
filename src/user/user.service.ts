@@ -49,13 +49,19 @@ export class UserService {
 
     const query = this.queryCreator.initialQuery();
     const queryWithFilters = this.queryCreator.applyFilters(filters, query);
+    const queryWithPaginations =
+      this.queryCreator.applyProjections(queryWithFilters);
 
-    this.logger.debug('SQL After applying filters');
+    this.logger.debug('SQL asdasd');
     this.logger.debug(queryWithFilters.getSql());
-    const users = await queryWithFilters.getMany().catch((err: Error) => {
+
+    this.logger.debug('SQL After applying filters and pagination');
+    this.logger.debug(queryWithPaginations.getSql());
+
+    const users = await queryWithPaginations.getMany().catch((err: Error) => {
       throw new DbException(err.message, err.stack);
     });
-    const usersCount = await queryWithFilters.getCount();
+    const usersCount = await queryWithPaginations.getCount();
     return {
       users: this.entityMapper.mapArray(UserShowDto, users),
       usersCount: usersCount,
