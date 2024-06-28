@@ -4,7 +4,12 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { EntityQueryCreator } from 'src/utils/query.creator';
-import { PaginationAttributes, UserFilters } from './dtos/user.find.dto';
+import {
+  PaginationAttributes,
+  UserFilters,
+  UserSortAttributes,
+  UserSortByProperty,
+} from './dtos/user.find.dto';
 
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<User> {
@@ -16,6 +21,8 @@ export class QueryCreator extends EntityQueryCreator<User> {
     super(usersRepository);
     this.logger.setContext(QueryCreator.name);
   }
+
+  private sortByMap = new Map([[UserSortByProperty.lastName, 'user.lastName']]);
 
   applyFilters(
     userFilters: UserFilters,
@@ -79,15 +86,25 @@ export class QueryCreator extends EntityQueryCreator<User> {
     return paginationQuery;
   }
 
-  applyProjections(
-    filteredQuery: SelectQueryBuilder<User>,
+  applySorting(
+    sortAttributes: UserSortAttributes,
+    query: SelectQueryBuilder<User>,
   ): SelectQueryBuilder<User> {
-    const projectionsQuery = this.initialQuery()
-      .innerJoin(
-        `(${filteredQuery.getQuery()})`,
-        'userIds',
-        'user.id = "userIds".id',
-      )
+    if (!sortAttributes.sortBy) return query;
+    const sortByProperty = this.sortByMap.get(sortAttributes.sortBy);
+    if (!sortAttributes.order) return query;
+    const orderDirection = sortAttributes.order;
+
+    query = query.orderBy(sortByProperty, orderDirection);
+    return query;
+  }
+
+  applyProjections(
+    sortAttributes: UserSortAttributes,
+    query: SelectQueryBuilder<User>,
+  ): SelectQueryBuilder<User> {
+    const finalQuery = this.initialQuery()
+      .innerJoin(`(${query.getQuery()})`, 'userIds', 'user.id = "userIds".id')
       .innerJoinAndSelect('user.userAffiliations', 'affiliations')
       .innerJoinAndSelect(
         'affiliations.researchDepartment',
@@ -96,8 +113,10 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .innerJoinAndSelect('researchDepartment.facility', 'rdFacility')
       .innerJoinAndSelect('rdFacility.institution', 'institution')
       .innerJoinAndSelect('user.interests', 'interests')
-      .setParameters(filteredQuery.getParameters());
+      .setParameters(query.getParameters());
 
-    return projectionsQuery;
+    const finalQuerySorted = this.applySorting(sortAttributes, finalQuery);
+
+    return finalQuerySorted;
   }
 }

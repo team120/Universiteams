@@ -1,12 +1,17 @@
 import { OmitType, PickType } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
-import { IsNumber, IsOptional, Min } from 'class-validator';
+import { Exclude, Expose } from 'class-transformer';
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
 
 export enum UserSortByProperty {
   lastName = 'lastName',
   researchDepartment = 'researchDepartment',
   facility = 'facility',
+}
+
+export enum AscendingDescendingOrder {
+  ascending = 'ASC',
+  descending = 'DESC',
 }
 
 @Exclude()
@@ -37,7 +42,14 @@ export class UserFindDto {
   @Min(1)
   @ExposeType(Number)
   limit?: number;
-  // TO-DO:  SORT BY
+  @IsOptional()
+  @IsEnum(UserSortByProperty)
+  @Expose()
+  sortBy?: UserSortByProperty;
+  @IsOptional()
+  @IsEnum(AscendingDescendingOrder)
+  @Expose()
+  order?: AscendingDescendingOrder;
 }
 
 export class UserFilters extends OmitType(UserFindDto, ['limit', 'offset']) {}
@@ -48,4 +60,10 @@ export class UserFilters extends OmitType(UserFindDto, ['limit', 'offset']) {}
 export class PaginationAttributes extends PickType(UserFindDto, [
   'limit',
   'offset',
+]) {}
+
+@Exclude()
+export class UserSortAttributes extends PickType(UserFindDto, [
+  'sortBy',
+  'order',
 ]) {}

@@ -10,6 +10,7 @@ import {
   PaginationAttributes,
   UserFilters,
   UserFindDto,
+  UserSortAttributes,
 } from './dtos/user.find.dto';
 import { QueryCreator } from './user.query.creator';
 
@@ -52,14 +53,26 @@ export class UserService {
     );
     const paginationAttributes: PaginationAttributes =
       this.entityMapper.mapValue(PaginationAttributes, findOptions);
+    const sortAttributes: UserSortAttributes = this.entityMapper.mapValue(
+      UserSortAttributes,
+      findOptions,
+    );
+
     const query = this.queryCreator.initialQuery();
     const queryWithFilters = this.queryCreator.applyFilters(filters, query);
     const queryWithPagination = this.queryCreator.applyPaginations(
       queryWithFilters,
       paginationAttributes,
     );
-    const queryWithProjections =
-      this.queryCreator.applyProjections(queryWithPagination);
+    /*const queryWithSorting = this.queryCreator.applySorting(
+      sortAttributes,
+      queryWithPagination,
+    );
+    */
+    const queryWithProjections = this.queryCreator.applyProjections(
+      sortAttributes,
+      queryWithPagination,
+    );
 
     this.logger.debug('SQL After applying filters and pagination');
     this.logger.debug(queryWithProjections.getSql());
