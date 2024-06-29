@@ -88,15 +88,20 @@ export class ProjectService {
       currentUser,
     );
 
-    const [paginationAppliedQuery, projectsCount] =
-      await this.queryCreator.applySortingAndPagination(
-        extraFiltersAppliedSearchQuery,
-        paginationAttributes,
-        sortAttributes,
-        currentUser,
-      );
+    const projectCount = await extraFiltersAppliedSearchQuery
+      .getCount()
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
 
-    this.logger.info(paginationAppliedQuery.getSql());
+    const paginationAppliedQuery = this.queryCreator.applySortingAndPagination(
+      extraFiltersAppliedSearchQuery,
+      paginationAttributes,
+      sortAttributes,
+      currentUser,
+    );
+
+    this.logger.info(extraFiltersAppliedSearchQuery.getSql());
 
     const projects = await paginationAppliedQuery
       .getMany()
@@ -107,7 +112,7 @@ export class ProjectService {
     this.logger.debug('Map projects to dto');
     return {
       projects: this.entityMapper.mapArray(ProjectInListDto, projects),
-      projectCount: projectsCount,
+      projectCount: projectCount,
       suggestedSearchTerms: suggestedSearchTerms,
     };
   }
