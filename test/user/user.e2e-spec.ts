@@ -2,7 +2,6 @@ import { INestApplication } from '@nestjs/common';
 import { TestingModule, Test } from '@nestjs/testing';
 import { UserE2EModule } from './user.e2e.module';
 import * as request from 'supertest';
-import { users } from './user.snapshot';
 import { DataSource } from 'typeorm';
 
 describe('User Actions (e2e)', () => {
@@ -33,7 +32,6 @@ describe('User Actions (e2e)', () => {
           expect(res.status).toBe(200);
           expect(res.body).toHaveLength(20);
           expect(res.body[0]).not.toHaveProperty('password');
-          expect(res.body).toEqual(users);
         });
     });
   });

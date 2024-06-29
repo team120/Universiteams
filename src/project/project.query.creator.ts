@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { ProjectRole } from '../enrollment/enrolment.entity';
+import { ProjectRole, RequestState } from '../enrollment/enrollment.entity';
 import {
   CURRENT_DATE_SERVICE,
   ICurrentDateService,
@@ -14,7 +14,15 @@ import {
   ProjectSortAttributes,
   SortByProperty,
 } from './dtos/project.find.dto';
-import { Project, isDownColumn, isFavoriteColumn } from './project.entity';
+import {
+  Project,
+  adminMessageColumn,
+  isDownColumn,
+  isFavoriteColumn,
+  requestEnrollmentCountColumn,
+  requestStateColumn,
+  requesterMessageColumn,
+} from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 
@@ -23,6 +31,7 @@ export class QueryCreator {
   private sortBy = new Map([
     [SortByProperty.name, 'project.name'],
     [SortByProperty.creationDate, 'project.creationDate'],
+    [SortByProperty.requestEnrollmentCount, 'project.requestEnrollmentCount'],
   ]);
 
   constructor(
@@ -111,9 +120,13 @@ export class QueryCreator {
         ? filters.interestIds
         : [filters.interestIds];
 
-      relatedEntitiesJoinsQuery.andWhere(`interest.id IN (:...interestIds)`, {
-        interestIds: interestIds,
-      });
+      relatedEntitiesJoinsQuery
+        .andWhere(`interest.id IN (:...interestIds)`, {
+          interestIds: interestIds,
+        })
+        .having('COUNT(DISTINCT interest.id) = :interestsCount', {
+          interestsCount: interestIds.length,
+        });
     }
 
     if (filters.institutionId) {
@@ -177,19 +190,19 @@ export class QueryCreator {
         .leftJoin(
           'project.favorites',
           'favorite',
-          'favorite.userId = :userId and favorite.projectId = project.id',
+          'favorite.userId = :currentUserId and favorite.projectId = project.id',
         )
-        .setParameter('userId', currentUser.id);
+        .setParameter('currentUserId', currentUser.id);
 
       if (filters.isFavorite === true) {
-        relatedEntitiesJoinsQuery.andWhere('favorite.userId = :userId', {
-          userId: currentUser.id,
+        relatedEntitiesJoinsQuery.andWhere('favorite.userId = :currentUserId', {
+          currentUserId: currentUser.id,
         });
       } else {
         relatedEntitiesJoinsQuery.andWhere(
-          'favorite.userId IS NULL OR favorite.userId != :userId',
+          'favorite.userId IS NULL OR favorite.userId != :currentUserId',
           {
-            userId: currentUser.id,
+            currentUserId: currentUser.id,
           },
         );
       }
@@ -199,6 +212,13 @@ export class QueryCreator {
       relatedEntitiesJoinsQuery.andWhere('user.id = :userId', {
         userId: filters.userId,
       });
+
+      if (!filters.requestStates) {
+        relatedEntitiesJoinsQuery.andWhere(
+          'enrollment.requestState = :status',
+          { status: RequestState.Accepted },
+        );
+      }
     }
 
     if (filters.dateFrom) {
@@ -220,24 +240,32 @@ export class QueryCreator {
       );
     }
 
-    return relatedEntitiesJoinsQuery;
-  }
+    if (filters.requestStates) {
+      if (!currentUser) {
+        throw new BadRequest(
+          'User must be provided to filter by request state',
+        );
+      }
 
-  applySorting(
-    sortAttributes: ProjectSortAttributes,
-    query: SelectQueryBuilder<Project>,
-  ): [SelectQueryBuilder<Project>, string] {
-    if (!sortAttributes.sortBy) return [query, undefined];
+      relatedEntitiesJoinsQuery.andWhere('enrollment.userId = :currentUserId', {
+        currentUserId: currentUser.id,
+      });
 
-    const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
+      const requestStates = Array.isArray(filters.requestStates)
+        ? filters.requestStates
+        : [filters.requestStates];
 
-    if (!sortByProperty) return [query, undefined];
+      relatedEntitiesJoinsQuery.andWhere(
+        'enrollment.requestState IN (:...requestStates)',
+        {
+          requestStates: requestStates,
+        },
+      );
+    }
 
-    const orderDirection =
-      sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
-    const orderByClause = `${sortByProperty} ${orderDirection}`;
-    this.logger.debug(orderByClause);
-    return [query.orderBy(sortByProperty, orderDirection), orderByClause];
+    return relatedEntitiesJoinsQuery
+      .select('project.id as id')
+      .groupBy('project.id');
   }
 
   /**
@@ -245,34 +273,38 @@ export class QueryCreator {
    * Then, the project count is obtained from the subqueryProjectIds.
    * Finally, the finalPaginatedQuery is created by joining the sortedAndFilteredProjectsSubquery with the subqueryProjectIds,
    * applying additional projections and joins to the finalPaginatedQuery.
-   *
-   * @param sortedAndFilteredProjectsSubquery - The subquery with sorted and filtered projects
-   * @param paginationAttributes - The attributes for pagination
-   * @param orderByClause - The clause for ordering
-   * @param currentUser - The current user
-   * @returns A promise that resolves to a tuple containing the final paginated query and the project count
    */
-  async applyPaginationAndProjections(
-    sortedAndFilteredProjectsSubquery: SelectQueryBuilder<Project>,
+  applySortingAndPagination(
+    filteredProjectsSubquery: SelectQueryBuilder<Project>,
     paginationAttributes: PaginationAttributes,
-    orderByClause?: string,
+    sortAttributes: ProjectSortAttributes,
     currentUser?: CurrentUserWithoutTokens,
-  ): Promise<[SelectQueryBuilder<Project>, number]> {
-    const subqueryProjectIds = sortedAndFilteredProjectsSubquery
-      .select(
-        `project.id as id, row_number() over (${
-          orderByClause ? 'ORDER BY ' + orderByClause : ''
-        }) as orderKey`,
-      )
-      .groupBy('project.id')
+  ): SelectQueryBuilder<Project> {
+    if (
+      sortAttributes.sortBy === SortByProperty.requestEnrollmentCount &&
+      !currentUser
+    ) {
+      throw new BadRequest(
+        'No es posible ordenar por cantidad de solicitudes de inscripción sin un usuario autenticado.',
+      );
+    }
+
+    const orderKey = 'orderKey';
+    const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
+    const orderDirection =
+      sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
+
+    const subqueryProjectIds = filteredProjectsSubquery
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
-    this.logger.info(subqueryProjectIds.getSql());
-    const projectCount = await subqueryProjectIds
-      .getCount()
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
+
+    if (sortAttributes.sortBy !== SortByProperty.requestEnrollmentCount) {
+      subqueryProjectIds.addSelect(
+        `row_number() over (${
+          sortByProperty ? `ORDER BY ${sortByProperty} ${orderDirection}` : ''
+        }) as ${orderKey}`,
+      );
+    }
 
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
@@ -301,29 +333,82 @@ export class QueryCreator {
       // Only embed users with leader or admin role
       .where(`enrollment is null OR enrollment.role = '${ProjectRole.Leader}'`)
       .orWhere(`enrollment is null OR enrollment.role = '${ProjectRole.Admin}'`)
-      .orderBy('orderKey')
       .setParameters(subqueryProjectIds.getParameters());
 
     if (currentUser) {
-      finalPaginatedQuery
+      const requestEnrollmentCountSelect =
+        'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END';
+      const subqueryCurrentUserData = this.projectRepository
+        .createQueryBuilder('project')
+        .select('project.id as id')
+        .addSelect(
+          `CASE WHEN favorite.userId = :currentUserId THEN TRUE ELSE FALSE END`,
+          isFavoriteColumn,
+        )
+        .addSelect('enrollment.requestState', requestStateColumn)
+        .addSelect('enrollment.requesterMessage', requesterMessageColumn)
+        .addSelect('enrollment.adminMessage', adminMessageColumn)
+        .addSelect(requestEnrollmentCountSelect, requestEnrollmentCountColumn)
         .leftJoin(
           'project.favorites',
           'favorite',
-          'favorite.userId = :userId and favorite.projectId = project.id',
+          'favorite.userId = :currentUserId',
         )
-        .addSelect(
-          `CASE WHEN favorite.userId = :userId THEN TRUE ELSE FALSE END`,
-          isFavoriteColumn,
+        .leftJoin(
+          'project.enrollments',
+          'enrollment',
+          'enrollment.userId = :currentUserId',
         )
-        .setParameter('userId', currentUser.id);
+        .groupBy('project.id')
+        .addGroupBy('favorite.userId')
+        .addGroupBy('enrollment.requestState')
+        .addGroupBy('enrollment.requesterMessage')
+        .addGroupBy('enrollment.adminMessage')
+        .addGroupBy('enrollment.role')
+        .setParameter('currentUserId', currentUser.id)
+        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
+
+      if (sortAttributes.sortBy === SortByProperty.requestEnrollmentCount) {
+        const nullsLast = 'NULLS LAST';
+
+        subqueryCurrentUserData.addSelect(
+          `row_number() over (
+              ORDER BY ${requestEnrollmentCountSelect} ${orderDirection} ${nullsLast}
+            ) as ${orderKey}`,
+        );
+      }
+
+      finalPaginatedQuery
+        .innerJoin(
+          `(${subqueryCurrentUserData.getQuery()})`,
+          'currentUserData',
+          'project.id = "currentUserData".id',
+        )
+        .addSelect(`"currentUserData"."${isFavoriteColumn}"`)
+        .addSelect(`"currentUserData"."${requestStateColumn}"`)
+        .addSelect(`"currentUserData"."${requesterMessageColumn}"`)
+        .addSelect(`"currentUserData"."${adminMessageColumn}"`)
+        .addSelect(`"currentUserData"."${requestEnrollmentCountColumn}"`)
+        .setParameters(subqueryCurrentUserData.getParameters());
     }
 
-    return [finalPaginatedQuery, projectCount];
+    finalPaginatedQuery.orderBy(orderKey);
+
+    return finalPaginatedQuery;
   }
 
-  findOne(id: number): SelectQueryBuilder<Project> {
-    return this.projectRepository
+  findOne(
+    id: number,
+    currentUser?: CurrentUserWithoutTokens,
+  ): SelectQueryBuilder<Project> {
+    const query = this.projectRepository
       .createQueryBuilder('project')
+      .addSelect('project.description')
+      .addSelect(
+        'COALESCE(project."endDate" < :currentDate, false)',
+        isDownColumn,
+      )
+      .setParameter('currentDate', this.currentDate.get())
       .innerJoinAndSelect('project.researchDepartments', 'researchDepartment')
       .innerJoinAndSelect(
         'researchDepartment.facility',
@@ -333,8 +418,14 @@ export class QueryCreator {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
-      .leftJoinAndSelect('project.enrollments', 'enrollment')
-      .leftJoinAndSelect('enrollment.user', 'user')
+      .innerJoinAndSelect('project.interests', 'interests')
+      .innerJoinAndSelect(
+        'project.enrollments',
+        'enrollment',
+        'enrollment.requestState = :status',
+        { status: RequestState.Accepted },
+      )
+      .innerJoinAndSelect('enrollment.user', 'user')
       .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
       .leftJoinAndSelect(
         'userAffiliation.researchDepartment',
@@ -342,8 +433,32 @@ export class QueryCreator {
       )
       .leftJoinAndSelect('userResearchDepartment.facility', 'userFacility')
       .leftJoinAndSelect('userFacility.institution', 'userInstitution')
-      .leftJoinAndSelect('project.interests', 'interests')
+      .leftJoinAndSelect('user.interests', 'userInterests')
       .where('project.id = :projectId', { projectId: id });
+
+    if (currentUser) {
+      query
+        .addSelect(
+          'COALESCE(favorite.userId = :currentUserId, false)',
+          isFavoriteColumn,
+        )
+        .addSelect('enrollment.requestState', requestStateColumn)
+        .addSelect('enrollment.requesterMessage', requesterMessageColumn)
+        .addSelect('enrollment.adminMessage', adminMessageColumn)
+        .addSelect(
+          'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
+          requestEnrollmentCountColumn,
+        )
+        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin])
+        .leftJoin(
+          'project.favorites',
+          'favorite',
+          'favorite.userId = :currentUserId',
+        )
+        .setParameter('currentUserId', currentUser.id);
+    }
+
+    return query;
   }
 
   initialProjectQuery(): SelectQueryBuilder<Project> {
