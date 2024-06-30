@@ -11,11 +11,9 @@ export interface ITokenExpirationTimes {
   };
 }
 
-export type ExpirationsMap = Partial<
-  {
-    [key in AcceptedTokens]: ExpirationTime;
-  }
->;
+export type ExpirationsMap = Partial<{
+  [key in AcceptedTokens]: ExpirationTime;
+}>;
 
 export enum AcceptedTokens {
   AccessToken = 'accessToken',
