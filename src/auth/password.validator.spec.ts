@@ -13,52 +13,27 @@ describe('IsValidPasswordValidator', () => {
   });
   describe('when not every check pass', () => {
     it.each([
-      [
-        'password',
-        'Password must include at least: one uppercase alphabetic character, one number, one non-alphanumeric character (#,$,%,etc)',
-      ],
-      [
-        'Password',
-        'Password must include at least: one number, one non-alphanumeric character (#,$,%,etc)',
-      ],
-      [
-        'Password1',
-        'Password must include at least: one non-alphanumeric character (#,$,%,etc)',
-      ],
-      [
-        'pass_word',
-        'Password must include at least: one uppercase alphabetic character, one number',
-      ],
-      [
-        '%',
-        'Password must include at least: one lowercase alphabetic character, one uppercase alphabetic character, one number',
-      ],
-      [
-        '1',
-        'Password must include at least: one lowercase alphabetic character, one uppercase alphabetic character, one non-alphanumeric character (#,$,%,etc)',
-      ],
-      [
-        '-1215assa',
-        'Password must include at least: one uppercase alphabetic character',
-      ],
-      [
-        'ASA87',
-        'Password must include at least: one lowercase alphabetic character, one non-alphanumeric character (#,$,%,etc)',
-      ],
-      [
-        "$$$7878'",
-        'Password must include at least: one lowercase alphabetic character, one uppercase alphabetic character',
-      ],
+      ['password', false],
+      ['Password', false],
+      ['Password1', true],
+      ['Pass_word', true],
+      ['%', false],
+      ['1', false],
+      ['-1215assa', false],
+      ['ASA87', false],
+      ["$$$7878'", false],
     ])(
       'should return false and a validation error (inputValue %p)',
-      (invalidPassword: string, validationErrorMessage: string) => {
-        expect(validator.validate(invalidPassword)).toBe(false);
+      (invalidPassword: string, valid: boolean) => {
+        expect(validator.validate(invalidPassword)).toBe(valid);
         expect(
           validator.defaultMessage({
             property: 'Password',
             value: invalidPassword,
           } as ValidationArguments),
-        ).toBe(validationErrorMessage);
+        ).toBe(
+          'La clave debe cumplir al menos 4 de las 5 pautas contiguas:Tiene al menos 8 caracteres, Incluye un número, Incluye una letra minúscula, Incluye una letra mayúscula, Incluye un símbolo especial',
+        );
       },
     );
   });

@@ -1,7 +1,7 @@
 import { Exclude, Expose, Type } from 'class-transformer';
 import { ProjectInListDto } from '../../project/dtos/project.show.dto';
 import { UserShowDto } from '../../user/dtos/user.show.dto';
-import { ProjectRole } from '../enrolment.entity';
+import { ProjectRole } from '../enrollment.entity';
 
 @Exclude()
 export class EnrollmentShowDto {

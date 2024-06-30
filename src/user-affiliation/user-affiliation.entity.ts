@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { User } from '../user/user.entity';
 
@@ -13,6 +20,10 @@ export enum UserAffiliationType {
 export class UserAffiliation {
   @PrimaryGeneratedColumn()
   id: number;
+  @CreateDateColumn({ type: 'date' })
+  creationDate: string;
+  @DeleteDateColumn()
+  logicalDeleteDate: Date;
   @ManyToOne(() => User, (user) => user.userAffiliations, {
     nullable: false,
     cascade: ['insert', 'update'],

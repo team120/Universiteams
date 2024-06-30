@@ -5,7 +5,7 @@ import { EntityMapperService } from '../utils/serialization/entity-mapper.servic
 import { Repository } from 'typeorm';
 import { UserShowDto } from './dtos/user.show.dto';
 import { User } from './user.entity';
-import { DbException } from '../utils/exceptions/exceptions';
+import { DbException, NotFound } from '../utils/exceptions/exceptions';
 
 @Injectable()
 export class UserService {
@@ -36,5 +36,25 @@ export class UserService {
     return this.entityMapper.mapArray(UserShowDto, users, {
       groups: ['admin'],
     });
+  }
+
+  async findOne(userId: number): Promise<UserShowDto> {
+    this.logger.debug('Find a user by id and its relations');
+    const user = await this.userRepository
+      .findOne({
+        relations: [
+          'userAffiliations',
+          'userAffiliations.researchDepartment',
+          'userAffiliations.researchDepartment.facility',
+          'userAffiliations.researchDepartment.facility.institution',
+          'interests',
+        ],
+        where: { id: userId },
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    if (!user) throw new NotFound('User not found');
+    return this.entityMapper.mapValue(UserShowDto, user);
   }
 }
