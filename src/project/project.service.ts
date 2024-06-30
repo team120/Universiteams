@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { Favorite } from '../favorite/favorite.entity';
 import {
@@ -88,15 +88,20 @@ export class ProjectService {
       currentUser,
     );
 
-    const [paginationAppliedQuery, projectsCount] =
-      await this.queryCreator.applySortingAndPagination(
-        extraFiltersAppliedSearchQuery,
-        paginationAttributes,
-        sortAttributes,
-        currentUser,
-      );
+    const projectCount = await extraFiltersAppliedSearchQuery
+      .getCount()
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
 
-    this.logger.info(paginationAppliedQuery.getSql());
+    const paginationAppliedQuery = this.queryCreator.applySortingAndPagination(
+      extraFiltersAppliedSearchQuery,
+      paginationAttributes,
+      sortAttributes,
+      currentUser,
+    );
+
+    this.logger.info(extraFiltersAppliedSearchQuery.getSql());
 
     const projects = await paginationAppliedQuery
       .getMany()
@@ -107,7 +112,7 @@ export class ProjectService {
     this.logger.debug('Map projects to dto');
     return {
       projects: this.entityMapper.mapArray(ProjectInListDto, projects),
-      projectCount: projectsCount,
+      projectCount: projectCount,
       suggestedSearchTerms: suggestedSearchTerms,
     };
   }
@@ -128,7 +133,7 @@ export class ProjectService {
       });
 
     this.logger.debug(`Project ${project?.id} found`);
-    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
+    if (!project) throw projectNotFoundError;
 
     this.logger.debug('Map project to dto');
     return this.entityMapper.mapValue(ProjectSingleDto, project);
@@ -136,7 +141,7 @@ export class ProjectService {
 
   async favorite(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({ where: { id: id } });
-    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
+    if (!project) throw projectNotFoundError;
 
     const favorite = await this.favoriteRepository.findOne({
       where: {
@@ -175,7 +180,7 @@ export class ProjectService {
 
   async unfavorite(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({ where: { id: id } });
-    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
+    if (!project) throw projectNotFoundError;
 
     const favorite = await this.favoriteRepository.findOne({
       where: {
@@ -219,7 +224,7 @@ export class ProjectService {
       where: { id: projectId },
       select: ['id', 'requestEnrollmentCount'],
     });
-    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
+    if (!project) throw projectNotFoundError;
 
     const enrollment = await this.enrollmentRepository.findOne({
       where: {
@@ -282,7 +287,7 @@ export class ProjectService {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
     });
-    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
+    if (!project) throw projectNotFoundError;
 
     const enrollment = await this.enrollmentRepository.findOne({
       where: {
@@ -343,7 +348,7 @@ export class ProjectService {
       where: { id: projectId },
       select: ['id', 'requestEnrollmentCount'],
     });
-    if (!project) throw new NotFound('El ID no coincide con ningún proyecto');
+    if (!project) throw projectNotFoundError;
 
     const enrollment = await this.enrollmentRepository.findOne({
       where: {

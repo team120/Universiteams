@@ -42,7 +42,7 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
       - name: 'Create docker.test.env file'
-        run: | 
+        run: |
           chmod +x ./create-test-env-file.sh
           ./create-test-env-file.sh
       - name: 'Run Unit Tests'
@@ -51,11 +51,28 @@ jobs:
         run: |
           docker compose -p ci -f docker-compose.ci.yml run test npm run test:e2e
           docker compose -p ci -f docker-compose.ci.yml down
-      - name: 'Run Linter'
-        run: docker compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run lint
-      - name: 'Run Formatter'
-        run: docker compose -p ci -f docker-compose.ci.yml run --rm --no-deps test npm run format
-      - name: 'Apply Linter and Formatter Changes'
-        uses: stefanzweifel/git-auto-commit-action@v4
+
+  lint-and-format:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
         with:
-          commit_message: Apply eslint and prettier code changes
+          ref: ${{ github.head_ref }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: Install Dependencies
+        run: npm install
+      - name: Run Linter
+        run: npm run lint
+      - name: Run Formatter
+        run: npm run format
+      - name: Apply Linter and Formatter Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Apply eslint and prettier code changes [skip ci]'

@@ -120,9 +120,13 @@ export class QueryCreator {
         ? filters.interestIds
         : [filters.interestIds];
 
-      relatedEntitiesJoinsQuery.andWhere(`interest.id IN (:...interestIds)`, {
-        interestIds: interestIds,
-      });
+      relatedEntitiesJoinsQuery
+        .andWhere(`interest.id IN (:...interestIds)`, {
+          interestIds: interestIds,
+        })
+        .having('COUNT(DISTINCT interest.id) = :interestsCount', {
+          interestsCount: interestIds.length,
+        });
     }
 
     if (filters.institutionId) {
@@ -259,7 +263,9 @@ export class QueryCreator {
       );
     }
 
-    return relatedEntitiesJoinsQuery;
+    return relatedEntitiesJoinsQuery
+      .select('project.id as id')
+      .groupBy('project.id');
   }
 
   /**
@@ -267,15 +273,13 @@ export class QueryCreator {
    * Then, the project count is obtained from the subqueryProjectIds.
    * Finally, the finalPaginatedQuery is created by joining the sortedAndFilteredProjectsSubquery with the subqueryProjectIds,
    * applying additional projections and joins to the finalPaginatedQuery.
-   *
-   * @returns A promise that resolves to a tuple containing the final paginated query and the project count
    */
-  async applySortingAndPagination(
+  applySortingAndPagination(
     filteredProjectsSubquery: SelectQueryBuilder<Project>,
     paginationAttributes: PaginationAttributes,
     sortAttributes: ProjectSortAttributes,
     currentUser?: CurrentUserWithoutTokens,
-  ): Promise<[SelectQueryBuilder<Project>, number]> {
+  ): SelectQueryBuilder<Project> {
     if (
       sortAttributes.sortBy === SortByProperty.requestEnrollmentCount &&
       !currentUser
@@ -291,8 +295,6 @@ export class QueryCreator {
       sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
 
     const subqueryProjectIds = filteredProjectsSubquery
-      .select('project.id as id')
-      .groupBy('project.id')
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
 
@@ -303,12 +305,6 @@ export class QueryCreator {
         }) as ${orderKey}`,
       );
     }
-
-    const projectCount = await subqueryProjectIds
-      .getCount()
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
 
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
@@ -398,7 +394,7 @@ export class QueryCreator {
 
     finalPaginatedQuery.orderBy(orderKey);
 
-    return [finalPaginatedQuery, projectCount];
+    return finalPaginatedQuery;
   }
 
   findOne(

@@ -1,7 +1,6 @@
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   Index,
   ManyToOne,
@@ -31,8 +30,6 @@ export class Enrollment {
   id: number;
   @CreateDateColumn({ type: 'date' })
   creationDate: string;
-  @DeleteDateColumn()
-  logicalDeleteDate: Date;
   @Column({ default: ProjectRole.Member })
   role: ProjectRole;
   @Column({ default: RequestState.Pending })
