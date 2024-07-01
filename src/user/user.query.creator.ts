@@ -36,7 +36,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .innerJoin('affiliations.researchDepartment', 'researchDepartment')
       .innerJoin('researchDepartment.facility', 'rdFacility')
       .innerJoin('rdFacility.institution', 'institution')
-      .innerJoin('user.interests', 'interest')
+      .leftJoin('user.interests', 'interest')
       .groupBy('user.id');
 
     if (userFilters.institutionId) {
@@ -80,6 +80,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
     filteredQuery: SelectQueryBuilder<User>,
     paginationAttributes: PaginationAttributes,
   ): SelectQueryBuilder<User> {
+    if (!paginationAttributes) return filteredQuery;
     const paginationQuery = filteredQuery
       .limit(paginationAttributes.limit)
       .offset(paginationAttributes.offset);
@@ -99,7 +100,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
     return query;
   }
 
-  applyProjections(
+  applyProjectionsAndSorting(
     sortAttributes: UserSortAttributes,
     query: SelectQueryBuilder<User>,
   ): SelectQueryBuilder<User> {
@@ -112,7 +113,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       )
       .innerJoinAndSelect('researchDepartment.facility', 'rdFacility')
       .innerJoinAndSelect('rdFacility.institution', 'institution')
-      .innerJoinAndSelect('user.interests', 'interests')
+      .leftJoinAndSelect('user.interests', 'interests')
       .setParameters(query.getParameters());
 
     const finalQuerySorted = this.applySorting(sortAttributes, finalQuery);
