@@ -7,22 +7,27 @@ import {
   IsNumber,
   IsOptional,
   Min,
+  MinLength,
 } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { IsAfter } from '../../utils/decorators/is-after.validator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
+import { RequestState } from '../../enrollment/enrollment.entity';
 
 export enum SortByProperty {
   name = 'name',
   researchDepartment = 'researchDepartment',
   facility = 'facility',
   creationDate = 'creationDate',
+  requestEnrollmentCount = 'requestEnrollmentCount',
 }
 
 @Exclude()
 export class ProjectFindDto {
   @Expose()
+  @IsOptional()
+  @MinLength(3)
   generalSearch?: string;
   @IsOptional()
   @IsEnum(ProjectType)
@@ -54,6 +59,10 @@ export class ProjectFindDto {
   @IsNumber()
   @ExposeType(Number)
   userId?: number;
+  @IsOptional()
+  @IsEnum(RequestState, { each: true })
+  @Expose()
+  requestStates?: RequestState[];
   @IsOptional()
   @IsNumber({}, { each: true })
   @ExposeType(Number)

@@ -13,6 +13,7 @@ import {
   UserSortAttributes,
 } from './dtos/user.find.dto';
 import { QueryCreator } from './user.query.creator';
+import { DbException, NotFound } from '../utils/exceptions/exceptions';
 
 @Injectable()
 export class UserService {
@@ -80,5 +81,25 @@ export class UserService {
       users: this.entityMapper.mapArray(UserShowDto, users),
       usersCount: usersCount,
     };
+
+  async findOne(userId: number): Promise<UserShowDto> {
+    this.logger.debug('Find a user by id and its relations');
+    const user = await this.userRepository
+      .findOne({
+        relations: [
+          'userAffiliations',
+          'userAffiliations.researchDepartment',
+          'userAffiliations.researchDepartment.facility',
+          'userAffiliations.researchDepartment.facility.institution',
+          'interests',
+        ],
+        where: { id: userId },
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    if (!user) throw new NotFound('User not found');
+    return this.entityMapper.mapValue(UserShowDto, user);
+
   }
 }

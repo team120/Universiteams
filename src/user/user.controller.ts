@@ -1,4 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { AppValidationPipe } from 'src/utils/validation.pipe';
@@ -15,5 +16,10 @@ export class UserController {
     @Query(AppValidationPipe) findOptions: UserFindDto,
   ): Promise<UsersResult> {
     return this.userService.find(findOptions);
+  }
+
+  @Get(':id')
+  async getOne(@Param('id', ParseIntPipe) userId: number) {
+    return this.userService.findOne(userId);
   }
 }

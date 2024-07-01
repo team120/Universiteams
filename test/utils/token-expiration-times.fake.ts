@@ -6,14 +6,14 @@ import {
 } from '../../src/utils/token-expiration/token-expiration-times';
 
 export class TokenExpirationTimesFake implements ITokenExpirationTimes {
-  private tokenExpirations: Partial<
-    { [key in AcceptedTokens]: ExpirationTime }
-  > = {};
+  private tokenExpirations: Partial<{
+    [key in AcceptedTokens]: ExpirationTime;
+  }> = {};
 
   constructor(
-    private readonly originalParams: Partial<
-      { [key in AcceptedTokens]: ExpirationTime }
-    >,
+    private readonly originalParams: Partial<{
+      [key in AcceptedTokens]: ExpirationTime;
+    }>,
   ) {
     Object.assign(this.tokenExpirations, originalParams);
   }

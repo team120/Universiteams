@@ -9,6 +9,7 @@ import { SerializationModule } from '../utils/serialization/serialization.module
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
+import { Enrollment } from '../enrollment/enrollment.entity';
 
 describe('ProjectService', () => {
   let service: ProjectService;
@@ -28,6 +29,10 @@ describe('ProjectService', () => {
         },
         {
           provide: getRepositoryToken(Favorite),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(Enrollment),
           useValue: {},
         },
         {
@@ -61,7 +66,7 @@ describe('ProjectService', () => {
         getOneMock.getOne.mockResolvedValue(undefined);
         await service.findOne(noMatchingId).catch((error) => {
           expect(error).toBeInstanceOf(NotFound);
-          expect(error.response).toBe('Id does not match with any project');
+          expect(error.response).toBe('El ID no coincide con ningún proyecto');
         });
         expect.assertions(2);
       });

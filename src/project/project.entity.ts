@@ -1,4 +1,4 @@
-import { Enrollment } from '../enrollment/enrolment.entity';
+import { Enrollment, RequestState } from '../enrollment/enrollment.entity';
 import {
   Column,
   CreateDateColumn,
@@ -20,19 +20,25 @@ export enum ProjectType {
 
 export const isFavoriteColumn = 'project_isFavorite';
 export const isDownColumn = 'project_isDown';
+export const requestStateColumn = 'project_requestState';
+export const requesterMessageColumn = 'project_requesterMessage';
+export const adminMessageColumn = 'project_adminMessage';
+export const requestEnrollmentCountColumn = 'project_requestEnrollmentCount';
 
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column()
-  name: string;
   @CreateDateColumn({ type: 'date' })
   creationDate: string;
-  @Column({ type: 'date', nullable: true })
-  endDate: string;
   @DeleteDateColumn()
   logicalDeleteDate: Date;
+  @Column()
+  name: string;
+  @Column('text', { select: false, nullable: true })
+  description: string;
+  @Column({ type: 'date', nullable: true })
+  endDate: string;
   @Column()
   type: ProjectType;
   @Column({ default: 'spanish' })
@@ -45,6 +51,12 @@ export class Project {
   isDown: boolean;
   @Column({ select: false, nullable: true })
   isFavorite?: boolean;
+  @Column({ select: false, nullable: true })
+  requestState?: RequestState;
+  @Column({ select: false, nullable: true })
+  requesterMessage?: string;
+  @Column({ select: false, nullable: true })
+  adminMessage?: string;
 
   @ManyToMany(
     () => ResearchDepartment,
@@ -59,6 +71,8 @@ export class Project {
 
   @Column({ default: 0 })
   userCount: number;
+  @Column({ select: false, default: 0 })
+  requestEnrollmentCount: number;
   @OneToMany(() => Enrollment, (enrollment) => enrollment.project, {
     nullable: false,
     cascade: ['insert', 'update'],
