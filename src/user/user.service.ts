@@ -64,12 +64,7 @@ export class UserService {
       queryWithFilters,
       paginationAttributes,
     );
-    /*const queryWithSorting = this.queryCreator.applySorting(
-      sortAttributes,
-      queryWithPagination,
-    );
-    */
-    const queryWithProjections = this.queryCreator.applyProjections(
+    const queryWithProjections = this.queryCreator.applyProjectionsAndSorting(
       sortAttributes,
       queryWithPagination,
     );

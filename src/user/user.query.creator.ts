@@ -22,7 +22,11 @@ export class QueryCreator extends EntityQueryCreator<User> {
     this.logger.setContext(QueryCreator.name);
   }
 
-  private sortByMap = new Map([[UserSortByProperty.lastName, 'user.lastName']]);
+  private sortByMap = new Map([
+    [UserSortByProperty.lastName, 'user.lastName'],
+    [UserSortByProperty.researchDepartment, 'researchDepartment.name'],
+    [UserSortByProperty.facility, 'rdFacility.name'],
+  ]);
 
   applyFilters(
     userFilters: UserFilters,
