@@ -5,7 +5,6 @@ import { EntityMapperService } from '../utils/serialization/entity-mapper.servic
 import { Repository } from 'typeorm';
 import { UserShowDto, UsersResult } from './dtos/user.show.dto';
 import { User } from './user.entity';
-import { DbException } from '../utils/exceptions/exceptions';
 import {
   PaginationAttributes,
   UserFilters,
@@ -81,6 +80,7 @@ export class UserService {
       users: this.entityMapper.mapArray(UserShowDto, users),
       usersCount: usersCount,
     };
+  }
 
   async findOne(userId: number): Promise<UserShowDto> {
     this.logger.debug('Find a user by id and its relations');
@@ -100,6 +100,5 @@ export class UserService {
       });
     if (!user) throw new NotFound('User not found');
     return this.entityMapper.mapValue(UserShowDto, user);
-
   }
 }

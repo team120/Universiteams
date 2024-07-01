@@ -1,4 +1,3 @@
-import { Controller, Get, Query } from '@nestjs/common';
 import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
