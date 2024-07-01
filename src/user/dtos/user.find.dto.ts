@@ -52,10 +52,12 @@ export class UserFindDto {
   order?: AscendingDescendingOrder;
 }
 
-export class UserFilters extends OmitType(UserFindDto, ['limit', 'offset']) {}
-// Will be adding sortBy, limit, offset, etc
-// When sorting and pagination is implemented
-
+export class UserFilters extends OmitType(UserFindDto, [
+  'limit',
+  'offset',
+  'sortBy',
+  'limit',
+]) {}
 @Exclude()
 export class PaginationAttributes extends PickType(UserFindDto, [
   'limit',
