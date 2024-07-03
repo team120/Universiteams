@@ -25,7 +25,7 @@ import {
 } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
-import { EntityQueryCreator } from 'src/utils/query.creator';
+import { EntityQueryCreator } from '../utils/query.creator';
 
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<Project> {
