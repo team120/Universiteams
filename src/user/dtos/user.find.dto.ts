@@ -1,7 +1,7 @@
 import { OmitType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
-import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
+import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 export enum UserSortByProperty {
   lastName = 'lastName',

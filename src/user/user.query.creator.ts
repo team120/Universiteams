@@ -3,7 +3,7 @@ import { User } from './user.entity';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { EntityQueryCreator } from 'src/utils/query.creator';
+import { EntityQueryCreator } from '../utils/query.creator';
 import {
   PaginationAttributes,
   UserFilters,
