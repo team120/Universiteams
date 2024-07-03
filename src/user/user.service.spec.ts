@@ -5,9 +5,14 @@ import { DbException } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { User } from './user.entity';
 import { UserService } from './user.service';
+import { QueryCreator } from './user.query.creator';
 
 describe('UserService', () => {
   let service: UserService;
+  const getOneMock = { getOne: jest.fn() };
+  const queryCreatorMock = {
+    findOne: jest.fn().mockReturnValue(getOneMock),
+  };
   const userRepositoryMock = {
     find: jest.fn(),
   };
@@ -24,6 +29,10 @@ describe('UserService', () => {
         {
           provide: PinoLogger,
           useValue: { debug: jest.fn(), setContext: jest.fn() },
+        },
+        {
+          provide: QueryCreator,
+          useValue: queryCreatorMock,
         },
       ],
     }).compile();
