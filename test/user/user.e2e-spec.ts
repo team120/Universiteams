@@ -30,8 +30,8 @@ describe('User Actions (e2e)', () => {
         .get('/users')
         .then((res) => {
           expect(res.status).toBe(200);
-          expect(res.body).toHaveLength(20);
-          expect(res.body[0]).not.toHaveProperty('password');
+          expect(res.body.usersCount).toHaveLength(20);
+          expect(res.body.users[0]).not.toHaveProperty('password');
         });
     });
   });
