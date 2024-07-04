@@ -97,9 +97,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
   ): SelectQueryBuilder<User> {
     if (!sortAttributes.sortBy) return query;
     const sortByProperty = this.sortByMap.get(sortAttributes.sortBy);
-    if (!sortAttributes.order) return query;
-    const orderDirection = sortAttributes.order;
-
+    const orderDirection = sortAttributes.order ? sortAttributes.order : 'ASC';
     query = query.orderBy(sortByProperty, orderDirection);
     return query;
   }
