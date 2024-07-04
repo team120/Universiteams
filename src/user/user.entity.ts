@@ -43,7 +43,7 @@ export class User {
   })
   userAffiliations: UserAffiliation[];
 
-  @OneToMany(() => Enrollment, (enrolment) => enrolment.user)
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
   enrollments: Enrollment[];
 
   @ManyToMany(() => Interest, (interest) => interest.users, {

@@ -48,6 +48,8 @@ export class UserService {
           'userAffiliations.researchDepartment.facility',
           'userAffiliations.researchDepartment.facility.institution',
           'interests',
+          'enrollments',
+          'enrollments.project',
         ],
         where: { id: userId },
       })
