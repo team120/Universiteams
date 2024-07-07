@@ -24,18 +24,25 @@ import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { SecretsVaultKeys } from '../utils/secrets';
 import { ConfigService } from '@nestjs/config';
+import { ProfileInputDto, ProfileOutputDto } from './dtos/profile.dto';
+import { Interest } from '../interest/interest.entity';
+import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
+import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Interest)
+    private readonly interestRepo: Repository<Interest>,
     private readonly tokenService: TokenService,
     @InjectQueue('emails')
     private readonly emailQueue: Queue,
     private readonly config: ConfigService,
     private readonly verificationMessageService: VerificationMessagesService,
     private readonly logger: PinoLogger,
+    private readonly entityMapper: EntityMapperService,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -152,5 +159,79 @@ export class AuthService {
       );
 
     return user;
+  }
+
+  async saveProfile(
+    currentUser: CurrentUserWithoutTokens,
+    profileDto: ProfileInputDto,
+  ) {
+    const user = await this.userRepo
+      .findOne({
+        where: {
+          id: currentUser.id,
+        },
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
+    if (!user) throw new Unauthorized('Usuario no encontrado');
+
+    const createdInterestIds: { id: number }[] = [];
+    if (profileDto.interestsToCreate) {
+      const interests = profileDto.interestsToCreate.map((interest) => ({
+        name: interest,
+      }));
+      const result = await this.interestRepo
+        .save(interests)
+        .catch((e: Error) => {
+          throw new DbException(e.message, e.stack);
+        });
+
+      result.forEach((interest) => {
+        createdInterestIds.push({ id: interest.id });
+      });
+    }
+
+    user.interests = profileDto.interestsIds
+      .map((id) => ({
+        id: id,
+      }))
+      .concat(createdInterestIds) as Interest[];
+
+    user.userAffiliations = profileDto.researchDepartmentsIds.map((id) => ({
+      researchDepartment: {
+        id: id,
+      },
+    })) as UserAffiliation[];
+
+    await this.userRepo.save(user).catch((e: Error) => {
+      throw new DbException(e.message, e.stack);
+    });
+  }
+
+  async getProfile(
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<ProfileOutputDto> {
+    const user = await this.userRepo
+      .findOne({
+        where: {
+          id: currentUser.id,
+        },
+        relations: [
+          'interests',
+          'userAffiliations',
+          'userAffiliations.researchDepartment',
+          'userAffiliations.researchDepartment.facility',
+          'userAffiliations.researchDepartment.facility.institution',
+        ],
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
+    if (!user) throw new Unauthorized('Usuario no encontrado');
+
+    return this.entityMapper.mapValue(ProfileOutputDto, user);
   }
 }

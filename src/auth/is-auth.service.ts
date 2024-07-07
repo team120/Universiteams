@@ -3,12 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Response } from 'express';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
-import { Unauthorized } from '../utils/exceptions/exceptions';
+import { DbException, Unauthorized } from '../utils/exceptions/exceptions';
 import { TokenService } from './token.service';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { RequestWithUser } from '../utils/request-with-user';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
+import { ProfileInputDto } from './dtos/profile.dto';
 
 @Injectable()
 export class IsAuthService {
