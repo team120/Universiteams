@@ -43,7 +43,7 @@ describe('User Actions (e2e)', () => {
         .then((res) => {
           expect(res.status).toBe(200);
           expect(res.body.users).toHaveLength(5);
-          expect(res.body.usersCount).toEqual(5);
+          expect(res.body.usersCount).toEqual(20);
           expect(res.body.users[0]).not.toHaveProperty('password');
         });
     });

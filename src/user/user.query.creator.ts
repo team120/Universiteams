@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { EntityQueryCreator } from '../utils/query.creator';
 import {
+  AscendingDescendingOrder,
   PaginationAttributes,
   UserFilters,
   UserSortAttributes,
@@ -97,7 +98,9 @@ export class QueryCreator extends EntityQueryCreator<User> {
   ): SelectQueryBuilder<User> {
     if (!sortAttributes.sortBy) return query;
     const sortByProperty = this.sortByMap.get(sortAttributes.sortBy);
-    const orderDirection = sortAttributes.order ? sortAttributes.order : 'ASC';
+    const orderDirection = sortAttributes.order
+      ? sortAttributes.order
+      : AscendingDescendingOrder.ascending;
     query = query.orderBy(sortByProperty, orderDirection);
     return query;
   }
