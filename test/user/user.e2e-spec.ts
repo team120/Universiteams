@@ -30,8 +30,21 @@ describe('User Actions (e2e)', () => {
         .get('/users')
         .then((res) => {
           expect(res.status).toBe(200);
-          expect(res.body).toHaveLength(20);
-          expect(res.body[0]).not.toHaveProperty('password');
+          expect(res.body.users).toHaveLength(20);
+          expect(res.body.usersCount).toEqual(20);
+          expect(res.body.users[0]).not.toHaveProperty('password');
+        });
+    });
+  });
+  describe('get users with pagination', () => {
+    it('should return only five users when using limit', async () => {
+      await request(app.getHttpServer())
+        .get('/users?limit=5')
+        .then((res) => {
+          expect(res.status).toBe(200);
+          expect(res.body.users).toHaveLength(5);
+          expect(res.body.usersCount).toEqual(20);
+          expect(res.body.users[0]).not.toHaveProperty('password');
         });
     });
   });
