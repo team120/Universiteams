@@ -25,9 +25,10 @@ import {
 } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
+import { EntityQueryCreator } from '../utils/query.creator';
 
 @Injectable()
-export class QueryCreator {
+export class QueryCreator extends EntityQueryCreator<Project> {
   private sortBy = new Map([
     [SortByProperty.name, 'project.name'],
     [SortByProperty.creationDate, 'project.creationDate'],
@@ -42,6 +43,7 @@ export class QueryCreator {
     @Inject(CURRENT_DATE_SERVICE)
     private readonly currentDate: ICurrentDateService,
   ) {
+    super(projectRepository);
     this.logger.setContext(QueryCreator.name);
   }
 
@@ -459,9 +461,5 @@ export class QueryCreator {
     }
 
     return query;
-  }
-
-  initialProjectQuery(): SelectQueryBuilder<Project> {
-    return this.projectRepository.createQueryBuilder('project');
   }
 }

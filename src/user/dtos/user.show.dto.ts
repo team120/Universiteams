@@ -23,3 +23,8 @@ export class UserShowDto {
   @Type(() => EnrollmentShowDto)
   enrollments?: EnrollmentShowDto[];
 }
+
+export class UsersResult {
+  users: UserShowDto[];
+  usersCount: number;
+}
