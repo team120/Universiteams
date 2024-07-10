@@ -19,3 +19,8 @@ export class UserShowDto {
   @Type(() => InterestShowDto)
   interests?: InterestShowDto[];
 }
+
+export class UsersResult {
+  users: UserShowDto[];
+  usersCount: number;
+}
