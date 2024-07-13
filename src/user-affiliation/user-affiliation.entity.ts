@@ -40,8 +40,6 @@ export class UserAffiliation {
     },
   )
   researchDepartment: ResearchDepartment;
-  @Column()
-  departmentalId: string;
   @Column({ default: UserAffiliationType.Student })
   currentType: UserAffiliationType;
 }
