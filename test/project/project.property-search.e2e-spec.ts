@@ -143,7 +143,7 @@ describe('Project Actions (e2e)', () => {
             it('should get the first projects sorted by name in that order', async () => {
               await request(app.getHttpServer())
                 .get(
-                  '/projects?sortBy=name&inAscendingOrder=true&offset=0&limit=5',
+                  '/projects?sortBy=name&order=ASC&offset=0&limit=5',
                 )
                 .then((res) => {
                   expect(res.status).toBe(200);
@@ -159,7 +159,7 @@ describe('Project Actions (e2e)', () => {
             it('should get the last projects sorted by name in ascending order', async () => {
               await request(app.getHttpServer())
                 .get(
-                  '/projects?sortBy=name&inAscendingOrder=true&offset=10&limit=5',
+                  '/projects?sortBy=name&order=ASC&offset=10&limit=5',
                 )
                 .then((res) => {
                   expect(res.status).toBe(200);
@@ -175,7 +175,7 @@ describe('Project Actions (e2e)', () => {
             it('should get the first projects sorted by name in descending order', async () => {
               await request(app.getHttpServer())
                 .get(
-                  '/projects?sortBy=name&inAscendingOrder=false&offset=0&limit=5',
+                  '/projects?sortBy=name&order=DESC&offset=0&limit=5',
                 )
                 .then((res) => {
                   expect(res.status).toBe(200);
@@ -189,7 +189,7 @@ describe('Project Actions (e2e)', () => {
             it('should get the last projects sorted by name in descending order', async () => {
               await request(app.getHttpServer())
                 .get(
-                  '/projects?sortBy=name&inAscendingOrder=false&offset=10&limit=5',
+                  '/projects?sortBy=name&order=DESC&offset=10&limit=5',
                 )
                 .then((res) => {
                   expect(res.status).toBe(200);
@@ -208,7 +208,7 @@ describe('Project Actions (e2e)', () => {
           it('should get the first projects sorted by creation date in ascending order', async () => {
             await request(app.getHttpServer())
               .get(
-                '/projects?sortBy=creationDate&inAscendingOrder=true&offset=0&limit=5',
+                '/projects?sortBy=creationDate&order=ASC&offset=0&limit=5',
               )
               .then((res) => {
                 expect(res.status).toBe(200);
@@ -225,7 +225,7 @@ describe('Project Actions (e2e)', () => {
           it('should get the last projects sorted by creation date in ascending order', async () => {
             await request(app.getHttpServer())
               .get(
-                '/projects?sortBy=creationDate&inAscendingOrder=true&offset=10&limit=5',
+                '/projects?sortBy=creationDate&order=ASC&offset=10&limit=5',
               )
               .then((res) => {
                 expect(res.status).toBe(200);
@@ -242,7 +242,7 @@ describe('Project Actions (e2e)', () => {
           it('should get the first projects sorted by creation date in descending order', async () => {
             await request(app.getHttpServer())
               .get(
-                '/projects?sortBy=creationDate&inAscendingOrder=false&offset=0&limit=5',
+                '/projects?sortBy=creationDate&order=DESC&offset=0&limit=5',
               )
               .then((res) => {
                 expect(res.status).toBe(200);
@@ -257,7 +257,7 @@ describe('Project Actions (e2e)', () => {
           it('should get the last projects sorted by creation date in descending order', async () => {
             await request(app.getHttpServer())
               .get(
-                '/projects?sortBy=creationDate&inAscendingOrder=false&offset=10&limit=5',
+                '/projects?sortBy=creationDate&order=DESC&offset=10&limit=5',
               )
               .then((res) => {
                 expect(res.status).toBe(200);

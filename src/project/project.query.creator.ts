@@ -26,6 +26,7 @@ import {
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { EntityQueryCreator } from '../utils/query.creator';
+import { AscendingDescendingOrder } from '../utils/sorting';
 
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<Project> {
@@ -293,8 +294,9 @@ export class QueryCreator extends EntityQueryCreator<Project> {
 
     const orderKey = 'orderKey';
     const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
-    const orderDirection =
-      sortAttributes.inAscendingOrder === true ? 'ASC' : 'DESC';
+    const orderDirection = sortAttributes.order
+      ? sortAttributes.order
+      : AscendingDescendingOrder.ascending;
 
     const subqueryProjectIds = filteredProjectsSubquery
       .offset(paginationAttributes.offset)

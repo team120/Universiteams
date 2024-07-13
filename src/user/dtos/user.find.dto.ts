@@ -2,16 +2,12 @@ import { OmitType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
+import { AscendingDescendingOrder } from '../../utils/sorting';
 
 export enum UserSortByProperty {
   lastName = 'lastName',
   researchDepartment = 'researchDepartment',
   facility = 'facility',
-}
-
-export enum AscendingDescendingOrder {
-  ascending = 'ASC',
-  descending = 'DESC',
 }
 
 @Exclude()
