@@ -5,12 +5,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { EntityQueryCreator } from '../utils/query.creator';
 import {
-  AscendingDescendingOrder,
   PaginationAttributes,
   UserFilters,
   UserSortAttributes,
   UserSortByProperty,
 } from './dtos/user.find.dto';
+import { AscendingDescendingOrder } from '../utils/sorting';
 
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<User> {

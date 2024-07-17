@@ -9,6 +9,10 @@ help: Makefile
 # .PHONY: A phony target is one that is not really the name of a file; 
 # rather it is just a name for a recipe to be executed when you make an explicit request.
 
+## build: Build app image
+build:
+	- docker compose -p dev -f docker-compose.dev.yml build
+
 ## dev:	Bootstrap dev environment
 dev:
 	- docker compose -p dev -f docker-compose.dev.yml build

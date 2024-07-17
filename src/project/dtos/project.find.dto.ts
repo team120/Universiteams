@@ -14,6 +14,7 @@ import { IsAfter } from '../../utils/decorators/is-after.validator';
 import { ParseOptionalBoolean } from '../../utils/decorators/parse-optional-boolean.decorator';
 import { ProjectType } from '../project.entity';
 import { RequestState } from '../../enrollment/enrollment.entity';
+import { AscendingDescendingOrder } from '../../utils/sorting';
 
 export enum SortByProperty {
   name = 'name',
@@ -81,10 +82,9 @@ export class ProjectFindDto {
   @Expose()
   sortBy?: SortByProperty;
   @IsOptional()
-  @IsBoolean()
-  @ParseOptionalBoolean()
+  @IsEnum(AscendingDescendingOrder)
   @Expose()
-  inAscendingOrder?: boolean;
+  order?: AscendingDescendingOrder;
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -100,7 +100,7 @@ export class ProjectFindDto {
 @Exclude()
 export class ProjectFilters extends OmitType(ProjectFindDto, [
   'sortBy',
-  'inAscendingOrder',
+  'order',
   'limit',
   'offset',
 ]) {}
@@ -108,7 +108,7 @@ export class ProjectFilters extends OmitType(ProjectFindDto, [
 @Exclude()
 export class ProjectSortAttributes extends PickType(ProjectFindDto, [
   'sortBy',
-  'inAscendingOrder',
+  'order',
 ]) {}
 
 @Exclude()
