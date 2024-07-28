@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { LoginDto } from './dtos/login.dto';
 import {
@@ -28,7 +28,6 @@ import { ProfileInputDto, ProfileOutputDto } from './dtos/profile.dto';
 import { Interest } from '../interest/interest.entity';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
-import { ResearchDepartment } from '../research-department/department.entity';
 
 @Injectable()
 export class AuthService {
