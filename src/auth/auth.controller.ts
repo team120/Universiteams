@@ -130,7 +130,7 @@ export class AuthController {
 
   @UseGuards(IsAuthGuard)
   @Put('profile')
-  async registerProfile(
+  async saveProfile(
     @Req() request: RequestWithUser,
     @Body() profileDto: ProfileInputDto,
   ) {

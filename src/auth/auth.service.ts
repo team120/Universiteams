@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { User } from '../user/user.entity';
 import { LoginDto } from './dtos/login.dto';
 import {
@@ -28,12 +28,15 @@ import { ProfileInputDto, ProfileOutputDto } from './dtos/profile.dto';
 import { Interest } from '../interest/interest.entity';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
+import { ResearchDepartment } from '../research-department/department.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(UserAffiliation)
+    private readonly userAffiliationRepo: Repository<UserAffiliation>,
     @InjectRepository(Interest)
     private readonly interestRepo: Repository<Interest>,
     private readonly tokenService: TokenService,
@@ -177,8 +180,11 @@ export class AuthService {
 
     if (!user) throw new Unauthorized('Usuario no encontrado');
 
-    const createdInterestIds: { id: number }[] = [];
-    if (profileDto.interestsToCreate) {
+    const interestIds: { id: number }[] =
+      profileDto.interestsIds.map((id) => ({
+        id: id,
+      })) ?? [];
+    if (profileDto.interestsToCreate?.length > 0) {
       const interests = profileDto.interestsToCreate.map((interest) => ({
         name: interest,
       }));
@@ -188,26 +194,57 @@ export class AuthService {
           throw new DbException(e.message, e.stack);
         });
 
-      result.forEach((interest) => {
-        createdInterestIds.push({ id: interest.id });
-      });
+      for (const interest of result) {
+        interestIds.push({ id: interest.id });
+      }
     }
 
-    user.interests = profileDto.interestsIds
-      .map((id) => ({
-        id: id,
-      }))
-      .concat(createdInterestIds) as Interest[];
-
-    user.userAffiliations = profileDto.researchDepartmentsIds.map((id) => ({
-      researchDepartment: {
-        id: id,
-      },
-    })) as UserAffiliation[];
+    user.interests = interestIds as Interest[];
 
     await this.userRepo.save(user).catch((e: Error) => {
       throw new DbException(e.message, e.stack);
     });
+
+    const userAffiliations: Partial<UserAffiliation>[] =
+      profileDto.researchDepartments.map((researchDepartment) => ({
+        researchDepartmentId: researchDepartment.id,
+        userId: user.id,
+        currentType: researchDepartment.currentType,
+      })) ?? [];
+
+    // Fetch existing affiliations
+    const existingAffiliations = await this.userAffiliationRepo.find({
+      where: { userId: user.id },
+    });
+
+    // Determine affiliations to add and remove
+    const affiliationsToAdd = userAffiliations.filter(
+      (newAff) =>
+        !existingAffiliations.some(
+          (existingAff) =>
+            existingAff.researchDepartmentId === newAff.researchDepartmentId,
+        ),
+    );
+
+    const affiliationsToRemove = existingAffiliations.filter(
+      (existingAff) =>
+        !userAffiliations.some(
+          (newAff) =>
+            newAff.researchDepartmentId === existingAff.researchDepartmentId,
+        ),
+    );
+
+    // Add new affiliations
+    await this.userAffiliationRepo.save(affiliationsToAdd).catch((e: Error) => {
+      throw new DbException(e.message, e.stack);
+    });
+
+    // Remove old affiliations
+    await this.userAffiliationRepo
+      .remove(affiliationsToRemove)
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
   }
 
   async getProfile(
