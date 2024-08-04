@@ -9,6 +9,7 @@ import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { RequestWithUser } from '../utils/request-with-user';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class IsAuthService {
@@ -17,7 +18,11 @@ export class IsAuthService {
     private readonly userRepo: Repository<User>,
     private readonly tokenService: TokenService,
     private readonly entityMapper: EntityMapperService,
-  ) {}
+    // inject logger
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(IsAuthService.name);
+  }
 
   getCurrentUserDisplayInfo = (accessTokenCookie: string) => {
     const accessToken: string | undefined = accessTokenCookie?.replace(
@@ -69,7 +74,10 @@ export class IsAuthService {
   }
 
   private async verifyAccessToken(accessToken: string) {
-    if (!accessToken) throw new Unauthorized('Access token not provided');
+    if (!accessToken) {
+      this.logger.debug('AccessToken cookie not provided');
+      return { isValid: false, user: null };
+    }
 
     const accessTokenVerificationResult =
       this.tokenService.checkAccessToken(accessToken);
