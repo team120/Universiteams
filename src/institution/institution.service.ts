@@ -2,11 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
-import { DbException } from '../utils/exceptions/exceptions';
+import { DbException, NotFound } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { InstitutionShowDto } from './dtos/institution.show.dto';
 import { Institution } from './institution.entity';
 import { InstitutionFindDto } from './dtos/institution.find.dto';
+import { InstitutionCreateDto } from './dtos/institution.create.dto';
+
+const institutionNotFoundError = new NotFound(
+  'El ID no coincide con ninguna institución',
+);
 
 @Injectable()
 export class InstitutionService {
@@ -32,5 +37,41 @@ export class InstitutionService {
       });
     this.logger.debug('Map universities to dto');
     return this.entityMapper.mapArray(InstitutionShowDto, universities);
+  }
+
+  async create(createDto: InstitutionCreateDto): Promise<InstitutionShowDto> {
+    this.logger.debug('Create a new institution');
+    const university = this.entityMapper.mapValue(Institution, createDto);
+    const createdUniversity = await this.institutionRepository
+      .save(university)
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
+    this.logger.debug('Map university to dto');
+    return this.entityMapper.mapValue(InstitutionShowDto, createdUniversity);
+  }
+
+  async delete(institutionId: number): Promise<void> {
+    this.logger.debug('Delete an institution');
+    const institution = await this.institutionRepository.findOne({
+      where: { id: institutionId },
+    });
+    if (!institution) throw institutionNotFoundError;
+    await this.institutionRepository
+      .delete(institutionId)
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
+    this.logger.debug(`Institution #${institution.id} successfully deleted`);
+  }
+
+  async update(institutionId: number, institutionDto: InstitutionCreateDto) {
+    this.logger.debug('Update an institution');
+    const institution = await this.institutionRepository.findOne({
+      where: { id: institutionId },
+    });
+    if (!institution) throw institutionNotFoundError;
+    await this.institutionRepository.update(institutionId, institutionDto);
+    this.logger.debug('Map university to dto');
   }
 }
