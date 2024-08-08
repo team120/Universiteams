@@ -114,3 +114,44 @@ resource "digitalocean_record" "ns3" {
   value  = "ns3.digitalocean.com."
   ttl    = 1800
 }
+
+resource "digitalocean_firewall" "universiteams_firewall" {
+  name = "universiteams-firewall"
+
+  droplet_ids = [digitalocean_droplet.instance.id]
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "80"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "443"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "icmp"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "all"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "all"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
+}
