@@ -45,16 +45,25 @@ output "server_ip" {
   value = digitalocean_droplet.instance.ipv4_address
 }
 
+resource "digitalocean_reserved_ip" "universiteams" {
+  region = var.region
+}
+
+resource "digitalocean_reserved_ip_assignment" "universiteams" {
+  droplet_id = digitalocean_droplet.instance.id
+  ip_address = digitalocean_reserved_ip.universiteams.ip_address
+}
+
 resource "digitalocean_domain" "universiteams" {
   name       = "universiteams.com"
-  ip_address = digitalocean_droplet.instance.ipv4_address
+  ip_address = digitalocean_reserved_ip.universiteams.ip_address
 }
 
 resource "digitalocean_record" "www_api" {
   domain = digitalocean_domain.universiteams.name
   type   = "A"
   name   = "www.api"
-  value  = digitalocean_droplet.instance.ipv4_address
+  value  = digitalocean_reserved_ip.universiteams.ip_address
   ttl    = 3600
 }
 
@@ -62,7 +71,7 @@ resource "digitalocean_record" "www" {
   domain = digitalocean_domain.universiteams.name
   type   = "A"
   name   = "www"
-  value  = digitalocean_droplet.instance.ipv4_address
+  value  = digitalocean_reserved_ip.universiteams.ip_address
   ttl    = 3600
 }
 
@@ -70,7 +79,7 @@ resource "digitalocean_record" "api" {
   domain = digitalocean_domain.universiteams.name
   type   = "A"
   name   = "api"
-  value  = digitalocean_droplet.instance.ipv4_address
+  value  = digitalocean_reserved_ip.universiteams.ip_address
   ttl    = 3600
 }
 
@@ -78,7 +87,7 @@ resource "digitalocean_record" "root" {
   domain = digitalocean_domain.universiteams.name
   type   = "A"
   name   = "@"
-  value  = digitalocean_droplet.instance.ipv4_address
+  value  = digitalocean_reserved_ip.universiteams.ip_address
   ttl    = 3600
 }
 
