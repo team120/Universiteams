@@ -44,3 +44,64 @@ resource "digitalocean_droplet" "instance" {
 output "server_ip" {
   value = digitalocean_droplet.instance.ipv4_address
 }
+
+resource "digitalocean_domain" "universiteams" {
+  name       = "universiteams.com"
+  ip_address = digitalocean_droplet.instance.ipv4_address
+}
+
+resource "digitalocean_record" "www_api" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "A"
+  name   = "www.api"
+  value  = digitalocean_droplet.instance.ipv4_address
+  ttl    = 3600
+}
+
+resource "digitalocean_record" "www" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "A"
+  name   = "www"
+  value  = digitalocean_droplet.instance.ipv4_address
+  ttl    = 3600
+}
+
+resource "digitalocean_record" "api" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "A"
+  name   = "api"
+  value  = digitalocean_droplet.instance.ipv4_address
+  ttl    = 3600
+}
+
+resource "digitalocean_record" "root" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "A"
+  name   = "@"
+  value  = digitalocean_droplet.instance.ipv4_address
+  ttl    = 3600
+}
+
+resource "digitalocean_record" "ns1" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "NS"
+  name   = "@"
+  value  = "ns1.digitalocean.com."
+  ttl    = 1800
+}
+
+resource "digitalocean_record" "ns2" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "NS"
+  name   = "@"
+  value  = "ns2.digitalocean.com."
+  ttl    = 1800
+}
+
+resource "digitalocean_record" "ns3" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "NS"
+  name   = "@"
+  value  = "ns3.digitalocean.com."
+  ttl    = 1800
+}
