@@ -11,10 +11,12 @@ import { TokenService } from './token.service';
 import { EmailModule } from '../email/email.module';
 import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration-times';
 import { BullModule } from '@nestjs/bull';
+import { Interest } from '../interest/interest.entity';
+import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Interest, UserAffiliation]),
     SerializationModule,
     ConfigModule,
     EmailModule,

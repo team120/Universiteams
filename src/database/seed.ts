@@ -15,6 +15,7 @@ import {
 } from '../user-affiliation/user-affiliation.entity';
 import { User, UserSystemRole } from '../user/user.entity';
 import { randomInt } from 'crypto';
+import { User } from '../user/user.entity';
 import { DataSource, Repository } from 'typeorm';
 
 class NumUnitaryIncrease {
@@ -859,10 +860,8 @@ export class Seed {
     interests: ReturnType<typeof this.interestsFactory>,
   ) {
     const userIdGen = new NumUnitaryIncrease(1);
-    const affiliationIdGen = new NumUnitaryIncrease(1);
     const numGenMockUsers = new NumUnitaryIncrease(1);
     const numGenMockPasswords = new NumUnitaryIncrease(1);
-    const randomDepartmentId = () => randomInt(10000, 99999).toString();
     return {
       rizzoJuan: this.usersRepo.create({
         id: userIdGen.next(),
@@ -875,9 +874,7 @@ export class Seed {
         interests: [interests.dataScience, interests.businessIntelligence],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIc,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIc.id,
           }),
         ],
       }),
@@ -897,15 +894,11 @@ export class Seed {
         ],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIsi,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIsi.id,
             currentType: UserAffiliationType.Professor,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.unrFceiaIe,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.unrFceiaIe.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -918,14 +911,10 @@ export class Seed {
         lastName: 'Sanchez',
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIq,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIq.id,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.unrFceiaIe,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.unrFceiaIe.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -940,9 +929,7 @@ export class Seed {
         interests: [interests.edTech],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroBasicas,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroBasicas.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -957,9 +944,7 @@ export class Seed {
         interests: [interests.processEngineering],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroCaimi,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroCaimi.id,
             currentType: UserAffiliationType.Researcher,
           }),
         ],
@@ -974,15 +959,11 @@ export class Seed {
         interests: [interests.environment, interests.sustainableDevelopment],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroCaimi,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroCaimi.id,
             currentType: UserAffiliationType.Researcher,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.unrFceiaIe,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.unrFceiaIe.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -997,15 +978,11 @@ export class Seed {
         interests: [interests.foodTech],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroCidta,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroCidta.id,
             currentType: UserAffiliationType.Researcher,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIq,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIq.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -1020,15 +997,11 @@ export class Seed {
         interests: [interests.foodTech],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroCidta,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroCidta.id,
             currentType: UserAffiliationType.Researcher,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIq,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIq.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -1043,15 +1016,11 @@ export class Seed {
         interests: [interests.energy, interests.environment],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroOes,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroOes.id,
             currentType: UserAffiliationType.Researcher,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.unrFceiaElectrica,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.unrFceiaElectrica.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -1066,9 +1035,7 @@ export class Seed {
         interests: [interests.processEngineering],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroCaimi,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroCaimi.id,
             currentType: UserAffiliationType.Researcher,
           }),
         ],
@@ -1083,15 +1050,11 @@ export class Seed {
         interests: [interests.edTech],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroCedite,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroCedite.id,
             currentType: UserAffiliationType.Researcher,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIsi,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIsi.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -1110,15 +1073,11 @@ export class Seed {
         ],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroGese,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroGese.id,
             currentType: UserAffiliationType.Researcher,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIm,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIm.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -1133,15 +1092,11 @@ export class Seed {
         interests: [interests.infoSystems],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIsi,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIsi.id,
             currentType: UserAffiliationType.Professor,
           }),
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroBasicas,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroBasicas.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -1160,9 +1115,7 @@ export class Seed {
         ],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.unrFceiaIm,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.unrFceiaIm.id,
             currentType: UserAffiliationType.Professor,
           }),
         ],
@@ -1177,9 +1130,7 @@ export class Seed {
         interests: [interests.dataScience, interests.environment],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIq,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIq.id,
           }),
         ],
       }),
@@ -1193,9 +1144,7 @@ export class Seed {
         interests: [interests.backendDev, interests.frontendDev],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIsi,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIsi.id,
           }),
         ],
       }),
@@ -1213,9 +1162,7 @@ export class Seed {
         ],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIsi,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIsi.id,
           }),
         ],
       }),
@@ -1229,9 +1176,7 @@ export class Seed {
         interests: [interests.arduino, interests.sustainableDevelopment],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.utnFrroIm,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.utnFrroIm.id,
           }),
         ],
       }),
@@ -1245,9 +1190,7 @@ export class Seed {
         interests: [interests.energy, interests.environment],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.unrFceiaElectrica,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.unrFceiaElectrica.id,
           }),
         ],
       }),
@@ -1261,9 +1204,7 @@ export class Seed {
         interests: [interests.energy, interests.contingencies],
         userAffiliations: [
           this.userAffiliationRepo.create({
-            id: affiliationIdGen.next(),
-            researchDepartment: researchDepartments.unrFceiaElectrica,
-            departmentalId: randomDepartmentId(),
+            researchDepartmentId: researchDepartments.unrFceiaElectrica.id,
           }),
         ],
       }),
