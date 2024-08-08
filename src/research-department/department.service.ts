@@ -28,6 +28,7 @@ export class ResearchDepartmentService {
         where: findOptions.facilityId
           ? { facility: { id: findOptions.facilityId } }
           : {},
+        relations: findOptions.relations,
         skip: findOptions.offset,
         take: findOptions.limit,
       })
