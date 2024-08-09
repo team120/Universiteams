@@ -67,26 +67,10 @@ resource "digitalocean_record" "www_api" {
   ttl    = 3600
 }
 
-resource "digitalocean_record" "www" {
-  domain = digitalocean_domain.universiteams.name
-  type   = "A"
-  name   = "www"
-  value  = digitalocean_reserved_ip.universiteams.ip_address
-  ttl    = 3600
-}
-
 resource "digitalocean_record" "api" {
   domain = digitalocean_domain.universiteams.name
   type   = "A"
   name   = "api"
-  value  = digitalocean_reserved_ip.universiteams.ip_address
-  ttl    = 3600
-}
-
-resource "digitalocean_record" "root" {
-  domain = digitalocean_domain.universiteams.name
-  type   = "A"
-  name   = "@"
   value  = digitalocean_reserved_ip.universiteams.ip_address
   ttl    = 3600
 }
