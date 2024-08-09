@@ -4,10 +4,14 @@ import { PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
 import { DbException, NotFound } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
-import { InstitutionShowDto } from './dtos/institution.show.dto';
+import {
+  InstitutionCreatedShowDto,
+  InstitutionShowDto,
+} from './dtos/institution.show.dto';
 import { Institution } from './institution.entity';
 import { InstitutionFindDto } from './dtos/institution.find.dto';
 import { InstitutionCreateDto } from './dtos/institution.create.dto';
+import { InstitutionUpdateDto } from './dtos/institution.update.dto';
 
 const institutionNotFoundError = new NotFound(
   'El ID no coincide con ninguna institución',
@@ -39,7 +43,9 @@ export class InstitutionService {
     return this.entityMapper.mapArray(InstitutionShowDto, universities);
   }
 
-  async create(createDto: InstitutionCreateDto): Promise<InstitutionShowDto> {
+  async create(
+    createDto: InstitutionCreateDto,
+  ): Promise<InstitutionCreatedShowDto> {
     this.logger.debug('Create a new institution');
     const university = this.entityMapper.mapValue(Institution, createDto);
     const createdUniversity = await this.institutionRepository
@@ -47,8 +53,10 @@ export class InstitutionService {
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
-    this.logger.debug('Map university to dto');
-    return this.entityMapper.mapValue(InstitutionShowDto, createdUniversity);
+    return this.entityMapper.mapValue(
+      InstitutionCreatedShowDto,
+      createdUniversity,
+    );
   }
 
   async delete(institutionId: number): Promise<void> {
@@ -65,13 +73,13 @@ export class InstitutionService {
     this.logger.debug(`Institution #${institution.id} successfully deleted`);
   }
 
-  async update(institutionId: number, institutionDto: InstitutionCreateDto) {
+  async update(institutionId: number, institutionDto: InstitutionUpdateDto) {
     this.logger.debug('Update an institution');
     const institution = await this.institutionRepository.findOne({
       where: { id: institutionId },
     });
     if (!institution) throw institutionNotFoundError;
     await this.institutionRepository.update(institutionId, institutionDto);
-    this.logger.debug('Map university to dto');
+    this.logger.debug(`Institution #${institution.id} successfully updated`);
   }
 }
