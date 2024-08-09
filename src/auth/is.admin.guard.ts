@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { Unauthorized } from '../utils/exceptions/exceptions';
 import { RequestWithUser } from '../utils/request-with-user';
 import { UserSystemRole } from '../user/user.entity';
+import { IsAuthGuard } from './is-auth.guard';
 
 @Injectable()
 class IsAdminRole implements CanActivate {
@@ -19,4 +20,4 @@ class IsAdminRole implements CanActivate {
   }
 }
 
-export const IsAdminGuard = IsAdminRole;
+export const IsAdminGuard = [IsAuthGuard, IsAdminRole];

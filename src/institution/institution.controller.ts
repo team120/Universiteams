@@ -16,6 +16,7 @@ import { InstitutionFindDto } from './dtos/institution.find.dto';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { InstitutionCreateDto } from './dtos/institution.create.dto';
 import { IsAdminGuard } from '../auth/is.admin.guard';
+import { InstitutionUpdateDto } from './dtos/institution.update.dto';
 
 @ApiTags('institutions')
 @Controller('institutions')
@@ -26,24 +27,24 @@ export class InstitutionController {
   async get(@Query(AppValidationPipe) findOptions: InstitutionFindDto) {
     return this.institutionService.find(findOptions);
   }
-  @UseGuards(IsAdminGuard)
+  @UseGuards(...IsAdminGuard)
   @ApiCookieAuth()
   @Post()
   async create(@Body() institution: InstitutionCreateDto) {
     return this.institutionService.create(institution);
   }
-  @UseGuards(IsAdminGuard)
+  @UseGuards(...IsAdminGuard)
   @ApiCookieAuth()
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
     return this.institutionService.delete(id);
   }
-  @UseGuards(IsAdminGuard)
+  @UseGuards(...IsAdminGuard)
   @ApiCookieAuth()
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() institution: InstitutionCreateDto,
+    @Body() institution: InstitutionUpdateDto,
   ) {
     return this.institutionService.update(id, institution);
   }
