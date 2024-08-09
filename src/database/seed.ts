@@ -13,7 +13,7 @@ import {
   UserAffiliation,
   UserAffiliationType,
 } from '../user-affiliation/user-affiliation.entity';
-import { User } from '../user/user.entity';
+import { User, UserSystemRole } from '../user/user.entity';
 import { DataSource, Repository } from 'typeorm';
 
 class NumUnitaryIncrease {
@@ -868,6 +868,7 @@ export class Seed {
         firstName: 'Juan',
         lastName: 'Rizzo',
         isEmailVerified: true,
+        systemRole: UserSystemRole.USER,
         interests: [interests.dataScience, interests.businessIntelligence],
         userAffiliations: [
           this.userAffiliationRepo.create({
@@ -882,6 +883,7 @@ export class Seed {
         firstName: 'Camila',
         lastName: 'Villa',
         isEmailVerified: true,
+        systemRole: UserSystemRole.ADMIN,
         interests: [
           interests.backendDev,
           interests.itSecurity,
