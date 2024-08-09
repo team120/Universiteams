@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.2.4] - 2024-08-09
+
+- Fix production deployment ssl config
+
 ## [v1.2.3] - 2024-08-09
 
 - Update production SAME_SITE_POLICY to none in create-env-file.sh
