@@ -75,6 +75,22 @@ resource "digitalocean_record" "api" {
   ttl    = 3600
 }
 
+resource "digitalocean_record" "vercel_dns_www_cname" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "CNAME"
+  name   = "www"
+  value  = "cname.vercel-dns.com."
+  ttl    = 43200
+}
+
+resource "digitalocean_record" "root_a" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "A"
+  name   = "@"
+  value  = var.frontend_server_ip
+  ttl    = 3600
+}
+
 resource "digitalocean_record" "ns1" {
   domain = digitalocean_domain.universiteams.name
   type   = "NS"
