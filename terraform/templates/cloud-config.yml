@@ -14,11 +14,6 @@ write_files:
     content: |
       #!/bin/bash
       docker system prune --force
-  - path: /etc/docker/daemon.json
-    content: |
-      {
-        "iptables": false
-      }
   - path: /etc/systemd/system/docker.service.d/override.conf
     content: |
       [Service]
