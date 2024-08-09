@@ -1,20 +1,15 @@
-import {
-  Exclude,
-  Expose,
-  Transform,
-  TransformFnParams,
-} from 'class-transformer';
-import { IsOptional } from 'class-validator';
-import * as sanitizeHtml from 'sanitize-html';
+import { Exclude, Expose } from 'class-transformer';
+import { IsOptional, IsNotEmpty } from 'class-validator';
 
 @Exclude()
 export class InstitutionCreateDto {
   @Expose()
-  @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
+  @IsNotEmpty()
   name: string;
-  @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
+  @Expose()
+  @IsNotEmpty()
   abbreviation: string;
+  @Expose()
   @IsOptional()
-  @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
   web?: string;
 }
