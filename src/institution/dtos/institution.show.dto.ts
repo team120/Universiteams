@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { FacilityShowDto } from '../../facility/dtos/facility.dto';
+import { FacilityShowDto } from '../../facility/dtos/facility.show.dto';
 import { OmitType } from '@nestjs/swagger';
 
 @Exclude()

@@ -27,6 +27,10 @@ export class InstitutionController {
   async get(@Query(AppValidationPipe) findOptions: InstitutionFindDto) {
     return this.institutionService.find(findOptions);
   }
+  @Get(':id')
+  async getOne(@Param('id', ParseIntPipe) institutionId: number) {
+    return this.institutionService.findById(institutionId);
+  }
   @UseGuards(...IsAdminGuard)
   @ApiCookieAuth()
   @Post()

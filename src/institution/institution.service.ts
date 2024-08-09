@@ -43,6 +43,22 @@ export class InstitutionService {
     return this.entityMapper.mapArray(InstitutionShowDto, universities);
   }
 
+  async findById(institutionId: number): Promise<InstitutionShowDto> {
+    this.logger.debug('Find facility by id');
+    const facility = await this.institutionRepository
+      .findOne({
+        relations: ['facilities'],
+        where: { id: institutionId },
+      })
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
+    if (!facility) {
+      throw new NotFound('Facility not found');
+    }
+    return this.entityMapper.mapValue(InstitutionShowDto, facility);
+  }
+
   async create(
     createDto: InstitutionCreateDto,
   ): Promise<InstitutionCreatedShowDto> {

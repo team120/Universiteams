@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FacilityService } from './facility.service';
 import { AppValidationPipe } from '../utils/validation.pipe';
@@ -12,5 +12,9 @@ export class FacilityController {
   @Get()
   async get(@Query(AppValidationPipe) findOptions: FacilityFindDto) {
     return this.facilityService.find(findOptions);
+  }
+  @Get(':id')
+  async getOne(@Param('id', ParseIntPipe) facilityId: number) {
+    return this.facilityService.findById(facilityId);
   }
 }
