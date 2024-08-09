@@ -13,7 +13,7 @@ export class InstitutionCreateDto {
   @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
   name: string;
   @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
-  abbreviation?: string;
+  abbreviation: string;
   @IsOptional()
   @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
   web?: string;
