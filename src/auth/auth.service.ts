@@ -24,18 +24,27 @@ import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { SecretsVaultKeys } from '../utils/secrets';
 import { ConfigService } from '@nestjs/config';
+import { ProfileInputDto, ProfileOutputDto } from './dtos/profile.dto';
+import { Interest } from '../interest/interest.entity';
+import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
+import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(UserAffiliation)
+    private readonly userAffiliationRepo: Repository<UserAffiliation>,
+    @InjectRepository(Interest)
+    private readonly interestRepo: Repository<Interest>,
     private readonly tokenService: TokenService,
     @InjectQueue('emails')
     private readonly emailQueue: Queue,
     private readonly config: ConfigService,
     private readonly verificationMessageService: VerificationMessagesService,
     private readonly logger: PinoLogger,
+    private readonly entityMapper: EntityMapperService,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -152,5 +161,113 @@ export class AuthService {
       );
 
     return user;
+  }
+
+  async saveProfile(
+    currentUser: CurrentUserWithoutTokens,
+    profileDto: ProfileInputDto,
+  ) {
+    const user = await this.userRepo
+      .findOne({
+        where: {
+          id: currentUser.id,
+        },
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
+    if (!user) throw new Unauthorized('Usuario no encontrado');
+
+    const interestIds: { id: number }[] =
+      profileDto.interestsIds.map((id) => ({
+        id: id,
+      })) ?? [];
+    if (profileDto.interestsToCreate?.length > 0) {
+      const interests = profileDto.interestsToCreate.map((interest) => ({
+        name: interest,
+      }));
+      const result = await this.interestRepo
+        .save(interests)
+        .catch((e: Error) => {
+          throw new DbException(e.message, e.stack);
+        });
+
+      for (const interest of result) {
+        interestIds.push({ id: interest.id });
+      }
+    }
+
+    user.interests = interestIds as Interest[];
+
+    await this.userRepo.save(user).catch((e: Error) => {
+      throw new DbException(e.message, e.stack);
+    });
+
+    const userAffiliations: Partial<UserAffiliation>[] =
+      profileDto.researchDepartments.map((researchDepartment) => ({
+        researchDepartmentId: researchDepartment.id,
+        userId: user.id,
+        currentType: researchDepartment.currentType,
+      })) ?? [];
+
+    // Fetch existing affiliations
+    const existingAffiliations = await this.userAffiliationRepo.find({
+      where: { userId: user.id },
+    });
+
+    // Determine affiliations to add and remove
+    const affiliationsToAdd = userAffiliations.filter(
+      (newAff) =>
+        !existingAffiliations.some(
+          (existingAff) =>
+            existingAff.researchDepartmentId === newAff.researchDepartmentId,
+        ),
+    );
+
+    const affiliationsToRemove = existingAffiliations.filter(
+      (existingAff) =>
+        !userAffiliations.some(
+          (newAff) =>
+            newAff.researchDepartmentId === existingAff.researchDepartmentId,
+        ),
+    );
+
+    // Add new affiliations
+    await this.userAffiliationRepo.save(affiliationsToAdd).catch((e: Error) => {
+      throw new DbException(e.message, e.stack);
+    });
+
+    // Remove old affiliations
+    await this.userAffiliationRepo
+      .remove(affiliationsToRemove)
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+  }
+
+  async getProfile(
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<ProfileOutputDto> {
+    const user = await this.userRepo
+      .findOne({
+        where: {
+          id: currentUser.id,
+        },
+        relations: [
+          'interests',
+          'userAffiliations',
+          'userAffiliations.researchDepartment',
+          'userAffiliations.researchDepartment.facility',
+          'userAffiliations.researchDepartment.facility.institution',
+        ],
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
+    if (!user) throw new Unauthorized('Usuario no encontrado');
+
+    return this.entityMapper.mapValue(ProfileOutputDto, user);
   }
 }

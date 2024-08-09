@@ -46,7 +46,7 @@ export class User {
 
   @OneToMany(() => UserAffiliation, (userAffiliation) => userAffiliation.user, {
     nullable: false,
-    cascade: ['insert', 'update'],
+    cascade: true,
     onUpdate: 'CASCADE',
   })
   userAffiliations: UserAffiliation[];
@@ -56,7 +56,7 @@ export class User {
 
   @ManyToMany(() => Interest, (interest) => interest.users, {
     nullable: true,
-    cascade: ['insert', 'update'],
+    cascade: true,
     onUpdate: 'CASCADE',
   })
   @JoinTable({ name: 'user_interest' })

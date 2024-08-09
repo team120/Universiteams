@@ -3,8 +3,9 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { User } from '../user/user.entity';
@@ -18,18 +19,21 @@ export enum UserAffiliationType {
 
 @Entity()
 export class UserAffiliation {
-  @PrimaryGeneratedColumn()
-  id: number;
   @CreateDateColumn({ type: 'date' })
   creationDate: string;
   @DeleteDateColumn()
   logicalDeleteDate: Date;
+  @PrimaryColumn()
+  userId: number;
   @ManyToOne(() => User, (user) => user.userAffiliations, {
     nullable: false,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
+  @JoinColumn({ name: 'userId' })
   user: User;
+  @PrimaryColumn()
+  researchDepartmentId: number;
   @ManyToOne(
     () => ResearchDepartment,
     (researchDepartment) => researchDepartment.usersAffiliations,
@@ -39,9 +43,8 @@ export class UserAffiliation {
       onUpdate: 'CASCADE',
     },
   )
+  @JoinColumn({ name: 'researchDepartmentId' })
   researchDepartment: ResearchDepartment;
-  @Column()
-  departmentalId: string;
   @Column({ default: UserAffiliationType.Student })
   currentType: UserAffiliationType;
 }

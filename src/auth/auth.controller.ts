@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   Post,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -25,10 +26,11 @@ import {
 import { LoginDto } from './dtos/login.dto';
 import { RegisterDto } from './dtos/register.dto';
 import { VerifyDto } from './dtos/verify.dto';
-import { IsAuthGuard } from './is-auth.guard';
 import { TokenService } from './token.service';
 import { Unauthorized } from '../utils/exceptions/exceptions';
 import { IsAuthService } from './is-auth.service';
+import { ProfileInputDto } from './dtos/profile.dto';
+import { IsAuthGuard } from './is-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -118,5 +120,20 @@ export class AuthController {
     return this.isAuthService.getCurrentUserDisplayInfo(
       request.cookies['accessToken'],
     );
+  }
+
+  @UseGuards(IsAuthGuard)
+  @Get('profile')
+  async getProfile(@Req() request: RequestWithUser) {
+    return this.authService.getProfile(request.currentUser);
+  }
+
+  @UseGuards(IsAuthGuard)
+  @Put('profile')
+  async saveProfile(
+    @Req() request: RequestWithUser,
+    @Body() profileDto: ProfileInputDto,
+  ) {
+    return this.authService.saveProfile(request.currentUser, profileDto);
   }
 }
