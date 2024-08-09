@@ -67,14 +67,6 @@ resource "digitalocean_record" "www_api" {
   ttl    = 3600
 }
 
-resource "digitalocean_record" "www" {
-  domain = digitalocean_domain.universiteams.name
-  type   = "A"
-  name   = "www"
-  value  = digitalocean_reserved_ip.universiteams.ip_address
-  ttl    = 3600
-}
-
 resource "digitalocean_record" "api" {
   domain = digitalocean_domain.universiteams.name
   type   = "A"
@@ -83,11 +75,19 @@ resource "digitalocean_record" "api" {
   ttl    = 3600
 }
 
-resource "digitalocean_record" "root" {
+resource "digitalocean_record" "vercel_dns_www_cname" {
+  domain = digitalocean_domain.universiteams.name
+  type   = "CNAME"
+  name   = "www"
+  value  = "cname.vercel-dns.com."
+  ttl    = 43200
+}
+
+resource "digitalocean_record" "root_a" {
   domain = digitalocean_domain.universiteams.name
   type   = "A"
   name   = "@"
-  value  = digitalocean_reserved_ip.universiteams.ip_address
+  value  = var.frontend_server_ip
   ttl    = 3600
 }
 

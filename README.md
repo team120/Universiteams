@@ -1,4 +1,5 @@
 # Universiteams
+
 [![dockeri.co](https://dockeri.co/image/universiteams/api)](https://hub.docker.com/r/universiteams/api)
 
 This project was thought in order to facilitate the creation, management and formalization of university research projects. Both students and teachers will be able to organize their projects, which will be visible to other students who may want to join the research team.
@@ -7,51 +8,67 @@ It mainly consists of a web application, the main page will contain all the proj
 #### Our main purpose is to facilitate and promote scientific dissemination.
 
 ## Prerequisites
+
 ### Make
+
 Only in case you happen to use Windows install [Chocolatey package manager](https://chocolatey.org/install)
 Then install Make with the following command:
+
 ```bash
 $ choco install make
 ```
+
 ### Docker
+
 [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
 
 ### NPM
+
 > Just if you happen to use VSCode linter and formatter extensions
 > Alternatively, using VSCode remote docker container extension might provide the same experience
 
 [https://docs.npmjs.com/downloading-and-installing-node-js-and-npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 
 ## Local Environment
+
 ### Setup and Running the app
+
 ```bash
 $ make dev
 ```
+
 > Migrations are executed by default when the app is bootstrapping
 
 ### Access
+
 #### API
+
 [api.localhost](http://api.localhost)
+
 #### DB Admin
+
 [db.localhost](https://db.localhost)
 
 ### Teardown
+
 ```bash
 $ make down-dv
 ```
 
 ## Production Environment
+
 ### Setup and Running the app
+
 ```bash
 $ make prod
 ```
 
 ### Access
+
 [api.universiteams.com](https://api.universiteams.com)
 
-[universiteams.com](https://universiteams.com)
-
 ### Teardown
+
 ```bash
 $ make down-pd
 ```

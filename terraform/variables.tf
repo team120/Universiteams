@@ -50,3 +50,8 @@ variable "ipv6" {
   description = "Whether or not to enable IPv6 networking"
   default     = false
 }
+
+variable "frontend_server_ip" {
+  description = "The IP address for the frontend server (root A record)"
+  type        = string
+}
