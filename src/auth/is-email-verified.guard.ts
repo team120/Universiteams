@@ -5,7 +5,7 @@ import { RequestWithUser } from '../utils/request-with-user';
 import { IsAuthGuard } from './is-auth.guard';
 
 @Injectable()
-class IsEmailVerified implements CanActivate {
+export class IsEmailVerified implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
