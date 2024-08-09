@@ -25,13 +25,16 @@ then
     exit 1
 fi
 
-if [ $ENV = "dev" ]
+if [ "$ENV" = "dev" ]
 then
     echo FRONTEND_HOST="http://localhost:3000" >> $ENV_FILE
     echo SAME_SITE_POLICY="none" >> $ENV_FILE
     echo SECURE_COOKIE="true" >> $ENV_FILE
-else
-    echo FRONTEND_HOST="TO_BE_DEFINED" >> $ENV_FILE
+fi
+
+if [ "$ENV" = "prod" ]
+then
+    echo FRONTEND_HOST="https://www.universiteams.com" >> $ENV_FILE
     echo SAME_SITE_POLICY="strict" >> $ENV_FILE
     echo SECURE_COOKIE="true" >> $ENV_FILE
 fi
