@@ -35,7 +35,7 @@ fi
 if [ "$ENV" = "prod" ]
 then
     echo FRONTEND_HOST="https://www.universiteams.com" >> $ENV_FILE
-    echo SAME_SITE_POLICY="strict" >> $ENV_FILE
+    echo SAME_SITE_POLICY="none" >> $ENV_FILE
     echo SECURE_COOKIE="true" >> $ENV_FILE
 fi
 
