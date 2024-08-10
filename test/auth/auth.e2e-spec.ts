@@ -174,7 +174,7 @@ describe('auth', () => {
                 email: registrationAttempt.email,
                 name: `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
               },
-              subject: 'Please confirm your email',
+              subject: 'Por favor confirma tu correo electrónico',
               text: expect.not.stringContaining('link="undefined"'),
               html: expect.not.stringContaining('href="undefined"'),
             } as Partial<EmailMessage>),
