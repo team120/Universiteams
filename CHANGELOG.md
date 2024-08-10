@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.2.5] - 2024-08-10
+
+- Fix page not found when trying to visit verify email link
+- Refactor verifyEmail method in AuthController to generate and append new token cookies, so previous ones with old data are invalidated
+
 ## [v1.2.4] - 2024-08-09
 
 - Fix production deployment ssl config
