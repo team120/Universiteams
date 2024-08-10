@@ -86,8 +86,16 @@ export class AuthController {
   async verifyEmail(
     @Body(AppValidationPipe) verifyDto: VerifyDto,
     @Req() request: RequestWithUser,
+    @Res() response: Response,
   ) {
-    await this.authService.verifyEmail(verifyDto, request.currentUser);
+    const user = await this.authService.verifyEmail(
+      verifyDto,
+      request.currentUser,
+    );
+
+    const currentUser = this.tokenService.generateTokens(user);
+    this.tokenService.appendTokenCookies(response, currentUser);
+    response.status(200).json();
   }
 
   @ApiOkResponse({
