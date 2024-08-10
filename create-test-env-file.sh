@@ -15,7 +15,7 @@ touch $ENV_FILE
 echo POSTGRES_HOST="postgrestest" >> $ENV_FILE
 echo POSTGRES_PORT=5432 >> $ENV_FILE
 echo POSTGRES_DB="postgrestest" >> $ENV_FILE
-echo POSTGRES_USER="admin" >> $ENV_FILE
+echo POSTGRES_USER="universiteams" >> $ENV_FILE
 echo POSTGRES_PASSWORD="admin" >> $ENV_FILE
 echo REDIS_HOST="redistest" >> $ENV_FILE
 echo REDIS_PORT=6379 >> $ENV_FILE
