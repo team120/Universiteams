@@ -51,16 +51,16 @@ export class EmailProcessor {
         name: 'Universiteams',
       },
       to: { email: user.email, name: `${user.firstName} ${user.lastName}` },
-      subject: 'Please confirm your email',
+      subject: 'Por favor confirma tu correo electrónico',
       text:
-        `Hello ${user.firstName},` +
-        "Welcome to Universiteams. We are excited to have you on-board and there's just one step to verify if it's actually your e-mail address:" +
-        `link="${verificationLink}" Confirm Account`,
+        `Hola ${user.firstName},` +
+        'Bienvenido a Universiteams. Estamos emocionados de tenerte a bordo y solo hay un paso para verificar si realmente es tu dirección de correo electrónico:' +
+        `link="${verificationLink}" Confirmar Cuenta`,
       html:
-        `<h1>Hello ${user.firstName},</h1>` +
-        "<p>Welcome to Universiteams. We are excited to have you on-board and there's just one step to verify if it's actually your e-mail address:</p>" +
+        `<h1>Hola ${user.firstName},</h1>` +
+        '<p>Bienvenido a Universiteams. Estamos emocionados de tenerte a bordo y solo hay un paso para verificar si realmente es tu dirección de correo electrónico:</p>' +
         '<p style="text-align:center">' +
-        `<a href="${verificationLink}" style="background-color:#32c766;color:white;padding:15px 32px;text-decoration:none;padding:15px 32px;display:inline-block;font-size:16px;border-radius:7px">Confirm Account</a>` +
+        `<a href="${verificationLink}" style="background-color:#32c766;color:white;padding:15px 32px;text-decoration:none;padding:15px 32px;display:inline-block;font-size:16px;border-radius:7px">Confirmar Cuenta</a>` +
         '</p>',
     };
 

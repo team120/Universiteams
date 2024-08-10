@@ -105,11 +105,12 @@ export class AuthService {
       user,
     );
 
-    await this.userRepo
-      .update(currentUser.id, { isEmailVerified: true })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+    user.isEmailVerified = true;
+    await this.userRepo.save(user).catch((e: Error) => {
+      throw new DbException(e.message, e.stack);
+    });
+
+    return user;
   }
 
   async forgotPassword(forgetPasswordDto: ForgetPasswordDto) {
