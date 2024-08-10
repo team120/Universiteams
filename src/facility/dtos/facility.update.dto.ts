@@ -2,7 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { IsOptional } from 'class-validator';
 
 @Exclude()
-export class InstitutionUpdateDto {
+export class FacilityUpdateDto {
   @Expose()
   @IsOptional()
   name?: string;
