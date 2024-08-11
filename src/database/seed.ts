@@ -136,11 +136,13 @@ export class Seed {
         id: idGen.next(),
         name: 'Universidad Tecnológica Nacional',
         abbreviation: 'UTN',
+        web: 'https://utn.edu.ar',
       }),
       unr: this.institutionRepo.create({
         id: idGen.next(),
         name: 'Universidad Nacional de Rosario',
         abbreviation: 'UNR',
+        web: 'https://unr.edu.ar',
       }),
     };
   }
