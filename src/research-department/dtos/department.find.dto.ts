@@ -3,11 +3,6 @@ import { Exclude } from 'class-transformer';
 import { IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
-enum ResearchDepartmentRelations {
-  FACILITY = 'facility',
-  FACILITY_INSTITUTION = 'facility.institution',
-}
-
 @Exclude()
 export class ResearchDepartmentFindDto {
   @IsOptional()

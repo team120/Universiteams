@@ -13,4 +13,5 @@ export class ResearchDepartmentController {
   async get(@Query(AppValidationPipe) findOptions: ResearchDepartmentFindDto) {
     return this.departmentService.find(findOptions);
   }
+  
 }
