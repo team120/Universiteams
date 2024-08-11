@@ -12,4 +12,7 @@ export class ResearchDepartmentCreateDto {
   @Expose()
   @IsOptional()
   web?: string;
+  @Expose()
+  @IsNotEmpty()
+  facilityId: number;
 }

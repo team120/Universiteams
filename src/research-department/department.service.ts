@@ -12,12 +12,15 @@ import {
 } from './dtos/department.show.dto';
 import { ResearchDepartmentCreateDto } from './dtos/department.create.dto';
 import { ResearchDepartmentUpdateDto } from './dtos/department.update.dto';
+import { Facility } from 'src/facility/facility.entity';
 
 @Injectable()
 export class ResearchDepartmentService {
   constructor(
     @InjectRepository(ResearchDepartment)
     private readonly departmentRepository: Repository<ResearchDepartment>,
+    @InjectRepository(Facility)
+    private readonly facilityRepository: Repository<Facility>,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
   ) {
@@ -28,19 +31,22 @@ export class ResearchDepartmentService {
     findOptions: ResearchDepartmentFindDto,
   ): Promise<ResearchDepartmentShowDto[]> {
     this.logger.debug('Find research departments');
-    const facilities = await this.departmentRepository
+    const relationsRequest = Array.isArray(findOptions.relations)
+      ? findOptions.relations
+      : [findOptions.relations];
+    const departments = await this.departmentRepository
       .find({
         where: findOptions.facilityId
           ? { facility: { id: findOptions.facilityId } }
           : {},
-        relations: ['facility', 'projects'],
+        relations: relationsRequest,
         skip: findOptions.offset,
         take: findOptions.limit,
       })
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
-    return this.entityMapper.mapArray(ResearchDepartmentShowDto, facilities);
+    return this.entityMapper.mapArray(ResearchDepartmentShowDto, departments);
   }
 
   async findById(departmentId: number): Promise<ResearchDepartmentShowDto> {
@@ -63,12 +69,18 @@ export class ResearchDepartmentService {
     createDto: ResearchDepartmentCreateDto,
   ): Promise<DepartmentCreatedShowDto> {
     this.logger.debug('Create a new research department');
-    const department = this.entityMapper.mapValue(
+    const facility = await this.facilityRepository.findOne({
+      where: { id: createDto.facilityId },
+      select: ['id'],
+    });
+    if (!facility) throw new NotFound('Facility not found');
+
+    const researchDepartment = this.entityMapper.mapValue(
       ResearchDepartment,
       createDto,
     );
     const createdDepartment = await this.departmentRepository
-      .save(department)
+      .save({ facility: { id: facility.id }, ...researchDepartment })
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
@@ -79,12 +91,11 @@ export class ResearchDepartmentService {
   }
 
   async delete(departmentId: number): Promise<void> {
-    this.logger.debug('Delete a research department');
+    this.logger.debug('Delete a Research Department');
     const department = await this.departmentRepository.findOne({
       where: { id: departmentId },
     });
-    if (!department)
-      throw new NotFound('El ID no coincide con ningun Research Department');
+    if (!department) throw new NotFound('Research Department not found');
     await this.departmentRepository.delete(departmentId).catch((err: Error) => {
       throw new DbException(err.message, err.stack);
     });
@@ -98,14 +109,14 @@ export class ResearchDepartmentService {
     departmentDto: ResearchDepartmentUpdateDto,
   ) {
     this.logger.debug('Update a research department');
-    const department = await this.departmentRepository.findOne({
+    const researchDepartment = await this.departmentRepository.findOne({
       where: { id: departmentId },
     });
-    if (!department)
-      throw new NotFound('El ID no coincide con ningun Research Department');
+    if (!researchDepartment)
+      throw new NotFound('Research Department not found');
     await this.departmentRepository.update(departmentId, departmentDto);
     this.logger.debug(
-      `Research Department #${department.id} successfully updated`,
+      `Research Department #${researchDepartment.id} successfully updated`,
     );
   }
 }
