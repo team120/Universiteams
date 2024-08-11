@@ -1,6 +1,6 @@
 import { PickType } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+import { Exclude } from 'class-transformer';
+import { IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 enum ResearchDepartmentRelations {
@@ -14,10 +14,6 @@ export class ResearchDepartmentFindDto {
   @IsNumber()
   @ExposeType(Number)
   facilityId?: number;
-  @IsOptional()
-  @IsEnum(ResearchDepartmentRelations, { each: true })
-  @Expose()
-  relations?: string[];
   @IsOptional()
   @IsNumber()
   @Min(0)

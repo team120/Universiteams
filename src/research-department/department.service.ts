@@ -22,20 +22,19 @@ export class ResearchDepartmentService {
   async find(
     findOptions: ResearchDepartmentFindDto,
   ): Promise<ResearchDepartmentShowDto[]> {
-    this.logger.debug('Find facilities');
+    this.logger.debug('Find research departments');
     const facilities = await this.departmentRepository
       .find({
         where: findOptions.facilityId
           ? { facility: { id: findOptions.facilityId } }
           : {},
-        relations: findOptions.relations,
+        relations: ['facility', 'projects'],
         skip: findOptions.offset,
         take: findOptions.limit,
       })
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
-    this.logger.debug('Map facilities to dto');
     return this.entityMapper.mapArray(ResearchDepartmentShowDto, facilities);
   }
 }
