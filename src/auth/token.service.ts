@@ -32,6 +32,7 @@ export class TokenService {
       user: `${user.firstName} ${user.lastName}`,
       email: user.email,
       isEmailVerified: user.isEmailVerified,
+      systemRole: user.systemRole,
     };
     return this.entityMapper.mapValue(CurrentUserDto, {
       ...user,
