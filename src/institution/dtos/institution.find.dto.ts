@@ -4,7 +4,7 @@ import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 export enum InstitutionRelations {
   facilities = 'facilities',
-  researchDepartments = 'facilities.researchDepartment',
+  researchDepartments = 'facilities.researchDepartments',
 }
 @Exclude()
 export class InstitutionFindDto {
