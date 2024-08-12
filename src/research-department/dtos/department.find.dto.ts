@@ -3,21 +3,16 @@ import { Exclude, Expose } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
-enum ResearchDepartmentRelations {
-  FACILITY = 'facility',
-  FACILITY_INSTITUTION = 'facility.institution',
+export enum ResearchDepartmentRelations {
+  facility = 'facility',
+  projects = 'projects',
 }
-
 @Exclude()
 export class ResearchDepartmentFindDto {
   @IsOptional()
   @IsNumber()
   @ExposeType(Number)
   facilityId?: number;
-  @IsOptional()
-  @IsEnum(ResearchDepartmentRelations, { each: true })
-  @Expose()
-  relations?: string[];
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -28,6 +23,10 @@ export class ResearchDepartmentFindDto {
   @Min(1)
   @ExposeType(Number)
   limit?: number;
+  @IsOptional()
+  @IsEnum(ResearchDepartmentRelations, { each: true })
+  @Expose()
+  relations?: ResearchDepartmentRelations[];
 }
 
 @Exclude()

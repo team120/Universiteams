@@ -6,8 +6,6 @@ import { UserAffiliationType } from '../user-affiliation.entity';
 @Exclude()
 export class UserAffiliationShowDto {
   @Expose()
-  id: number;
-  @Expose()
   @Type(() => UserShowDto)
   user: UserShowDto;
   @Expose()

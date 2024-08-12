@@ -69,3 +69,9 @@ typings/
 
 # Optional eslint cache
 .eslintcache
+
+# terraform
+.terraform
+*.tfstate
+*.tfstate.*
+*.tfvars

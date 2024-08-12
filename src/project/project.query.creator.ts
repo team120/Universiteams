@@ -441,9 +441,11 @@ export class QueryCreator extends EntityQueryCreator<Project> {
       .where('project.id = :projectId', { projectId: id });
 
     if (currentUser) {
-      query
+      const subqueryCurrentUserData = this.projectRepository
+        .createQueryBuilder('project')
+        .select('project.id as id')
         .addSelect(
-          'COALESCE(favorite.userId = :currentUserId, false)',
+          `CASE WHEN favorite.userId = :currentUserId THEN TRUE ELSE FALSE END`,
           isFavoriteColumn,
         )
         .addSelect('enrollment.requestState', requestStateColumn)
@@ -453,13 +455,37 @@ export class QueryCreator extends EntityQueryCreator<Project> {
           'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
           requestEnrollmentCountColumn,
         )
-        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin])
         .leftJoin(
           'project.favorites',
           'favorite',
           'favorite.userId = :currentUserId',
         )
-        .setParameter('currentUserId', currentUser.id);
+        .leftJoin(
+          'project.enrollments',
+          'enrollment',
+          'enrollment.userId = :currentUserId',
+        )
+        .groupBy('project.id')
+        .addGroupBy('favorite.userId')
+        .addGroupBy('enrollment.requestState')
+        .addGroupBy('enrollment.requesterMessage')
+        .addGroupBy('enrollment.adminMessage')
+        .addGroupBy('enrollment.role')
+        .setParameter('currentUserId', currentUser.id)
+        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
+
+      query
+        .innerJoin(
+          `(${subqueryCurrentUserData.getQuery()})`,
+          'currentUserData',
+          'project.id = "currentUserData".id',
+        )
+        .addSelect(`"currentUserData"."${isFavoriteColumn}"`)
+        .addSelect(`"currentUserData"."${requestStateColumn}"`)
+        .addSelect(`"currentUserData"."${requesterMessageColumn}"`)
+        .addSelect(`"currentUserData"."${adminMessageColumn}"`)
+        .addSelect(`"currentUserData"."${requestEnrollmentCountColumn}"`)
+        .setParameters(subqueryCurrentUserData.getParameters());
     }
 
     return query;
