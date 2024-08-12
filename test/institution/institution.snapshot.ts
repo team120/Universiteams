@@ -3,6 +3,7 @@ export const institutions = [
     id: 1,
     name: 'Universidad Tecnológica Nacional',
     abbreviation: 'UTN',
+    web: 'https://utn.edu.ar',
     facilities: [
       {
         id: 1,
@@ -77,6 +78,7 @@ export const institutions = [
     id: 2,
     name: 'Universidad Nacional de Rosario',
     abbreviation: 'UNR',
+    web: 'https://unr.edu.ar',
     facilities: [
       {
         id: 2,

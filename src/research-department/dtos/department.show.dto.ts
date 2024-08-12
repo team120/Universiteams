@@ -1,5 +1,7 @@
+import { OmitType } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
-import { FacilityShowDto } from '../../facility/dtos/facility.dto';
+import { FacilityShowDto } from '../../facility/dtos/facility.show.dto';
+import { ProjectSingleDto } from '../../project/dtos/project.show.dto';
 
 @Exclude()
 export class ResearchDepartmentShowDto {
@@ -9,8 +11,15 @@ export class ResearchDepartmentShowDto {
   name: string;
   @Expose()
   abbreviation: string;
-
   @Expose()
   @Type(() => FacilityShowDto)
   facility: FacilityShowDto;
+  @Expose()
+  @Type(() => ProjectSingleDto)
+  projects: ProjectSingleDto[];
 }
+@Exclude()
+export class DepartmentCreatedShowDto extends OmitType(
+  ResearchDepartmentShowDto,
+  ['projects'],
+) {}

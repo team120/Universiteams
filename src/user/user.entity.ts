@@ -14,6 +14,12 @@ import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Interest } from '../interest/interest.entity';
 import { Favorite } from '../favorite/favorite.entity';
 
+export enum UserSystemRole {
+  USER = 'user',
+  ADMIN = 'admin',
+  SUPER_ADMIN = 'super_admin',
+}
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -35,6 +41,8 @@ export class User {
   @Column({ unique: true })
   @Generated('uuid')
   refreshUserSecret: string;
+  @Column({ default: UserSystemRole.USER })
+  systemRole: UserSystemRole;
 
   @OneToMany(() => UserAffiliation, (userAffiliation) => userAffiliation.user, {
     nullable: false,

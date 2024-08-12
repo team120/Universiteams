@@ -1,7 +1,7 @@
 import { OmitType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
-
+import { UserSystemRole } from '../../user/user.entity';
 @Exclude()
 export class CurrentUserDto {
   @Expose()
@@ -18,6 +18,8 @@ export class CurrentUserDto {
   accessToken: string;
   @Expose()
   refreshToken: string;
+  @Expose()
+  systemRole: UserSystemRole;
 }
 
 @Exclude()

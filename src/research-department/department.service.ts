@@ -1,18 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { DbException } from '../utils/exceptions/exceptions';
+import { DbException, NotFound } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { Repository } from 'typeorm';
 import { ResearchDepartmentFindDto } from './dtos/department.find.dto';
 import { ResearchDepartment } from './department.entity';
-import { ResearchDepartmentShowDto } from './dtos/department.show.dto';
+import {
+  DepartmentCreatedShowDto,
+  ResearchDepartmentShowDto,
+} from './dtos/department.show.dto';
+import { ResearchDepartmentCreateDto } from './dtos/department.create.dto';
+import { ResearchDepartmentUpdateDto } from './dtos/department.update.dto';
+import { Facility } from '../facility/facility.entity';
+import { getRelationsFromRequest } from '../utils/relations.find.dto';
 
 @Injectable()
 export class ResearchDepartmentService {
   constructor(
     @InjectRepository(ResearchDepartment)
     private readonly departmentRepository: Repository<ResearchDepartment>,
+    @InjectRepository(Facility)
+    private readonly facilityRepository: Repository<Facility>,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
   ) {
@@ -22,20 +31,91 @@ export class ResearchDepartmentService {
   async find(
     findOptions: ResearchDepartmentFindDto,
   ): Promise<ResearchDepartmentShowDto[]> {
-    this.logger.debug('Find facilities');
-    const facilities = await this.departmentRepository
+    this.logger.debug('Find research departments');
+    const relationsRequest = getRelationsFromRequest(findOptions);
+    const departments = await this.departmentRepository
       .find({
         where: findOptions.facilityId
           ? { facility: { id: findOptions.facilityId } }
           : {},
-        relations: findOptions.relations,
+        relations: relationsRequest,
         skip: findOptions.offset,
         take: findOptions.limit,
       })
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
-    this.logger.debug('Map facilities to dto');
-    return this.entityMapper.mapArray(ResearchDepartmentShowDto, facilities);
+    return this.entityMapper.mapArray(ResearchDepartmentShowDto, departments);
+  }
+
+  async findById(departmentId: number): Promise<ResearchDepartmentShowDto> {
+    this.logger.debug('Find RD by id');
+    const department = await this.departmentRepository
+      .findOne({
+        relations: ['facility', 'projects'],
+        where: { id: departmentId },
+      })
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
+    if (!department) {
+      throw new NotFound('Research Department not found');
+    }
+    return this.entityMapper.mapValue(ResearchDepartmentShowDto, department);
+  }
+
+  async create(
+    createDto: ResearchDepartmentCreateDto,
+  ): Promise<DepartmentCreatedShowDto> {
+    this.logger.debug('Create a new research department');
+    const facility = await this.facilityRepository.findOne({
+      where: { id: createDto.facilityId },
+      select: ['id'],
+    });
+    if (!facility) throw new NotFound('Facility not found');
+
+    const researchDepartment = this.entityMapper.mapValue(
+      ResearchDepartment,
+      createDto,
+    );
+    const createdDepartment = await this.departmentRepository
+      .save({ facility: { id: facility.id }, ...researchDepartment })
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
+    return this.entityMapper.mapValue(
+      DepartmentCreatedShowDto,
+      createdDepartment,
+    );
+  }
+
+  async delete(departmentId: number): Promise<void> {
+    this.logger.debug('Delete a Research Department');
+    const department = await this.departmentRepository.findOne({
+      where: { id: departmentId },
+    });
+    if (!department) throw new NotFound('Research Department not found');
+    await this.departmentRepository.delete(departmentId).catch((err: Error) => {
+      throw new DbException(err.message, err.stack);
+    });
+    this.logger.debug(
+      `Research Department #${department.id} successfully deleted`,
+    );
+  }
+
+  async update(
+    departmentId: number,
+    departmentDto: ResearchDepartmentUpdateDto,
+  ) {
+    this.logger.debug('Update a research department');
+    const researchDepartment = await this.departmentRepository.findOne({
+      where: { id: departmentId },
+    });
+    if (!researchDepartment)
+      throw new NotFound('Research Department not found');
+    await this.departmentRepository.update(departmentId, departmentDto);
+    this.logger.debug(
+      `Research Department #${researchDepartment.id} successfully updated`,
+    );
   }
 }

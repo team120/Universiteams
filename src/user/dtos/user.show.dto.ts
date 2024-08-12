@@ -2,6 +2,7 @@ import { Exclude, Expose, Type } from 'class-transformer';
 import { UserAffiliationShowDto } from '../../user-affiliation/dtos/user-affiliation.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
 import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
+import { UserSystemRole } from '../user.entity';
 
 @Exclude()
 export class UserShowDto {
@@ -22,6 +23,8 @@ export class UserShowDto {
   @Expose()
   @Type(() => EnrollmentShowDto)
   enrollments?: EnrollmentShowDto[];
+  @Expose()
+  systemRole?: UserSystemRole;
 }
 
 export class UsersResult {

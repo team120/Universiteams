@@ -24,10 +24,12 @@ describe('Institution Actions (e2e)', () => {
     await app.close();
   });
 
-  describe('get institutions', () => {
-    it('should return all institutions', async () => {
+  describe('get institutions with relations', () => {
+    it('should return all institutions with related entities', async () => {
       await request(app.getHttpServer())
-        .get('/institutions')
+        .get(
+          '/institutions?relations=facilities&relations=facilities.researchDepartments',
+        )
         .then((res) => {
           expect(res.status).toBe(200);
           expect(res.body).toHaveLength(2);
