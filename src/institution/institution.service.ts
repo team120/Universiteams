@@ -12,6 +12,7 @@ import { Institution } from './institution.entity';
 import { InstitutionFindDto } from './dtos/institution.find.dto';
 import { InstitutionCreateDto } from './dtos/institution.create.dto';
 import { InstitutionUpdateDto } from './dtos/institution.update.dto';
+import { getRelationsFromRequest } from '../utils/relations.find.dto';
 
 const institutionNotFoundError = new NotFound(
   'El ID no coincide con ninguna institución',
@@ -30,11 +31,12 @@ export class InstitutionService {
 
   async find(findOptions: InstitutionFindDto): Promise<InstitutionShowDto[]> {
     this.logger.debug('Find universities and their related departments');
+    const relationsRequest = getRelationsFromRequest(findOptions);
     const universities = await this.institutionRepository
       .find({
         take: findOptions.limit,
         skip: findOptions.offset,
-        relations: ['facilities', 'facilities.researchDepartments'],
+        relations: relationsRequest,
       })
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
@@ -44,8 +46,8 @@ export class InstitutionService {
   }
 
   async findById(institutionId: number): Promise<InstitutionShowDto> {
-    this.logger.debug('Find facility by id');
-    const facility = await this.institutionRepository
+    this.logger.debug('Find institution by id');
+    const institution = await this.institutionRepository
       .findOne({
         relations: ['facilities'],
         where: { id: institutionId },
@@ -53,10 +55,10 @@ export class InstitutionService {
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
-    if (!facility) {
-      throw new NotFound('Facility not found');
+    if (!institution) {
+      throw new NotFound('Institution not found');
     }
-    return this.entityMapper.mapValue(InstitutionShowDto, facility);
+    return this.entityMapper.mapValue(InstitutionShowDto, institution);
   }
 
   async create(

@@ -10,6 +10,7 @@ import { FacilityFindDto } from './dtos/facility.find.dto';
 import { FacilityCreateDto } from './dtos/facility.create.dto';
 import { FacilityUpdateDto } from './dtos/facility.update.dto';
 import { Institution } from '../institution/institution.entity';
+import { getRelationsFromRequest } from '../utils/relations.find.dto';
 
 @Injectable()
 export class FacilityService {
@@ -26,6 +27,7 @@ export class FacilityService {
 
   async find(findOptions: FacilityFindDto): Promise<FacilityShowDto[]> {
     this.logger.debug('Find facilities');
+    const relationsRequest = getRelationsFromRequest(findOptions);
     const facilities = await this.facilityRepository
       .find({
         where: findOptions.institutionId
@@ -33,7 +35,7 @@ export class FacilityService {
           : {},
         skip: findOptions.offset,
         take: findOptions.limit,
-        relations: ['institution'],
+        relations: relationsRequest,
       })
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);

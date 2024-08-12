@@ -12,7 +12,8 @@ import {
 } from './dtos/department.show.dto';
 import { ResearchDepartmentCreateDto } from './dtos/department.create.dto';
 import { ResearchDepartmentUpdateDto } from './dtos/department.update.dto';
-import { Facility } from 'src/facility/facility.entity';
+import { Facility } from '../facility/facility.entity';
+import { getRelationsFromRequest } from '../utils/relations.find.dto';
 
 @Injectable()
 export class ResearchDepartmentService {
@@ -31,9 +32,7 @@ export class ResearchDepartmentService {
     findOptions: ResearchDepartmentFindDto,
   ): Promise<ResearchDepartmentShowDto[]> {
     this.logger.debug('Find research departments');
-    const relationsRequest = Array.isArray(findOptions.relations)
-      ? findOptions.relations
-      : [findOptions.relations];
+    const relationsRequest = getRelationsFromRequest(findOptions);
     const departments = await this.departmentRepository
       .find({
         where: findOptions.facilityId

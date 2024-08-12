@@ -1,7 +1,10 @@
-import { Exclude } from 'class-transformer';
-import { IsNumber, IsOptional, Min } from 'class-validator';
+import { Exclude, Expose } from 'class-transformer';
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
+export enum FacilityRelations {
+  researchDepartments = 'researchDepartments',
+}
 @Exclude()
 export class FacilityFindDto {
   @IsOptional()
@@ -18,4 +21,8 @@ export class FacilityFindDto {
   @Min(1)
   @ExposeType(Number)
   limit?: number;
+  @IsOptional()
+  @IsEnum(FacilityRelations, { each: true })
+  @Expose()
+  relations?: FacilityRelations[];
 }
