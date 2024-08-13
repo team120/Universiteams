@@ -9,16 +9,7 @@ import {
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { UserAffiliationShowDto } from '../../user-affiliation/dtos/user-affiliation.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
-import { UserAffiliationType } from '../../user-affiliation/user-affiliation.entity';
-
-@Exclude()
-class ResearchDepartmentInput {
-  @ExposeType(Number)
-  id: number;
-  @IsEnum(UserAffiliationType)
-  @Expose()
-  currentType: UserAffiliationType;
-}
+import { ResearchDepartmentInput } from 'src/research-department/dtos/department.input.dto';
 
 @Exclude()
 export class ProfileInputDto {
