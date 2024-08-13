@@ -1,8 +1,10 @@
 import { Exclude, Expose } from 'class-transformer';
 import { ProjectType } from '../project.entity';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
-import { RequestState } from '../../enrollment/enrollment.entity';
 import { IsOptional } from 'class-validator';
+import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
+import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
+import { ResearchDepartmentShowDto } from '../../research-department/dtos/department.show.dto';
 
 @Exclude()
 export class ProjectShowCreatedDto {
@@ -25,9 +27,10 @@ export class ProjectShowCreatedDto {
   @Expose()
   @IsOptional()
   web?: string;
-  @Expose()
-  @IsOptional()
-  requestState?: RequestState;
-  @Expose()
-  requesterMessage?: string;
+  @ExposeType(ResearchDepartmentShowDto)
+  researchDepartments: ResearchDepartmentShowDto[];
+  @ExposeType(InterestShowDto)
+  interests: InterestShowDto[];
+  @ExposeType(EnrollmentShowDto)
+  enrollments: EnrollmentShowDto[];
 }
