@@ -44,6 +44,7 @@ import { ResearchDepartment } from 'src/research-department/department.entity';
 import { Interest } from 'src/interest/interest.entity';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
 import { ProjectUpdateStateDto } from './dtos/project.updateState.dto';
+import { RequestWithUser } from 'src/utils/request-with-user';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -152,38 +153,42 @@ export class ProjectService {
     return this.entityMapper.mapValue(ProjectSingleDto, project);
   }
 
-  async create(createDto: ProjectCreateDto): Promise<ProjectShowCreatedDto> {
+  async create(
+    createDto: ProjectCreateDto,
+    request: RequestWithUser,
+  ): Promise<ProjectShowCreatedDto> {
     this.logger.debug('Create a new project');
 
-    // Validate user creator (first admin) for the project
+    // Validate the user creating the project
+    const userId = request.currentUser.id;
     const user: User = await this.userRepository.findOne({
-      where: { id: createDto.userCreatorId },
+      where: { id: userId },
       select: ['id'],
     });
-    if (!user) throw new NotFound(`User #${createDto.userCreatorId} not found`);
+    if (!user) throw new NotFound(`User #${userId} not found`);
 
     // If given, validate research department(s)
     if (
       Array.isArray(createDto.researchDepartments) &&
       createDto.researchDepartments.length > 0
     ) {
-      for (const department of createDto.researchDepartments) {
+      for (const departmentId of createDto.researchDepartments) {
         const departmentExists = await this.departmentRepository.findOne({
-          where: { id: department.id },
+          where: { id: departmentId },
           select: ['id'],
         });
         if (!departmentExists)
-          throw new NotFound(`Research Department #${department.id} not found`);
+          throw new NotFound(`Research Department #${departmentId} not found`);
       }
     }
 
     // If given, validate interest(s)
     if (
       Array.isArray(createDto.interestsIds) &&
-      createDto.interestsIds.length
+      createDto.interestsIds.length > 0
     ) {
       for (const interestId of createDto.interestsIds) {
-        const interestExists = await this.departmentRepository.findOne({
+        const interestExists = await this.interestRepository.findOne({
           where: { id: interestId },
           select: ['id'],
         });
@@ -193,75 +198,58 @@ export class ProjectService {
     }
 
     // Create new interests if needed
-    let interestsCreatedList: Interest[] = [];
+    const interestsIDsCreatedList: number[] = [];
     if (
       Array.isArray(createDto.interestsToCreate) &&
-      createDto.interestsToCreate.length
+      createDto.interestsToCreate.length > 0
     ) {
       for (const interestName of createDto.interestsToCreate) {
-        const newInterest: Interest = {
-          id: 0,
-          creationDate: new Date().toISOString(),
-          name: interestName,
-          projectRefsCounter: 1,
-          userRefsCounter: 0,
-          verified: false,
-          logicalDeleteDate: undefined,
-          projects: [], // Update after project creation
-          users: [],
-        };
         const interestCreated: Interest = await this.interestRepository
-          .save({ ...newInterest })
+          .save({
+            name: interestName,
+            projectRefsCounter: 1,
+            verified: false,
+          })
           .catch((err: Error) => {
             throw new DbException(err.message, err.stack);
           });
-
-        interestsCreatedList.push(interestCreated);
+        interestsIDsCreatedList.push(interestCreated.id);
       }
 
-      const newProject: Project = {
-        id: 0,
-        creationDate: new Date().toISOString(),
-        logicalDeleteDate: undefined,
-        name: createDto.name,
-        description: createDto.description ?? '',
-        endDate: createDto.endDate ?? '',
-        type: createDto.type,
-        language: createDto.language,
-        web: createDto.web ?? '',
-        referenceOnly: false, // Erase this field
-        isDown: false,
-        // researchDepartments: createDto.researchDepartments, // Review this field
-        researchDepartments: [],
-        userCount: 0,
-        requestEnrollmentCount: 0,
-        enrollments: [], // Update after project creation
-        // interests: createDto.interestsIds, // Review this field
-        interests: [],
-        favoriteCount: 0,
-        favorites: [],
-      };
-
       const createdProject: Project = await this.projectRepository
-        .save({ ...newProject })
+        .save({
+          name: createDto.name,
+          type: createDto.type,
+          language: createDto.language,
+          description: createDto.description ?? '',
+          endDate: createDto.endDate ?? '',
+          web: createDto.web ?? '',
+        })
         .catch((err: Error) => {
           throw new DbException(err.message, err.stack);
         });
 
-      // Create enrollment
-      const newEnrollment: Enrollment = {
-        id: 0,
-        project: createdProject,
-        user: user,
-        role: ProjectRole.Leader,
-        requestState: RequestState.Pending,
-        requesterMessage: createDto.requesterMessage,
-        adminMessage: undefined,
-        creationDate: new Date().toISOString(),
-      };
+      /*
+      After project is created, retrieve its id. 
+      Then merge all the interests and update ManyToMany table with those interests and projectId.
+      Then take research departments and update ManyToMany table with those departments and projectId. 
+      Then create a new enrollment with: created project, current user, role Leader and state Accepted
+      */
 
+      // merge interests ids created and interests ids given
+      const interestsIds = [
+        ...createDto.interestsIds,
+        ...interestsIDsCreatedList,
+      ];
+
+      // Create enrollment for this project and then update project with the enrollment
       const enrollmentCreated: Enrollment =
-        await this.enrollmentRepository.save({ ...newEnrollment });
+        await this.enrollmentRepository.save({
+          project: createdProject,
+          user: user,
+          role: ProjectRole.Leader,
+          requestState: RequestState.Accepted,
+        });
 
       this.logger.debug(`Project #${createdProject.id} successfully created`);
 

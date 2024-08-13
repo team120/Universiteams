@@ -54,8 +54,11 @@ export class ProjectController {
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Post()
-  async create(@Body() project: ProjectCreateDto) {
-    return this.projectService.create(project);
+  async create(
+    @Body() project: ProjectCreateDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.projectService.create(project, request);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)
