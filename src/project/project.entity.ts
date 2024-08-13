@@ -45,8 +45,6 @@ export class Project {
   language: 'spanish' | 'english';
   @Column({ nullable: true })
   web: string;
-  @Column({ default: false })
-  referenceOnly: boolean;
   @Column({ select: false, nullable: true })
   isDown: boolean;
   @Column({ select: false, nullable: true })
