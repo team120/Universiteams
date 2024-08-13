@@ -11,7 +11,7 @@ import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { InterestService } from './interest.service';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { InterestFindDto } from './dtos/interest.find.dto';
-import { IsAdminGuard } from 'src/auth/is.admin.guard';
+import { IsAdminGuard } from '../auth/is.admin.guard';
 
 @ApiTags('interests')
 @Controller('interests')
