@@ -6,8 +6,7 @@ import {
   IsNumber,
   IsString,
 } from 'class-validator';
-import { ResearchDepartmentInput } from 'src/research-department/dtos/department.input.dto';
-import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
+import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ProjectType } from '../project.entity';
 
 @Exclude()
@@ -29,26 +28,20 @@ export class ProjectCreateDto {
   @Expose()
   @IsOptional()
   web?: string;
-  @Expose()
-  @IsOptional()
-  requesterMessage?: string;
-  @Expose()
-  @IsNotEmpty()
-  userCreatorId: number;
-
+  //@Expose()
+  //@IsNotEmpty()
+  //userCreatorId: number;
   @IsArray()
   @IsNumber({}, { each: true })
   @ExposeType(Number)
   interestsIds: number[];
-
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @ExposeType(Number)
+  researchDepartments: number[];
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   @Expose()
   interestsToCreate?: string[];
-
-  @IsArray()
-  @IsNumber({}, { each: true })
-  @ExposeType(Number)
-  researchDepartments: ResearchDepartmentInput[];
 }
