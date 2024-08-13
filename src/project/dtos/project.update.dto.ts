@@ -7,6 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
+import { ProjectType } from '../project.entity';
 
 @Exclude()
 export class ProjectUpdateDto {
@@ -15,9 +16,9 @@ export class ProjectUpdateDto {
   name: string;
   @Expose()
   @IsNotEmpty()
-  type: 'Formal' | 'Informal';
+  type: ProjectType;
   @IsNotEmpty()
-  language: 'Spanish' | 'English';
+  language: 'spanish' | 'english';
   @Expose()
   @IsOptional()
   description?: string;

@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { ResearchDepartmentInput } from 'src/research-department/dtos/department.input.dto';
 import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
+import { ProjectType } from '../project.entity';
 
 @Exclude()
 export class ProjectCreateDto {
@@ -16,9 +17,9 @@ export class ProjectCreateDto {
   name: string;
   @Expose()
   @IsNotEmpty()
-  type: 'Formal' | 'Informal';
+  type: ProjectType;
   @IsNotEmpty()
-  language: 'Spanish' | 'English';
+  language: 'spanish' | 'english';
   @Expose()
   @IsOptional()
   description?: string;
