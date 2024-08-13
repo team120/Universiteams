@@ -39,11 +39,11 @@ import { EnrollmentRequestAdminDto as EnrollmentRequestAdminDto } from '../enrol
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectShowCreatedDto } from './dtos/project.showCreated.dto';
-import { User } from 'src/user/user.entity';
-import { ResearchDepartment } from 'src/research-department/department.entity';
-import { Interest } from 'src/interest/interest.entity';
+import { User } from '../user/user.entity';
+import { ResearchDepartment } from '../research-department/department.entity';
+import { Interest } from '../interest/interest.entity';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
-import { RequestWithUser } from 'src/utils/request-with-user';
+import { RequestWithUser } from '../utils/request-with-user';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -221,7 +221,7 @@ export class ProjectService {
           type: createDto.type,
           language: createDto.language,
           description: createDto.description ?? '',
-          endDate: createDto.endDate ?? '',
+          //endDate: createDto.endDate ?? '',
           web: createDto.web ?? '',
         })
         .catch((err: Error) => {
