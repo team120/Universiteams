@@ -25,8 +25,6 @@ export class UserShowDto {
   enrollments?: EnrollmentShowDto[];
   @Expose()
   systemRole?: UserSystemRole;
-  @Expose()
-  refreshUserSecret?: string;
 }
 
 export class UsersResult {
