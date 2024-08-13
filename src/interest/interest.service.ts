@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
-import { DbException } from '../utils/exceptions/exceptions';
+import { DbException, NotFound } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { InterestShowDto } from './dtos/interest.show.dto';
 import { Interest } from './interest.entity';
@@ -32,5 +32,17 @@ export class InterestService {
       });
     this.logger.debug('Map interests to dto');
     return this.entityMapper.mapArray(InterestShowDto, interests);
+  }
+
+  async delete(interestId: number): Promise<void> {
+    this.logger.debug('Delete an interest');
+    const interest = await this.interestRepository.findOne({
+      where: { id: interestId },
+    });
+    if (!interest) throw new NotFound('Interest not found');
+    await this.interestRepository.delete(interestId).catch((err: Error) => {
+      throw new DbException(err.message, err.stack);
+    });
+    this.logger.debug(`Interest #${interest.id} successfully deleted`);
   }
 }

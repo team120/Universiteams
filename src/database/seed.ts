@@ -385,6 +385,16 @@ export class Seed {
         name: 'Optimización (matemática)',
         verified: true,
       }),
+      dummyInterest: this.interestRepo.create({
+        id: idGen.next(),
+        name: 'Dummy interest',
+        verified: true,
+      }),
+      interestToBeDeleted: this.interestRepo.create({
+        id: idGen.next(),
+        name: 'To Be Deleted',
+        verified: true,
+      }),
     };
   }
 
