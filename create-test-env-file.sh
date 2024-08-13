@@ -26,5 +26,7 @@ echo FORGET_PASSWORD_VERIFICATION_LINK_SECRET="forget_password_verification_link
 echo FORGET_PASSWORD_URL="$FRONTEND_HOST/account/resetPassword" >> $ENV_FILE
 echo EMAIL_USER="email@example.com" >> $ENV_FILE
 echo EMAIL_CONFIRMATION_URL="$FRONTEND_HOST/account/verifyEmail" >> $ENV_FILE
+echo SENDGRID_API_KEY="SG.example" >> $ENV_FILE
+echo SENDINBLUE_API_KEY="example" >> $ENV_FILE
 echo SAME_SITE_POLICY="none" >> $ENV_FILE
 echo SECURE_COOKIE="true" >> $ENV_FILE

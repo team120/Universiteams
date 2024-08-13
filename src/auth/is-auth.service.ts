@@ -9,6 +9,8 @@ import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { RequestWithUser } from '../utils/request-with-user';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
+import { PinoLogger } from 'nestjs-pino';
+import { GeneralTokenDecoded } from './dtos/token';
 
 @Injectable()
 export class IsAuthService {
@@ -17,7 +19,10 @@ export class IsAuthService {
     private readonly userRepo: Repository<User>,
     private readonly tokenService: TokenService,
     private readonly entityMapper: EntityMapperService,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(IsAuthService.name);
+  }
 
   getCurrentUserDisplayInfo = (accessTokenCookie: string) => {
     const accessToken: string | undefined = accessTokenCookie?.replace(
@@ -55,45 +60,71 @@ export class IsAuthService {
       ]?.replace('Bearer ', '');
 
       const response: Response = httpContext.getResponse();
-      this.appendNewTokensIfRefreshTokenIsValid(
+      return await this.appendNewTokensIfRefreshTokenIsValid(
         refreshToken,
-        accessTokenVerificationResult.user,
+        request,
         response,
+        accessTokenVerificationResult.tokenDecoded,
       );
     }
 
     request.currentUser = this.entityMapper.mapValue(
       CurrentUserWithoutTokens,
-      accessTokenVerificationResult.user,
+      accessTokenVerificationResult.tokenDecoded,
     );
   }
 
-  private async verifyAccessToken(accessToken: string) {
-    if (!accessToken) throw new Unauthorized('Access token not provided');
+  private async verifyAccessToken(accessToken: string): Promise<{
+    isValid: boolean;
+    tokenDecoded?: GeneralTokenDecoded;
+  }> {
+    if (!accessToken) {
+      this.logger.debug('AccessToken cookie not provided');
+      return { isValid: false };
+    }
 
     const accessTokenVerificationResult =
       this.tokenService.checkAccessToken(accessToken);
 
-    const user = await this.userRepo.findOne({
-      where: { id: accessTokenVerificationResult.decodedToken.id },
-    });
-
-    if (!user)
-      throw new Unauthorized("Token's associated id doesn't match any user");
-
-    return { isValid: accessTokenVerificationResult.isValid, user: user };
+    return {
+      isValid: accessTokenVerificationResult.isValid,
+      tokenDecoded: accessTokenVerificationResult.decodedToken,
+    };
   }
 
-  private appendNewTokensIfRefreshTokenIsValid(
+  private async appendNewTokensIfRefreshTokenIsValid(
     refreshToken: string | undefined,
-    user: User,
+    request: RequestWithUser,
     response: Response,
+    accessTokenDecoded?: GeneralTokenDecoded,
   ) {
     if (!refreshToken) throw new Unauthorized('Refresh token not provided');
 
+    const decodedRefreshToken = this.tokenService.decodeToken(refreshToken);
+
+    if (!decodedRefreshToken) {
+      throw new Unauthorized('Refresh token incorrectly formatted');
+    }
+
+    if (
+      accessTokenDecoded &&
+      decodedRefreshToken.id !== accessTokenDecoded.id
+    ) {
+      throw new Unauthorized("Tokens associated ids don't match");
+    }
+
+    const user = await this.userRepo
+      .findOne({
+        where: { id: decodedRefreshToken.id },
+      })
+      .catch((err) => {
+        this.logger.error(err);
+        throw new Unauthorized("Token's associated id doesn't match any user");
+      });
+
     const refreshTokenValidationResult = this.tokenService.checkRefreshToken(
       refreshToken,
-      user,
+      user.refreshUserSecret,
     );
 
     if (!refreshTokenValidationResult.isValid)
@@ -101,5 +132,10 @@ export class IsAuthService {
 
     const currentUser = this.tokenService.generateTokens(user);
     this.tokenService.appendTokenCookies(response, currentUser);
+
+    request.currentUser = this.entityMapper.mapValue(
+      CurrentUserWithoutTokens,
+      currentUser,
+    );
   }
 }

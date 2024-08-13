@@ -94,28 +94,24 @@ export class TokenService {
     }
   }
 
+  decodeToken(token: string): GeneralTokenDecoded {
+    return this.entityMapper.mapValue(GeneralTokenDecoded, jwt.decode(token));
+  }
+
   checkRefreshToken(
     refreshToken: string,
-    accessTokenUser: User,
+    refreshUserSecret: string,
   ): {
     isValid: boolean;
     errorMessage?: string;
   } {
     try {
-      const decodedRefreshToken = this.entityMapper.mapValue(
-        GeneralTokenDecoded,
-        jwt.verify(
-          refreshToken,
-          this.configService.get(SecretsVaultKeys.REFRESH_TOKEN) +
-            accessTokenUser.refreshUserSecret,
-        ),
+      jwt.verify(
+        refreshToken,
+        this.configService.get(SecretsVaultKeys.REFRESH_TOKEN) +
+          refreshUserSecret,
       );
-      if (decodedRefreshToken.id !== accessTokenUser.id)
-        return {
-          isValid: false,
-          errorMessage:
-            "Refresh token userId doesn't match access token respective one",
-        };
+
       return {
         isValid: true,
       };
@@ -130,7 +126,12 @@ export class TokenService {
 
   appendTokenCookies(response: Response, currentUser: CurrentUserDto) {
     response.cookie('accessToken', currentUser.accessToken, {
-      expires: add(new Date(), { days: 1 }),
+      expires: add(
+        new Date(),
+        this.tokenExpirationTimes.getTokenExpirationInDurationFormat(
+          AcceptedTokens.AccessToken,
+        ),
+      ),
       httpOnly: true,
       sameSite: this.configService.get(SecretsVaultKeys.SAME_SITE_POLICY),
       secure: this.configService.get(SecretsVaultKeys.SECURE_COOKIE),
