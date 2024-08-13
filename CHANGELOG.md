@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.0] - 2024-08-13
+
+- Fix Refresh Token handling
+- Logout endpoint implemented
+- Crud for institutions facility departments (admin only)
+- Remove referenceOnly property from ResearchDepartment entity
+- Remove referenceOnly property from Project entity
+
 ## [v1.2.5] - 2024-08-10
 
 - Fix page not found when trying to visit verify email link
