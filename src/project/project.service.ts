@@ -270,6 +270,24 @@ export class ProjectService {
     }
   }
 
+  async delete(projectId: number): Promise<void> {
+    this.logger.debug('Delete a Project');
+
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+    });
+    if (!project) throw new NotFound(`Project #${projectId} not found`);
+
+    // Review 1: add user role validation for deletion
+    // Review 2: add logical delete instead of physical delete?
+
+    await this.projectRepository.delete(projectId).catch((err: Error) => {
+      throw new DbException(err.message, err.stack);
+    });
+
+    this.logger.debug(`Project #${projectId} successfully deleted`);
+  }
+
   async favorite(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({ where: { id: id } });
     if (!project) throw projectNotFoundError;
