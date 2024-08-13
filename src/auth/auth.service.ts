@@ -6,6 +6,7 @@ import { LoginDto } from './dtos/login.dto';
 import {
   BadRequest,
   DbException,
+  NotFound,
   Unauthorized,
 } from '../utils/exceptions/exceptions';
 import { RegisterDto } from './dtos/register.dto';
@@ -28,6 +29,7 @@ import { ProfileInputDto, ProfileOutputDto } from './dtos/profile.dto';
 import { Interest } from '../interest/interest.entity';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -270,5 +272,21 @@ export class AuthService {
     if (!user) throw new Unauthorized('Usuario no encontrado');
 
     return this.entityMapper.mapValue(ProfileOutputDto, user);
+  }
+
+  async logout(currentUser: CurrentUserWithoutTokens, response: Response) {
+    this.logger.debug('Logging out user', currentUser);
+    const user = await this.userRepo.findOne({
+      where: { id: currentUser.id },
+    });
+    if (!user) throw new NotFound('User not found');
+    // Remove refreshUserSecret from user in db and then cookies from client side
+    user.refreshUserSecret = uuid();
+    await this.userRepo.save(user);
+    response.cookie('accessToken', '', {});
+    response.cookie('refreshToken', '', {});
+    return response.json(
+      this.entityMapper.mapValue(CurrentUserWithoutTokens, currentUser),
+    );
   }
 }

@@ -56,6 +56,12 @@ export class AuthController {
     this.populateResponse(response, 200, loggedUser);
   }
 
+  @UseGuards(IsAuthGuard)
+  @Post('logout')
+  async logout(@Req() request: RequestWithUser, @Res() response: Response) {
+    return this.authService.logout(request.currentUser, response);
+  }
+
   @ApiCreatedResponse({
     description:
       'Returns current user data in JSON format and sets an http-only same-site accessToken cookie',
