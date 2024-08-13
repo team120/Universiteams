@@ -96,7 +96,7 @@ describe('Token service', () => {
             expiresIn: '10m',
           },
         );
-        const result = service.checkRefreshToken(token, user as User);
+        const result = service.checkRefreshToken(token, user.refreshUserSecret);
         expect(result.isValid).toBe(true);
         expect(result.errorMessage).not.toBeDefined();
       });
@@ -114,29 +114,9 @@ describe('Token service', () => {
             expiresIn: '0s',
           },
         );
-        const result = service.checkRefreshToken(token, user as User);
+        const result = service.checkRefreshToken(token, user.refreshUserSecret);
         expect(result.isValid).toBe(false);
         expect(result.errorMessage).toBe('Refresh token is invalid');
-      });
-    });
-    describe('when refresh token holds a different id than accessTokenUser', () => {
-      it('should return isValid: false and an error message', () => {
-        const user: Partial<User> = {
-          id: 1,
-          refreshUserSecret: 'hjqehJeqeoQKLJWnsnal',
-        };
-        const token = jwt.sign(
-          { id: 24 },
-          config.get(SecretsVaultKeys.REFRESH_TOKEN) + user.refreshUserSecret,
-          {
-            expiresIn: '10m',
-          },
-        );
-        const result = service.checkRefreshToken(token, user as User);
-        expect(result.isValid).toBe(false);
-        expect(result.errorMessage).toBe(
-          "Refresh token userId doesn't match access token respective one",
-        );
       });
     });
   });
