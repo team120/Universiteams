@@ -26,7 +26,6 @@ import { EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
-import { ProjectUpdateStateDto } from './dtos/project.updateState.dto';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -76,16 +75,6 @@ export class ProjectController {
     @Body() project: ProjectUpdateDto,
   ) {
     return this.projectService.update(id, project);
-  }
-
-  @UseGuards(...IsEmailVerifiedGuard)
-  @ApiCookieAuth()
-  @Put(':id/update-state')
-  async updateState(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() project: ProjectUpdateStateDto,
-  ) {
-    return this.projectService.updateState(id, project);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)

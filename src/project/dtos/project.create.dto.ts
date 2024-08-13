@@ -28,9 +28,6 @@ export class ProjectCreateDto {
   @Expose()
   @IsOptional()
   web?: string;
-  //@Expose()
-  //@IsNotEmpty()
-  //userCreatorId: number;
   @IsArray()
   @IsNumber({}, { each: true })
   @ExposeType(Number)
