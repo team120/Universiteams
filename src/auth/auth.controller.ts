@@ -8,6 +8,7 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -31,6 +32,7 @@ import { Unauthorized } from '../utils/exceptions/exceptions';
 import { IsAuthService } from './is-auth.service';
 import { ProfileInputDto } from './dtos/profile.dto';
 import { IsAuthGuard } from './is-auth.guard';
+import { SetCurrentUserInterceptor } from './current-user.interceptor';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -54,6 +56,12 @@ export class AuthController {
   ) {
     const loggedUser = await this.authService.login(loginDto);
     this.populateResponse(response, 200, loggedUser);
+  }
+
+  @UseInterceptors(SetCurrentUserInterceptor)
+  @Post('logout')
+  async logout(@Req() request: RequestWithUser, @Res() response: Response) {
+    return this.authService.logout(request.currentUser, response);
   }
 
   @ApiCreatedResponse({
