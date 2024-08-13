@@ -15,6 +15,8 @@ import { StopWords } from '../database/stop-words.entity';
 import { AuthModule } from '../auth/auth.module';
 import { Favorite } from '../favorite/favorite.entity';
 import { Enrollment } from '../enrollment/enrollment.entity';
+import { ResearchDepartment } from '../research-department/department.entity';
+import { Interest } from '../interest/interest.entity';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { Enrollment } from '../enrollment/enrollment.entity';
       StopWords,
       Favorite,
       Enrollment,
+      ResearchDepartment,
+      Interest,
     ]),
     SerializationModule,
     AuthModule,
