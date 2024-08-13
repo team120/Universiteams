@@ -288,6 +288,37 @@ export class ProjectService {
     this.logger.debug(`Project #${projectId} successfully deleted`);
   }
 
+  async update(id: number, updateDto: ProjectUpdateDto) {
+    this.logger.debug('Update a project');
+
+    const project = await this.projectRepository.findOne({
+      where: { id },
+    });
+    if (!project) throw new NotFound(`Project #${id} not found`);
+
+    // Review: this automatic update probably isn't complete
+    await this.projectRepository.update(id, updateDto);
+
+    this.logger.debug(`Project #${project.id} successfully updated`);
+  }
+
+  async updateState(id: number, updateStateDto: ProjectUpdateStateDto) {
+    this.logger.debug('Update state of a project');
+
+    const project = await this.projectRepository.findOne({
+      where: { id },
+    });
+    if (!project) throw new NotFound(`Project #${id} not found`);
+
+    // Update project's state and admin response
+    project.requestState = updateStateDto.requestState;
+    project.adminMessage = updateStateDto.adminMessage ?? '';
+
+    await this.projectRepository.update(id, project);
+
+    this.logger.debug(`Project #${project.id} successfully updated it's state`);
+  }
+
   async favorite(id: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({ where: { id: id } });
     if (!project) throw projectNotFoundError;
