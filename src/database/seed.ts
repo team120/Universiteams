@@ -214,7 +214,6 @@ export class Seed {
         facility: facilities.utnFrro,
         abbreviation: 'CAIMI',
         web: 'https://www.frro.utn.edu.ar/contenido.php?cont=487&subc=15',
-        referenceOnly: true,
       }),
       utnFrroCidta: this.researchDepartmentRepo.create({
         id: idGen.next(),
@@ -222,7 +221,6 @@ export class Seed {
         facility: facilities.utnFrro,
         abbreviation: 'CIDTA',
         web: 'https://www.frro.utn.edu.ar/contenido.php?cont=98&subc=13',
-        referenceOnly: true,
       }),
       utnFrroOes: this.researchDepartmentRepo.create({
         id: idGen.next(),
@@ -230,7 +228,6 @@ export class Seed {
         facility: facilities.utnFrro,
         abbreviation: 'OES',
         web: 'https://www.frro.utn.edu.ar/contenido.php?cont=355&subc=23',
-        referenceOnly: true,
       }),
       utnFrroCedite: this.researchDepartmentRepo.create({
         id: idGen.next(),
@@ -238,7 +235,6 @@ export class Seed {
         facility: facilities.utnFrro,
         abbreviation: 'CEDITE',
         web: 'https://www.frro.utn.edu.ar/contenido.php?cont=355&subc=23',
-        referenceOnly: true,
       }),
       utnFrroGese: this.researchDepartmentRepo.create({
         id: idGen.next(),
@@ -246,7 +242,6 @@ export class Seed {
         facility: facilities.utnFrro,
         abbreviation: 'GESE',
         web: 'https://www.frro.utn.edu.ar/contenido.php?cont=99&subc=14',
-        referenceOnly: true,
       }),
       utnFrroGeneral: this.researchDepartmentRepo.create({
         id: idGen.next(),
@@ -470,7 +465,6 @@ export class Seed {
         creationDate: '2017-01-01',
         researchDepartments: [researchDepartments.utnFrroBasicas],
         interests: [interests.edTech],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -493,7 +487,6 @@ export class Seed {
         endDate: '2021-12-31',
         researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [interests.processEngineering],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -524,7 +517,6 @@ export class Seed {
           interests.sustainableDevelopment,
           interests.optimization,
         ],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -565,7 +557,6 @@ export class Seed {
           researchDepartments.utnFrroIsi,
         ],
         interests: [interests.foodTech],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -601,7 +592,6 @@ export class Seed {
         creationDate: '2018-01-05',
         researchDepartments: [researchDepartments.utnFrroCidta],
         interests: [interests.foodTech],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -627,7 +617,6 @@ export class Seed {
           researchDepartments.utnFrroIsi,
         ],
         interests: [interests.energy],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -655,7 +644,6 @@ export class Seed {
         endDate: '2022-07-01',
         researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [interests.processEngineering],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -681,7 +669,6 @@ export class Seed {
         creationDate: '2018-01-01',
         researchDepartments: [researchDepartments.utnFrroCaimi],
         interests: [interests.processEngineering, interests.biotech],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -713,7 +700,6 @@ export class Seed {
         endDate: '2020-12-31',
         researchDepartments: [researchDepartments.utnFrroCedite],
         interests: [interests.edTech],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -745,7 +731,6 @@ export class Seed {
         endDate: '2023-01-01',
         researchDepartments: [researchDepartments.unrFceiaElectrica],
         interests: [interests.energy],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -785,7 +770,6 @@ export class Seed {
           interests.contingencies,
           interests.sustainableDevelopment,
         ],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
@@ -818,7 +802,6 @@ export class Seed {
           researchDepartments.utnFrroBasicas,
         ],
         interests: [interests.infoSystems],
-        referenceOnly: true,
         enrollments: [
           this.enrollmentsRepo.create({
             id: enrollmentIdGen.next(),
