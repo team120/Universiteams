@@ -163,7 +163,7 @@ export class ProjectService {
     try {
       // Validate the user creating the project
       const userId = currentUser.id;
-      const user: User = await this.userRepository.findOne({
+      const user: User = await queryRunner.manager.getRepository(User).findOne({
         where: { id: userId },
         select: ['id'],
       });
@@ -175,10 +175,12 @@ export class ProjectService {
         createDto.researchDepartmentsIds.length > 0
       ) {
         for (const departmentId of createDto.researchDepartmentsIds) {
-          const departmentExists = await this.departmentRepository.findOne({
-            where: { id: departmentId },
-            select: ['id'],
-          });
+          const departmentExists = await queryRunner.manager
+            .getRepository(ResearchDepartment)
+            .findOne({
+              where: { id: departmentId },
+              select: ['id'],
+            });
           if (!departmentExists)
             throw new NotFound(
               `Research Department #${departmentId} not found`,
@@ -189,10 +191,12 @@ export class ProjectService {
       const interestsIDsList: number[] = [];
       if (createDto.interestsIds && createDto.interestsIds.length > 0) {
         for (const interestId of createDto.interestsIds) {
-          const interestExists = await this.interestRepository.findOne({
-            where: { id: interestId },
-            select: ['id'],
-          });
+          const interestExists = await queryRunner.manager
+            .getRepository(Interest)
+            .findOne({
+              where: { id: interestId },
+              select: ['id'],
+            });
           if (!interestExists)
             throw new NotFound(`Interest #${interestId} not found`);
           interestsIDsList.push(interestId);
@@ -205,7 +209,8 @@ export class ProjectService {
         createDto.interestsToCreate.length > 0
       ) {
         for (const interestName of createDto.interestsToCreate) {
-          const interestCreated: Interest = await this.interestRepository
+          const interestCreated: Interest = await queryRunner.manager
+            .getRepository(Interest)
             .save({
               name: interestName,
               projectRefsCounter: 1,
