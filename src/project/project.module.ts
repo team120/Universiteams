@@ -17,6 +17,7 @@ import { Favorite } from '../favorite/favorite.entity';
 import { Enrollment } from '../enrollment/enrollment.entity';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
+import { User } from '../user/user.entity';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { Interest } from '../interest/interest.entity';
       Enrollment,
       ResearchDepartment,
       Interest,
+      User,
     ]),
     SerializationModule,
     AuthModule,
