@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.4.0] - 2024-08-14
+
+- Fix verification email link
+- Merge pull request #162 from team120/161-delete-project-endpoint--update-project-add-leader-validation
+- Merge pull request #163 from team120/147-use-transactions-when-a-route-involves-multiple-steps-that-need-to-either-all-succeed-or-all-fail
+- Merge pull request #164 from team120/fix/not-displaying-new-projects-get-all
+
 ## [v1.3.2] - 2024-08-13
 
 - Dummy release to fix deploy pipeline
