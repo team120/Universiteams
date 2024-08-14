@@ -1,8 +1,17 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { InterestService } from './interest.service';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { InterestFindDto } from './dtos/interest.find.dto';
+import { IsAdminGuard } from '../auth/is.admin.guard';
 
 @ApiTags('interests')
 @Controller('interests')
@@ -12,5 +21,11 @@ export class InterestController {
   @Get()
   async get(@Query(AppValidationPipe) findOptions: InterestFindDto) {
     return this.interestService.find(findOptions);
+  }
+  @UseGuards(...IsAdminGuard)
+  @ApiCookieAuth()
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    return this.interestService.delete(id);
   }
 }
