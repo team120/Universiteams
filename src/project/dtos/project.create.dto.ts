@@ -7,6 +7,7 @@ import {
   IsString,
   IsEnum,
   IsDateString,
+  ArrayNotEmpty,
 } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { ProjectLanguage, ProjectType } from '../project.entity';
@@ -34,10 +35,12 @@ export class ProjectCreateDto {
   @IsOptional()
   web?: string;
   @IsArray()
+  @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   @ExposeType(Number)
   interestsIds: number[];
   @IsArray()
+  @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   @ExposeType(Number)
   researchDepartmentsIds: number[];

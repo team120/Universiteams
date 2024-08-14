@@ -219,7 +219,9 @@ export class ProjectService {
           interestsIDsList.push(interestCreated.id);
         }
       }
-
+      if (interestsIDsList.length == 0) {
+        throw new BadRequest('At least one interest is required');
+      }
       const newProject: Partial<Project> = {
         name: createDto.name,
         type: createDto.type,
