@@ -49,7 +49,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
   }
 
   applyTextSearch(filters: ProjectFilters, query: SelectQueryBuilder<Project>) {
-    const searchQuery = query.innerJoin(
+    const searchQuery = query.leftJoin(
       'project_search_index',
       'p_index',
       'p_index.id = project.id',
@@ -91,7 +91,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
 
     const fuzzySearchQuery = this.projectRepository
       .createQueryBuilder('project')
-      .innerJoin('project_search_index', 'p_index', 'p_index.id = project.id')
+      .leftJoin('project_search_index', 'p_index', 'p_index.id = project.id')
       .where(
         `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, unaccent(:generalSearch))`,
         {
