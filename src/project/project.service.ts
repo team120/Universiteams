@@ -130,11 +130,12 @@ export class ProjectService {
   }
 
   async findSoftDeleted(): Promise<ProjectInListDto[]> {
-    return await this.projectRepository.find({
+    const projects = await this.projectRepository.find({
       // return all projects that have been soft deleted
       withDeleted: true,
       where: { logicalDeleteDate: Not(IsNull()) },
     });
+    return this.entityMapper.mapArray(ProjectInListDto, projects);
   }
 
   async findOne(
