@@ -1,10 +1,6 @@
 name: Universiteams CD
 
 on:
-  workflow_run:
-    workflows: ['Universiteams CI']
-    types:
-      - completed
   push:
     tags:
       - 'v*.*.*'
@@ -14,9 +10,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: |
-      github.event.workflow_run.conclusion == 'success' && 
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     environment:
       name: production
       url: https://api.universiteams.com
