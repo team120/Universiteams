@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { Favorite } from '../favorite/favorite.entity';
 import {
@@ -127,6 +127,15 @@ export class ProjectService {
       projectCount: projectCount,
       suggestedSearchTerms: suggestedSearchTerms,
     };
+  }
+
+  async findSoftDeleted(): Promise<ProjectInListDto[]> {
+    const projects = await this.projectRepository.find({
+      // return all projects that have been soft deleted
+      withDeleted: true,
+      where: { logicalDeleteDate: Not(IsNull()) },
+    });
+    return this.entityMapper.mapArray(ProjectInListDto, projects);
   }
 
   async findOne(
@@ -279,31 +288,44 @@ export class ProjectService {
     }
   }
 
-  async delete(projectId: number): Promise<void> {
+  async delete(
+    projectId: number,
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<void> {
     this.logger.debug('Delete a Project');
+    // Verify user role: Only leader is allowed to delete the project
+    if (!(await this.validateLeaderRoleInProject(currentUser.id, projectId))) {
+      throw new Unauthorized('Solo el lider del proyecto puede eliminarlo');
+    }
 
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
     });
     if (!project) throw new NotFound(`Project #${projectId} not found`);
 
-    // Review 1: add user role validation for deletion
-    // Review 2: add logical delete instead of physical delete?
-
-    await this.projectRepository.delete(projectId).catch((err: Error) => {
+    // Perform softDelete instead of hard delete in order to be able to restore entity in the future
+    await this.projectRepository.softDelete(projectId).catch((err: Error) => {
       throw new DbException(err.message, err.stack);
     });
-
     this.logger.debug(`Project #${projectId} successfully deleted`);
   }
 
-  async update(id: number, updateDto: ProjectUpdateDto) {
+  async update(
+    projectId: number,
+    updateDto: ProjectUpdateDto,
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<Project> {
     this.logger.debug('Update a project');
     const project = await this.projectRepository.findOne({
-      where: { id },
+      where: { id: projectId },
     });
-    if (!project) throw new NotFound(`Project #${id} not found`);
-
+    if (!project) throw new NotFound(`Project #${projectId} not found`);
+    // Verify user role: Only leader is allowed to update the project
+    if (!(await this.validateLeaderRoleInProject(currentUser.id, projectId))) {
+      throw new Unauthorized(
+        'Solo el lider del proyecto puede actualizar sus datos',
+      );
+    }
     const queryRunner =
       this.projectRepository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
@@ -486,35 +508,42 @@ export class ProjectService {
     user: CurrentUserWithoutTokens,
     enrollmentRequest: EnrollmentRequestDto,
   ) {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-      select: ['id', 'requestEnrollmentCount'],
-    });
-    if (!project) throw projectNotFoundError;
+    const queryRunner =
+      this.projectRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
 
-    const enrollment = await this.enrollmentRepository.findOne({
-      where: {
-        project: {
-          id: project.id,
-        },
-        user: {
-          id: user.id,
-        },
-      },
-    });
-    switch (enrollment?.requestState) {
-      case RequestState.Pending:
-        throw new BadRequest(
-          'Este usuario ya ha solicitado la inscripción en este proyecto',
-        );
-      case RequestState.Accepted:
-        throw new BadRequest('Este usuario ya está inscrito en este proyecto');
-      default:
-        break;
-    }
+    try {
+      const project = await queryRunner.manager.findOne(Project, {
+        where: { id: projectId },
+        select: ['id', 'requestEnrollmentCount'],
+      });
+      if (!project) throw projectNotFoundError;
 
-    await this.enrollmentRepository
-      .upsert(
+      const enrollment = await queryRunner.manager.findOne(Enrollment, {
+        where: {
+          project: {
+            id: project.id,
+          },
+          user: {
+            id: user.id,
+          },
+        },
+      });
+      switch (enrollment?.requestState) {
+        case RequestState.Pending:
+          throw new BadRequest(
+            'Este usuario ya ha solicitado la inscripción en este proyecto',
+          );
+        case RequestState.Accepted:
+          throw new BadRequest(
+            'Este usuario ya está inscrito en este proyecto',
+          );
+        default:
+          break;
+      }
+
+      await queryRunner.manager.upsert(
+        Enrollment,
         {
           project: {
             id: project.id,
@@ -526,23 +555,24 @@ export class ProjectService {
           requesterMessage: enrollmentRequest.message,
         },
         ['project', 'user'],
-      )
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+      );
 
-    // Increase project enrollment request count
-    await this.projectRepository
-      .update(project.id, {
+      // Increase project enrollment request count
+      await queryRunner.manager.update(Project, project.id, {
         requestEnrollmentCount: project.requestEnrollmentCount + 1,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
       });
 
-    this.logger.debug(
-      `Project#${project.id} successfully requested enrollment by user#${user.id}`,
-    );
+      await queryRunner.commitTransaction();
+
+      this.logger.debug(
+        `Project#${project.id} successfully requested enrollment by user#${user.id}`,
+      );
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new DbException(err.message, err.stack);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async updateEnrollRequest(
@@ -1031,5 +1061,21 @@ export class ProjectService {
     if (!currentUserEnrollment) return false;
 
     return true;
+  }
+
+  private async validateLeaderRoleInProject(
+    userId: number,
+    projectId: number,
+  ): Promise<boolean> {
+    const userEnrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: { id: projectId },
+        user: { id: userId },
+      },
+      select: ['id', 'role'],
+    });
+    if (!userEnrollment)
+      throw new NotFound('User enrollment not found with those parameters');
+    return userEnrollment.role === ProjectRole.Leader;
   }
 }
