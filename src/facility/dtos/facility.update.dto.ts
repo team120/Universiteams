@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { IsOptional } from 'class-validator';
+import { IsOptional, IsUrl } from 'class-validator';
 
 @Exclude()
 export class FacilityUpdateDto {
@@ -10,6 +10,7 @@ export class FacilityUpdateDto {
   @IsOptional()
   abbreviation?: string;
   @Expose()
+  @IsUrl()
   @IsOptional()
   web?: string;
 }
