@@ -486,35 +486,42 @@ export class ProjectService {
     user: CurrentUserWithoutTokens,
     enrollmentRequest: EnrollmentRequestDto,
   ) {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-      select: ['id', 'requestEnrollmentCount'],
-    });
-    if (!project) throw projectNotFoundError;
+    const queryRunner =
+      this.projectRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
 
-    const enrollment = await this.enrollmentRepository.findOne({
-      where: {
-        project: {
-          id: project.id,
-        },
-        user: {
-          id: user.id,
-        },
-      },
-    });
-    switch (enrollment?.requestState) {
-      case RequestState.Pending:
-        throw new BadRequest(
-          'Este usuario ya ha solicitado la inscripción en este proyecto',
-        );
-      case RequestState.Accepted:
-        throw new BadRequest('Este usuario ya está inscrito en este proyecto');
-      default:
-        break;
-    }
+    try {
+      const project = await queryRunner.manager.findOne(Project, {
+        where: { id: projectId },
+        select: ['id', 'requestEnrollmentCount'],
+      });
+      if (!project) throw projectNotFoundError;
 
-    await this.enrollmentRepository
-      .upsert(
+      const enrollment = await queryRunner.manager.findOne(Enrollment, {
+        where: {
+          project: {
+            id: project.id,
+          },
+          user: {
+            id: user.id,
+          },
+        },
+      });
+      switch (enrollment?.requestState) {
+        case RequestState.Pending:
+          throw new BadRequest(
+            'Este usuario ya ha solicitado la inscripción en este proyecto',
+          );
+        case RequestState.Accepted:
+          throw new BadRequest(
+            'Este usuario ya está inscrito en este proyecto',
+          );
+        default:
+          break;
+      }
+
+      await queryRunner.manager.upsert(
+        Enrollment,
         {
           project: {
             id: project.id,
@@ -526,23 +533,24 @@ export class ProjectService {
           requesterMessage: enrollmentRequest.message,
         },
         ['project', 'user'],
-      )
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+      );
 
-    // Increase project enrollment request count
-    await this.projectRepository
-      .update(project.id, {
+      // Increase project enrollment request count
+      await queryRunner.manager.update(Project, project.id, {
         requestEnrollmentCount: project.requestEnrollmentCount + 1,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
       });
 
-    this.logger.debug(
-      `Project#${project.id} successfully requested enrollment by user#${user.id}`,
-    );
+      await queryRunner.commitTransaction();
+
+      this.logger.debug(
+        `Project#${project.id} successfully requested enrollment by user#${user.id}`,
+      );
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new DbException(err.message, err.stack);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async updateEnrollRequest(
