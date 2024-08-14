@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { ProjectType } from '../project.entity';
+import { ProjectLanguage, ProjectType } from '../project.entity';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { IsOptional } from 'class-validator';
 import { EnrollmentSimpleShowDto } from '../../enrollment/dtos/enrollment.show.dto';
@@ -15,7 +15,7 @@ export class ProjectShowCreatedDto {
   @Expose()
   type: ProjectType;
   @Expose()
-  language: 'spanish' | 'english';
+  language: ProjectLanguage;
   @Expose()
   @IsOptional()
   description?: string;

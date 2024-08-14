@@ -5,9 +5,10 @@ import {
   IsArray,
   IsNumber,
   IsString,
+  IsEnum,
 } from 'class-validator';
-import { ExposeType } from 'src/utils/decorators/expose-type.decorator';
-import { ProjectType } from '../project.entity';
+import { ExposeType } from '../../utils/decorators/expose-type.decorator';
+import { ProjectLanguage, ProjectType } from '../project.entity';
 
 @Exclude()
 export class ProjectUpdateDto {
@@ -17,8 +18,10 @@ export class ProjectUpdateDto {
   @Expose()
   @IsNotEmpty()
   type: ProjectType;
+  @Expose()
+  @IsEnum(ProjectLanguage)
   @IsNotEmpty()
-  language: 'spanish' | 'english';
+  language: ProjectLanguage;
   @Expose()
   @IsOptional()
   description?: string;
