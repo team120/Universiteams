@@ -1,11 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import {
-  IsArray,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { UserAffiliationShowDto } from '../../user-affiliation/dtos/user-affiliation.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
