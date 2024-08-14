@@ -57,7 +57,7 @@ export class ProjectController {
     @Body() project: ProjectCreateDto,
     @Req() request: RequestWithUser,
   ) {
-    return this.projectService.create(project, request);
+    return this.projectService.create(project, request.currentUser);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)

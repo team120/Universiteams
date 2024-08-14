@@ -24,5 +24,5 @@ export class EnrollmentSimpleShowDto extends OmitType(EnrollmentShowDto, [
   'user',
 ]) {
   @Expose()
-  userSimple: UserSimpleShowDto;
+  user: UserSimpleShowDto;
 }
