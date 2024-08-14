@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { IsOptional, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsNotEmpty, IsUrl } from 'class-validator';
 
 @Exclude()
 export class InstitutionCreateDto {
@@ -10,6 +10,7 @@ export class InstitutionCreateDto {
   @IsNotEmpty()
   abbreviation: string;
   @Expose()
+  @IsUrl()
   @IsOptional()
   web?: string;
 }

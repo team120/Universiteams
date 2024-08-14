@@ -12,6 +12,8 @@ export class ResearchDepartmentShowDto {
   @Expose()
   abbreviation: string;
   @Expose()
+  web?: string;
+  @Expose()
   @Type(() => FacilityShowDto)
   facility: FacilityShowDto;
   @Expose()

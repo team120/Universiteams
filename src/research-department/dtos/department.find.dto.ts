@@ -4,6 +4,7 @@ import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 export enum ResearchDepartmentRelations {
+  institution = 'facility.institution',
   facility = 'facility',
   projects = 'projects',
 }
