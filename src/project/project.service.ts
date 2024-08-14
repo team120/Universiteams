@@ -301,13 +301,22 @@ export class ProjectService {
     this.logger.debug(`Project #${projectId} successfully deleted`);
   }
 
-  async update(id: number, updateDto: ProjectUpdateDto) {
+  async update(
+    projectId: number,
+    updateDto: ProjectUpdateDto,
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<Project> {
     this.logger.debug('Update a project');
     const project = await this.projectRepository.findOne({
-      where: { id },
+      where: { id: projectId },
     });
-    if (!project) throw new NotFound(`Project #${id} not found`);
-
+    if (!project) throw new NotFound(`Project #${projectId} not found`);
+    // Verify user role: Only leader is allowed to update the project
+    if (!(await this.validateLeaderRoleInProject(currentUser.id, projectId))) {
+      throw new Unauthorized(
+        'Solo el lider del proyecto puede actualizar sus datos',
+      );
+    }
     const queryRunner =
       this.projectRepository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();

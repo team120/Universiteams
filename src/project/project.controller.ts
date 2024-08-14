@@ -76,8 +76,9 @@ export class ProjectController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() project: ProjectUpdateDto,
+    @Req() request: RequestWithUser,
   ) {
-    return this.projectService.update(id, project);
+    return this.projectService.update(id, project, request.currentUser);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)
