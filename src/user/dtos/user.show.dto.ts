@@ -3,6 +3,7 @@ import { UserAffiliationShowDto } from '../../user-affiliation/dtos/user-affilia
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
 import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
 import { UserSystemRole } from '../user.entity';
+import { OmitType } from '@nestjs/swagger';
 
 @Exclude()
 export class UserShowDto {
@@ -31,3 +32,9 @@ export class UsersResult {
   users: UserShowDto[];
   usersCount: number;
 }
+export class UserSimpleShowDto extends OmitType(UserShowDto, [
+  'userAffiliations',
+  'interests',
+  'enrollments',
+  'systemRole',
+]) {}

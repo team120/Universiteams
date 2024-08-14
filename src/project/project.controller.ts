@@ -24,6 +24,8 @@ import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto'
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
 import { EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
+import { ProjectCreateDto } from './dtos/project.create.dto';
+import { ProjectUpdateDto } from './dtos/project.update.dto';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -46,6 +48,33 @@ export class ProjectController {
     @Param('id', ParseIntPipe) projectId: number,
   ) {
     return this.projectService.findOne(projectId, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Post()
+  async create(
+    @Body() project: ProjectCreateDto,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.projectService.create(project, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    return this.projectService.delete(id);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() project: ProjectUpdateDto,
+  ) {
+    return this.projectService.update(id, project);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)

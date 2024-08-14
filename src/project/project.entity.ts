@@ -25,6 +25,11 @@ export const requesterMessageColumn = 'project_requesterMessage';
 export const adminMessageColumn = 'project_adminMessage';
 export const requestEnrollmentCountColumn = 'project_requestEnrollmentCount';
 
+export enum ProjectLanguage {
+  SPANISH = 'spanish',
+  ENGLISH = 'english',
+}
+
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
@@ -41,8 +46,8 @@ export class Project {
   endDate: string;
   @Column()
   type: ProjectType;
-  @Column({ default: 'spanish' })
-  language: 'spanish' | 'english';
+  @Column({ default: ProjectLanguage.SPANISH })
+  language: ProjectLanguage;
   @Column({ nullable: true })
   web: string;
   @Column({ select: false, nullable: true })

@@ -37,6 +37,12 @@ import {
 } from '../enrollment/dtos/enrollment-request.show.dto';
 import { EnrollmentRequestAdminDto as EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
+import { ProjectCreateDto } from './dtos/project.create.dto';
+import { ProjectShowCreatedDto } from './dtos/project.showCreated.dto';
+import { User } from '../user/user.entity';
+import { ResearchDepartment } from '../research-department/department.entity';
+import { Interest } from '../interest/interest.entity';
+import { ProjectUpdateDto } from './dtos/project.update.dto';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -47,6 +53,12 @@ export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(ResearchDepartment)
+    private readonly departmentRepository: Repository<ResearchDepartment>,
+    @InjectRepository(Interest)
+    private readonly interestRepository: Repository<Interest>,
     @InjectRepository(Favorite)
     private readonly favoriteRepository: Repository<Favorite>,
     @InjectRepository(Enrollment)
@@ -137,6 +149,260 @@ export class ProjectService {
 
     this.logger.debug('Map project to dto');
     return this.entityMapper.mapValue(ProjectSingleDto, project);
+  }
+
+  async create(
+    createDto: ProjectCreateDto,
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<ProjectShowCreatedDto> {
+    this.logger.debug('Create a new project');
+    const queryRunner =
+      this.projectRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
+
+    try {
+      // Validate the user creating the project
+      const userId = currentUser.id;
+      const user: User = await queryRunner.manager.getRepository(User).findOne({
+        where: { id: userId },
+        select: ['id'],
+      });
+      if (!user) throw new NotFound(`User #${userId} not found`);
+
+      // If given, validate research department(s)
+      if (
+        Array.isArray(createDto.researchDepartmentsIds) &&
+        createDto.researchDepartmentsIds.length > 0
+      ) {
+        for (const departmentId of createDto.researchDepartmentsIds) {
+          const departmentExists = await queryRunner.manager
+            .getRepository(ResearchDepartment)
+            .findOne({
+              where: { id: departmentId },
+              select: ['id'],
+            });
+          if (!departmentExists)
+            throw new NotFound(
+              `Research Department #${departmentId} not found`,
+            );
+        }
+      }
+      // If given, validate interest(s)
+      const interestsIDsList: number[] = [];
+      if (createDto.interestsIds && createDto.interestsIds.length > 0) {
+        for (const interestId of createDto.interestsIds) {
+          const interestExists = await queryRunner.manager
+            .getRepository(Interest)
+            .findOne({
+              where: { id: interestId },
+              select: ['id'],
+            });
+          if (!interestExists)
+            throw new NotFound(`Interest #${interestId} not found`);
+          interestsIDsList.push(interestId);
+        }
+      }
+
+      // Create new interests if needed
+      if (
+        createDto.interestsToCreate &&
+        createDto.interestsToCreate.length > 0
+      ) {
+        for (const interestName of createDto.interestsToCreate) {
+          const interestCreated: Interest = await queryRunner.manager
+            .getRepository(Interest)
+            .save({
+              name: interestName,
+              projectRefsCounter: 1,
+              verified: false,
+            })
+            .catch((err: Error) => {
+              throw new DbException(err.message, err.stack);
+            });
+          interestsIDsList.push(interestCreated.id);
+        }
+      }
+      if (interestsIDsList.length == 0) {
+        throw new BadRequest('At least one interest is required');
+      }
+      const newProject: Partial<Project> = {
+        name: createDto.name,
+        type: createDto.type,
+        language: createDto.language,
+        description: createDto.description,
+        endDate: createDto.endDate,
+        web: createDto.web,
+        userCount: 1,
+      };
+      // Map interests ids created and interests ids given
+      newProject.interests = interestsIDsList.map((interestId) => ({
+        id: interestId,
+      })) as Interest[];
+
+      newProject.researchDepartments = createDto.researchDepartmentsIds.map(
+        (id) => ({
+          id: id,
+        }),
+      ) as ResearchDepartment[];
+
+      this.logger.debug(`Create project: #${newProject}`);
+      const createdProject: Project = await queryRunner.manager
+        .getRepository(Project)
+        .save(newProject)
+        .catch((err: Error) => {
+          throw new DbException(err.message, err.stack);
+        });
+
+      // Create enrollment for this project and then update project with the enrollment
+      await queryRunner.manager
+        .getRepository(Enrollment)
+        .save({
+          project: { id: createdProject.id },
+          user: { id: user.id },
+          role: ProjectRole.Leader,
+          requestState: RequestState.Accepted,
+        })
+        .catch((err: Error) => {
+          throw new DbException(err.message, err.stack);
+        });
+
+      // Commit the transaction
+      await queryRunner.commitTransaction();
+
+      return this.entityMapper.mapValue(ProjectShowCreatedDto, createdProject);
+    } catch (error) {
+      // Rollback the transaction if an error occurs
+      await queryRunner.rollbackTransaction();
+      throw new DbException(error.message, error.stack);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async delete(projectId: number): Promise<void> {
+    this.logger.debug('Delete a Project');
+
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+    });
+    if (!project) throw new NotFound(`Project #${projectId} not found`);
+
+    // Review 1: add user role validation for deletion
+    // Review 2: add logical delete instead of physical delete?
+
+    await this.projectRepository.delete(projectId).catch((err: Error) => {
+      throw new DbException(err.message, err.stack);
+    });
+
+    this.logger.debug(`Project #${projectId} successfully deleted`);
+  }
+
+  async update(id: number, updateDto: ProjectUpdateDto) {
+    this.logger.debug('Update a project');
+    const project = await this.projectRepository.findOne({
+      where: { id },
+    });
+    if (!project) throw new NotFound(`Project #${id} not found`);
+
+    const queryRunner =
+      this.projectRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
+
+    try {
+      // If given, validate research department(s)
+      if (
+        Array.isArray(updateDto.researchDepartmentsIds) &&
+        updateDto.researchDepartmentsIds.length > 0
+      ) {
+        for (const departmentId of updateDto.researchDepartmentsIds) {
+          const departmentExists = await queryRunner.manager.findOne(
+            ResearchDepartment,
+            {
+              where: { id: departmentId },
+              select: ['id'],
+            },
+          );
+          if (!departmentExists)
+            throw new NotFound(
+              `Research Department #${departmentId} not found`,
+            );
+        }
+      }
+
+      // If given, validate interest(s)
+      const interestsIDsList: number[] = [];
+      if (updateDto.interestsIds && updateDto.interestsIds.length > 0) {
+        for (const interestId of updateDto.interestsIds) {
+          const interestExists = await queryRunner.manager.findOne(Interest, {
+            where: { id: interestId },
+            select: ['id'],
+          });
+          if (!interestExists)
+            throw new NotFound(`Interest #${interestId} not found`);
+          interestsIDsList.push(interestId);
+        }
+      }
+
+      // Create new interests if needed
+      if (
+        updateDto.interestsToCreate &&
+        updateDto.interestsToCreate.length > 0
+      ) {
+        for (const interestName of updateDto.interestsToCreate) {
+          const interestCreated: Interest = await queryRunner.manager.save(
+            Interest,
+            {
+              name: interestName,
+              projectRefsCounter: 1,
+              verified: false,
+            },
+          );
+          interestsIDsList.push(interestCreated.id);
+        }
+      }
+
+      // Update project with the new data
+      const updateProjectPartial: Partial<Project> = {
+        name: updateDto.name,
+        type: updateDto.type,
+        description: updateDto.description,
+        endDate: updateDto.endDate,
+        web: updateDto.web,
+      };
+      // Mapping departments and interests ids created and interests ids given
+      if (interestsIDsList.length > 0) {
+        const interests = interestsIDsList.map((interestId) => ({
+          id: interestId,
+        })) as Interest[];
+        updateProjectPartial.interests = interests;
+      }
+
+      if (
+        updateDto.researchDepartmentsIds &&
+        updateDto.researchDepartmentsIds.length > 0
+      ) {
+        const departments = updateDto.researchDepartmentsIds.map((id) => ({
+          id: id,
+        })) as ResearchDepartment[];
+        updateProjectPartial.researchDepartments = departments;
+      }
+
+      this.logger.debug(`Update project: ${updateProjectPartial}`);
+      const updatedProject: Project = await queryRunner.manager.save(Project, {
+        ...project,
+        ...updateProjectPartial,
+      });
+
+      await queryRunner.commitTransaction();
+
+      this.logger.debug(`Project #${project.id} successfully updated`);
+      return updatedProject;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new DbException(err.message, err.stack);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async favorite(id: number, user: CurrentUserWithoutTokens) {

@@ -25,3 +25,9 @@ export class DepartmentCreatedShowDto extends OmitType(
   ResearchDepartmentShowDto,
   ['projects'],
 ) {}
+
+@Exclude()
+export class DepartmentSimpleShowDto extends OmitType(
+  ResearchDepartmentShowDto,
+  ['projects', 'facility'],
+) {}
