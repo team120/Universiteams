@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { Favorite } from '../favorite/favorite.entity';
 import {
@@ -127,6 +127,16 @@ export class ProjectService {
       projectCount: projectCount,
       suggestedSearchTerms: suggestedSearchTerms,
     };
+  }
+
+  async findSoftDeleted(
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<ProjectInListDto[]> {
+    return await this.projectRepository.find({
+      // return all projects that have been soft deleted
+      withDeleted: true,
+      where: { logicalDeleteDate: Not(IsNull()) },
+    });
   }
 
   async findOne(

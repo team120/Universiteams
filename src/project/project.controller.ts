@@ -17,7 +17,7 @@ import { IsEmailVerifiedGuard } from '../auth/is-email-verified.guard';
 import { RequestWithUser } from '../utils/request-with-user';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { ProjectFindDto } from './dtos/project.find.dto';
-import { ProjectsResult } from './dtos/project.show.dto';
+import { ProjectInListDto, ProjectsResult } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
@@ -26,6 +26,7 @@ import { EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
+import { IsAdminGuard } from '../auth/is.admin.guard';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -39,6 +40,15 @@ export class ProjectController {
     @Query(AppValidationPipe) findOptions: ProjectFindDto,
   ): Promise<ProjectsResult> {
     return this.projectService.find(findOptions, request.currentUser);
+  }
+
+  @UseGuards(...IsAdminGuard)
+  @ApiCookieAuth()
+  @Get('softDeleted')
+  async getSoftDeleted(
+    @Req() request: RequestWithUser,
+  ): Promise<ProjectInListDto[]> {
+    return this.projectService.findSoftDeleted(request.currentUser);
   }
 
   @UseInterceptors(SetCurrentUserInterceptor)
