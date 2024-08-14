@@ -366,16 +366,20 @@ export class ProjectService {
       };
       // Mapping departments and interests ids created and interests ids given
       if (interestsIDsList.length > 0) {
-        updateProjectPartial.interests = interestsIDsList.map((interestId) => ({
+        const interests = interestsIDsList.map((interestId) => ({
           id: interestId,
         })) as Interest[];
+        updateProjectPartial.interests = interests;
       }
 
-      if (interestsIDsList.length > 0) {
-        updateProjectPartial.researchDepartments =
-          updateDto.researchDepartmentsIds.map((id) => ({
-            id: id,
-          })) as ResearchDepartment[];
+      if (
+        updateDto.researchDepartmentsIds &&
+        updateDto.researchDepartmentsIds.length > 0
+      ) {
+        const departments = updateDto.researchDepartmentsIds.map((id) => ({
+          id: id,
+        })) as ResearchDepartment[];
+        updateProjectPartial.researchDepartments = departments;
       }
 
       this.logger.debug(`Update project: ${updateProjectPartial}`);
