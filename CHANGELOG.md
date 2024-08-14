@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.1] - 2024-08-13
+
+- Dummy release to fix deploy pipeline
+
 ## [v1.3.0] - 2024-08-13
 
 - Fix Refresh Token handling
