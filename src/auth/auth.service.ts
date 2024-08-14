@@ -170,83 +170,99 @@ export class AuthService {
     currentUser: CurrentUserWithoutTokens,
     profileDto: ProfileInputDto,
   ) {
-    const user = await this.userRepo
-      .findOne({
-        where: {
-          id: currentUser.id,
-        },
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+    const queryRunner = this.userRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!user) throw new Unauthorized('Usuario no encontrado');
-
-    const interestIds: { id: number }[] =
-      profileDto.interestsIds.map((id) => ({
-        id: id,
-      })) ?? [];
-    if (profileDto.interestsToCreate?.length > 0) {
-      const interests = profileDto.interestsToCreate.map((interest) => ({
-        name: interest,
-      }));
-      const result = await this.interestRepo
-        .save(interests)
+    try {
+      const user = await queryRunner.manager
+        .findOne(User, {
+          where: {
+            id: currentUser.id,
+          },
+        })
         .catch((e: Error) => {
           throw new DbException(e.message, e.stack);
         });
 
-      for (const interest of result) {
-        interestIds.push({ id: interest.id });
+      if (!user) throw new Unauthorized('Usuario no encontrado');
+
+      const interestIds: { id: number }[] =
+        profileDto.interestsIds.map((id) => ({
+          id: id,
+        })) ?? [];
+      if (profileDto.interestsToCreate?.length > 0) {
+        const interests = profileDto.interestsToCreate.map((interest) => ({
+          name: interest,
+        }));
+        const result = await queryRunner.manager
+          .save(Interest, interests)
+          .catch((e: Error) => {
+            throw new DbException(e.message, e.stack);
+          });
+
+        for (const interest of result) {
+          interestIds.push({ id: interest.id });
+        }
       }
-    }
 
-    user.interests = interestIds as Interest[];
+      user.interests = interestIds as Interest[];
 
-    await this.userRepo.save(user).catch((e: Error) => {
-      throw new DbException(e.message, e.stack);
-    });
-
-    const userAffiliations: Partial<UserAffiliation>[] =
-      profileDto.researchDepartments.map((researchDepartment) => ({
-        researchDepartmentId: researchDepartment.id,
-        userId: user.id,
-        currentType: researchDepartment.currentType,
-      })) ?? [];
-
-    // Fetch existing affiliations
-    const existingAffiliations = await this.userAffiliationRepo.find({
-      where: { userId: user.id },
-    });
-
-    // Determine affiliations to add and remove
-    const affiliationsToAdd = userAffiliations.filter(
-      (newAff) =>
-        !existingAffiliations.some(
-          (existingAff) =>
-            existingAff.researchDepartmentId === newAff.researchDepartmentId,
-        ),
-    );
-
-    const affiliationsToRemove = existingAffiliations.filter(
-      (existingAff) =>
-        !userAffiliations.some(
-          (newAff) =>
-            newAff.researchDepartmentId === existingAff.researchDepartmentId,
-        ),
-    );
-
-    // Add new affiliations
-    await this.userAffiliationRepo.save(affiliationsToAdd).catch((e: Error) => {
-      throw new DbException(e.message, e.stack);
-    });
-
-    // Remove old affiliations
-    await this.userAffiliationRepo
-      .remove(affiliationsToRemove)
-      .catch((e: Error) => {
+      await queryRunner.manager.save(user).catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
+
+      const userAffiliations: Partial<UserAffiliation>[] =
+        profileDto.researchDepartments.map((researchDepartment) => ({
+          researchDepartmentId: researchDepartment.id,
+          userId: user.id,
+          currentType: researchDepartment.currentType,
+        })) ?? [];
+
+      // Fetch existing affiliations
+      const existingAffiliations = await queryRunner.manager.find(
+        UserAffiliation,
+        {
+          where: { userId: user.id },
+        },
+      );
+
+      // Determine affiliations to add and remove
+      const affiliationsToAdd = userAffiliations.filter(
+        (newAff) =>
+          !existingAffiliations.some(
+            (existingAff) =>
+              existingAff.researchDepartmentId === newAff.researchDepartmentId,
+          ),
+      );
+
+      const affiliationsToRemove = existingAffiliations.filter(
+        (existingAff) =>
+          !userAffiliations.some(
+            (newAff) =>
+              newAff.researchDepartmentId === existingAff.researchDepartmentId,
+          ),
+      );
+
+      // Add new affiliations
+      await queryRunner.manager.save(affiliationsToAdd).catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
+      // Remove old affiliations
+      await queryRunner.manager
+        .remove(affiliationsToRemove)
+        .catch((e: Error) => {
+          throw new DbException(e.message, e.stack);
+        });
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async getProfile(
