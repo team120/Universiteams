@@ -10,6 +10,8 @@ import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
 import { Enrollment } from '../enrollment/enrollment.entity';
+import { User } from '../user/user.entity';
+import { ResearchDepartment } from 'src/research-department/department.entity';
 
 describe('ProjectService', () => {
   let service: ProjectService;
@@ -32,7 +34,15 @@ describe('ProjectService', () => {
           useValue: {},
         },
         {
+          provide: getRepositoryToken(User),
+          useValue: {},
+        },
+        {
           provide: getRepositoryToken(Enrollment),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(ResearchDepartment),
           useValue: {},
         },
         {
