@@ -63,8 +63,11 @@ export class ProjectController {
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Delete(':id')
-  async delete(@Param('id', ParseIntPipe) id: number) {
-    return this.projectService.delete(id);
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: RequestWithUser,
+  ) {
+    return this.projectService.delete(id, request.currentUser);
   }
 
   @UseGuards(...IsEmailVerifiedGuard)

@@ -279,21 +279,25 @@ export class ProjectService {
     }
   }
 
-  async delete(projectId: number): Promise<void> {
+  async delete(
+    projectId: number,
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<void> {
     this.logger.debug('Delete a Project');
+    // Verify user role: Only leader is allowed to delete the project
+    if (!(await this.validateLeaderRoleInProject(currentUser.id, projectId))) {
+      throw new Unauthorized('Solo el lider del proyecto puede eliminarlo');
+    }
 
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
     });
     if (!project) throw new NotFound(`Project #${projectId} not found`);
 
-    // Review 1: add user role validation for deletion
-    // Review 2: add logical delete instead of physical delete?
-
-    await this.projectRepository.delete(projectId).catch((err: Error) => {
+    // Perform softDelete instead of hard delete in order to be able to restore entity in the future
+    await this.projectRepository.softDelete(projectId).catch((err: Error) => {
       throw new DbException(err.message, err.stack);
     });
-
     this.logger.debug(`Project #${projectId} successfully deleted`);
   }
 
@@ -1031,5 +1035,21 @@ export class ProjectService {
     if (!currentUserEnrollment) return false;
 
     return true;
+  }
+
+  private async validateLeaderRoleInProject(
+    userId: number,
+    projectId: number,
+  ): Promise<boolean> {
+    const userEnrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: { id: projectId },
+        user: { id: userId },
+      },
+      select: ['id', 'role'],
+    });
+    if (!userEnrollment)
+      throw new NotFound('User enrollment not found with those parameters');
+    return userEnrollment.role === ProjectRole.Leader;
   }
 }
