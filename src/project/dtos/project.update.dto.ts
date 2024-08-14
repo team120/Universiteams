@@ -1,42 +1,42 @@
 import { Exclude, Expose } from 'class-transformer';
 import {
   IsOptional,
-  IsNotEmpty,
   IsArray,
   IsNumber,
   IsString,
-  IsEnum,
+  IsDateString,
 } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
-import { ProjectLanguage, ProjectType } from '../project.entity';
+import { ProjectType } from '../project.entity';
 
 @Exclude()
 export class ProjectUpdateDto {
   @Expose()
-  @IsNotEmpty()
-  name: string;
+  @IsOptional()
+  name?: string;
   @Expose()
-  @IsNotEmpty()
-  type: ProjectType;
-  @Expose()
-  @IsEnum(ProjectLanguage)
-  @IsNotEmpty()
-  language: ProjectLanguage;
+  @IsOptional()
+  type?: ProjectType;
   @Expose()
   @IsOptional()
   description?: string;
   @Expose()
   @IsOptional()
+  @IsDateString()
   endDate?: string;
   @Expose()
   @IsOptional()
   web?: string;
-
   @IsArray()
+  @IsOptional()
   @IsNumber({}, { each: true })
   @ExposeType(Number)
-  interestsIds: number[];
-
+  interestsIds?: number[];
+  @IsArray()
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  @ExposeType(Number)
+  researchDepartmentsIds?: number[];
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
