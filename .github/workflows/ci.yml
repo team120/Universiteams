@@ -76,3 +76,15 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'Apply eslint and prettier code changes [skip ci]'
+
+  upload-artifact:
+    needs: [build, lint-and-format]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create success artifact
+        run: echo "Build and tests passed" > success.txt
+      - name: Upload artifact for CD
+        uses: actions/upload-artifact@v3
+        with:
+          name: ci-success
+          path: success.txt
