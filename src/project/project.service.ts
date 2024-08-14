@@ -156,8 +156,6 @@ export class ProjectService {
     currentUser: CurrentUserWithoutTokens,
   ): Promise<ProjectShowCreatedDto> {
     this.logger.debug('Create a new project');
-
-    // Start a transaction
     const queryRunner =
       this.projectRepository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
@@ -296,16 +294,106 @@ export class ProjectService {
 
   async update(id: number, updateDto: ProjectUpdateDto) {
     this.logger.debug('Update a project');
-
     const project = await this.projectRepository.findOne({
       where: { id },
     });
     if (!project) throw new NotFound(`Project #${id} not found`);
 
-    // Review: this automatic update probably isn't complete
-    await this.projectRepository.update(id, updateDto);
+    const queryRunner =
+      this.projectRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
 
-    this.logger.debug(`Project #${project.id} successfully updated`);
+    try {
+      // If given, validate research department(s)
+      if (
+        Array.isArray(updateDto.researchDepartmentsIds) &&
+        updateDto.researchDepartmentsIds.length > 0
+      ) {
+        for (const departmentId of updateDto.researchDepartmentsIds) {
+          const departmentExists = await queryRunner.manager.findOne(
+            ResearchDepartment,
+            {
+              where: { id: departmentId },
+              select: ['id'],
+            },
+          );
+          if (!departmentExists)
+            throw new NotFound(
+              `Research Department #${departmentId} not found`,
+            );
+        }
+      }
+
+      // If given, validate interest(s)
+      const interestsIDsList: number[] = [];
+      if (updateDto.interestsIds && updateDto.interestsIds.length > 0) {
+        for (const interestId of updateDto.interestsIds) {
+          const interestExists = await queryRunner.manager.findOne(Interest, {
+            where: { id: interestId },
+            select: ['id'],
+          });
+          if (!interestExists)
+            throw new NotFound(`Interest #${interestId} not found`);
+          interestsIDsList.push(interestId);
+        }
+      }
+
+      // Create new interests if needed
+      if (
+        updateDto.interestsToCreate &&
+        updateDto.interestsToCreate.length > 0
+      ) {
+        for (const interestName of updateDto.interestsToCreate) {
+          const interestCreated: Interest = await queryRunner.manager.save(
+            Interest,
+            {
+              name: interestName,
+              projectRefsCounter: 1,
+              verified: false,
+            },
+          );
+          interestsIDsList.push(interestCreated.id);
+        }
+      }
+
+      // Update project with the new data
+      const updateProjectPartial: Partial<Project> = {
+        name: updateDto.name,
+        type: updateDto.type,
+        description: updateDto.description,
+        endDate: updateDto.endDate,
+        web: updateDto.web,
+      };
+      // Mapping departments and interests ids created and interests ids given
+      if (interestsIDsList.length > 0) {
+        updateProjectPartial.interests = interestsIDsList.map((interestId) => ({
+          id: interestId,
+        })) as Interest[];
+      }
+
+      if (interestsIDsList.length > 0) {
+        updateProjectPartial.researchDepartments =
+          updateDto.researchDepartmentsIds.map((id) => ({
+            id: id,
+          })) as ResearchDepartment[];
+      }
+
+      this.logger.debug(`Update project: ${updateProjectPartial}`);
+      const updatedProject: Project = await queryRunner.manager.save(Project, {
+        ...project,
+        ...updateProjectPartial,
+      });
+
+      await queryRunner.commitTransaction();
+
+      this.logger.debug(`Project #${project.id} successfully updated`);
+      return updatedProject;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new DbException(err.message, err.stack);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async favorite(id: number, user: CurrentUserWithoutTokens) {
