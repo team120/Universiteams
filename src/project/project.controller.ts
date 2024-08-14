@@ -45,10 +45,8 @@ export class ProjectController {
   @UseGuards(...IsAdminGuard)
   @ApiCookieAuth()
   @Get('softDeleted')
-  async getSoftDeleted(
-    @Req() request: RequestWithUser,
-  ): Promise<ProjectInListDto[]> {
-    return this.projectService.findSoftDeleted(request.currentUser);
+  async getSoftDeleted(): Promise<ProjectInListDto[]> {
+    return this.projectService.findSoftDeleted();
   }
 
   @UseInterceptors(SetCurrentUserInterceptor)

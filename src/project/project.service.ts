@@ -129,9 +129,7 @@ export class ProjectService {
     };
   }
 
-  async findSoftDeleted(
-    currentUser: CurrentUserWithoutTokens,
-  ): Promise<ProjectInListDto[]> {
+  async findSoftDeleted(): Promise<ProjectInListDto[]> {
     return await this.projectRepository.find({
       // return all projects that have been soft deleted
       withDeleted: true,
