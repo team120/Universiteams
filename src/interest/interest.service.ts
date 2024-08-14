@@ -36,9 +36,13 @@ export class InterestService {
 
   async delete(interestId: number): Promise<void> {
     this.logger.debug('Delete an interest');
-    const interest = await this.interestRepository.findOne({
-      where: { id: interestId },
-    });
+    const interest = await this.interestRepository
+      .findOne({
+        where: { id: interestId },
+      })
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
+      });
     if (!interest) throw new NotFound('Interest not found');
     await this.interestRepository.delete(interestId).catch((err: Error) => {
       throw new DbException(err.message, err.stack);
