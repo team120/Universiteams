@@ -157,98 +157,121 @@ export class ProjectService {
   ): Promise<ProjectShowCreatedDto> {
     this.logger.debug('Create a new project');
 
-    // Validate the user creating the project
-    const userId = currentUser.id;
-    const user: User = await this.userRepository.findOne({
-      where: { id: userId },
-      select: ['id'],
-    });
-    if (!user) throw new NotFound(`User #${userId} not found`);
+    // Start a transaction
+    const queryRunner =
+      this.projectRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
 
-    // If given, validate research department(s)
-    if (
-      Array.isArray(createDto.researchDepartmentsIds) &&
-      createDto.researchDepartmentsIds.length > 0
-    ) {
-      for (const departmentId of createDto.researchDepartmentsIds) {
-        const departmentExists = await this.departmentRepository.findOne({
-          where: { id: departmentId },
-          select: ['id'],
-        });
-        if (!departmentExists)
-          throw new NotFound(`Research Department #${departmentId} not found`);
-      }
-    }
-    // If given, validate interest(s)
-    const interestsIDsList: number[] = [];
-    if (createDto.interestsIds && createDto.interestsIds.length > 0) {
-      for (const interestId of createDto.interestsIds) {
-        const interestExists = await this.interestRepository.findOne({
-          where: { id: interestId },
-          select: ['id'],
-        });
-        if (!interestExists)
-          throw new NotFound(`Interest #${interestId} not found`);
-        interestsIDsList.push(interestId);
-      }
-    }
+    try {
+      // Validate the user creating the project
+      const userId = currentUser.id;
+      const user: User = await this.userRepository.findOne({
+        where: { id: userId },
+        select: ['id'],
+      });
+      if (!user) throw new NotFound(`User #${userId} not found`);
 
-    // Create new interests if needed
-    if (createDto.interestsToCreate && createDto.interestsToCreate.length > 0) {
-      for (const interestName of createDto.interestsToCreate) {
-        const interestCreated: Interest = await this.interestRepository
-          .save({
-            name: interestName,
-            projectRefsCounter: 1,
-            verified: false,
-          })
-          .catch((err: Error) => {
-            throw new DbException(err.message, err.stack);
+      // If given, validate research department(s)
+      if (
+        Array.isArray(createDto.researchDepartmentsIds) &&
+        createDto.researchDepartmentsIds.length > 0
+      ) {
+        for (const departmentId of createDto.researchDepartmentsIds) {
+          const departmentExists = await this.departmentRepository.findOne({
+            where: { id: departmentId },
+            select: ['id'],
           });
-        interestsIDsList.push(interestCreated.id);
+          if (!departmentExists)
+            throw new NotFound(
+              `Research Department #${departmentId} not found`,
+            );
+        }
       }
+      // If given, validate interest(s)
+      const interestsIDsList: number[] = [];
+      if (createDto.interestsIds && createDto.interestsIds.length > 0) {
+        for (const interestId of createDto.interestsIds) {
+          const interestExists = await this.interestRepository.findOne({
+            where: { id: interestId },
+            select: ['id'],
+          });
+          if (!interestExists)
+            throw new NotFound(`Interest #${interestId} not found`);
+          interestsIDsList.push(interestId);
+        }
+      }
+
+      // Create new interests if needed
+      if (
+        createDto.interestsToCreate &&
+        createDto.interestsToCreate.length > 0
+      ) {
+        for (const interestName of createDto.interestsToCreate) {
+          const interestCreated: Interest = await this.interestRepository
+            .save({
+              name: interestName,
+              projectRefsCounter: 1,
+              verified: false,
+            })
+            .catch((err: Error) => {
+              throw new DbException(err.message, err.stack);
+            });
+          interestsIDsList.push(interestCreated.id);
+        }
+      }
+
+      const newProject: Partial<Project> = {
+        name: createDto.name,
+        type: createDto.type,
+        language: createDto.language,
+        description: createDto.description,
+        endDate: createDto.endDate,
+        web: createDto.web,
+        userCount: 1,
+      };
+      // Map interests ids created and interests ids given
+      newProject.interests = interestsIDsList.map((interestId) => ({
+        id: interestId,
+      })) as Interest[];
+
+      newProject.researchDepartments = createDto.researchDepartmentsIds.map(
+        (id) => ({
+          id: id,
+        }),
+      ) as ResearchDepartment[];
+
+      this.logger.debug(`Create project: #${newProject}`);
+      const createdProject: Project = await queryRunner.manager
+        .getRepository(Project)
+        .save(newProject)
+        .catch((err: Error) => {
+          throw new DbException(err.message, err.stack);
+        });
+
+      // Create enrollment for this project and then update project with the enrollment
+      await queryRunner.manager
+        .getRepository(Enrollment)
+        .save({
+          project: { id: createdProject.id },
+          user: { id: user.id },
+          role: ProjectRole.Leader,
+          requestState: RequestState.Accepted,
+        })
+        .catch((err: Error) => {
+          throw new DbException(err.message, err.stack);
+        });
+
+      // Commit the transaction
+      await queryRunner.commitTransaction();
+
+      return this.entityMapper.mapValue(ProjectShowCreatedDto, createdProject);
+    } catch (error) {
+      // Rollback the transaction if an error occurs
+      await queryRunner.rollbackTransaction();
+      throw new DbException(error.message, error.stack);
+    } finally {
+      await queryRunner.release();
     }
-
-    const newProject: Partial<Project> = {
-      name: createDto.name,
-      type: createDto.type,
-      language: createDto.language,
-      description: createDto.description,
-      endDate: createDto.endDate,
-      web: createDto.web,
-      userCount: 1,
-    };
-    // Map interests ids created and interests ids given
-    newProject.interests = interestsIDsList.map((interestId) => ({
-      id: interestId,
-    })) as Interest[];
-
-    newProject.researchDepartments = createDto.researchDepartmentsIds.map(
-      (id) => ({
-        id: id,
-      }),
-    ) as ResearchDepartment[];
-
-    this.logger.debug(`Create project: #${newProject}`);
-    const createdProject: Project = await this.projectRepository
-      .save(newProject)
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
-
-    // Create enrollment for this project and then update project with the enrollment
-    await this.enrollmentRepository
-      .save({
-        project: { id: createdProject.id },
-        user: { id: user.id },
-        role: ProjectRole.Leader,
-        requestState: RequestState.Accepted,
-      })
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
-      });
-
-    return this.entityMapper.mapValue(ProjectShowCreatedDto, createdProject);
   }
 
   async delete(projectId: number): Promise<void> {
