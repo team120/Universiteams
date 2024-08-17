@@ -151,7 +151,6 @@ export class AuthService {
       .findOne({
         where: {
           email: email,
-          isEmailVerified: true,
         },
       })
       .catch((e: Error) => {
@@ -160,7 +159,7 @@ export class AuthService {
 
     if (!user)
       throw new BadRequest(
-        'That address is either not a verified email or is not associated with a personal user account',
+        'Esa dirección de correo electrónico no está asociada a una cuenta registrada',
       );
 
     return user;

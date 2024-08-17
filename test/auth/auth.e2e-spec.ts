@@ -510,8 +510,8 @@ describe('auth', () => {
         },
       );
     });
-    describe('when email address is either not a verified email or is not associated with a personal user account', () => {
-      it.each(['user16@example.com', 'user70@example.com'])(
+    describe('when email address is either is not associated with a personal user account', () => {
+      it.each(['user70@example.com'])(
         'should return BadRequest',
         async (email: string) => {
           const res = await request(app.getHttpServer())
@@ -522,7 +522,7 @@ describe('auth', () => {
 
           expect(res.status).toBe(400);
           expect(res.body.message).toBe(
-            'That address is either not a verified email or is not associated with a personal user account',
+            'Esa dirección de correo electrónico no está asociada a una cuenta registrada',
           );
         },
       );
@@ -699,7 +699,7 @@ describe('auth', () => {
 
         expect(res.status).toBe(400);
         expect(res.body.message).toBe(
-          'That address is either not a verified email or is not associated with a personal user account',
+          'Esa dirección de correo electrónico no está asociada a una cuenta registrada',
         );
       });
     });
