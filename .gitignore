@@ -75,3 +75,6 @@ typings/
 *.tfstate
 *.tfstate.*
 *.tfvars
+
+# newrelic
+newrelic-infra.yml
