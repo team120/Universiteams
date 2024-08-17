@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.4.2] - 2024-08-17
+
+- Remove 'newrelic' import from main.ts
+
 ## [v1.4.1] - 2024-08-17
 
 - Refactor deployment workflow and add New Relic integration
