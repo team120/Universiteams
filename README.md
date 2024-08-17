@@ -122,6 +122,10 @@ make format
 | :ballot_box_with_check: PostgreSQL |
 | :ballot_box_with_check: Docker     |
 
+#### Deploy
+|:ballot_box_with_check: DigitalOcean Droplet|
+|:ballot_box_with_check: NewRelic|
+
 ## Authors
 
 | Name               | GitHub Account                             |

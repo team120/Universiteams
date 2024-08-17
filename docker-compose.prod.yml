@@ -1,9 +1,22 @@
 version: '3.8'
 
 services:
+  agent:
+    container_name: newrelic-infra
+    build:
+      context: ./newrelic
+      dockerfile: newrelic-infra.dockerfile
+    cap_add:
+      - SYS_PTRACE
+    pid: host
+    privileged: true
+    volumes:
+      - "/:/host:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    restart: unless-stopped
   reverse-proxy:
     image: traefik:v2.6
-    command: 
+    command:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --providers.file.filename=/traefik/traefik.dynamic.yaml
@@ -28,7 +41,7 @@ services:
     depends_on:
       - app
   app:
-    build: 
+    build:
       context: .
       target: prod
     image: universiteams/api:latest
@@ -37,6 +50,14 @@ services:
     working_dir: /home/node/app
     env_file:
       - docker.prod.env
+    environment:
+      - NEW_RELIC_APP_NAME="universiteams"
+      - NEW_RELIC_NO_CONFIG_FILE=true
+      - NEW_RELIC_DISTRIBUTED_TRACING_ENABLED=true
+      - NEW_RELIC_LOG=stdout
+      - NEW_RELIC_AI_MONITORING_ENABLED=true
+      - NEW_RELIC_CUSTOM_INSIGHTS_EVENTS_MAX_SAMPLES_STORED=100k
+      - NEW_RELIC_SPAN_EVENTS_MAX_SAMPLES_STORED=10k
     restart: unless-stopped
     labels:
       - traefik.enable=true

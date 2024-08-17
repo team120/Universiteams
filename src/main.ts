@@ -7,6 +7,7 @@ import {
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
+import 'newrelic';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
