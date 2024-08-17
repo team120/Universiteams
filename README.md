@@ -123,6 +123,7 @@ make format
 | :ballot_box_with_check: Docker     |
 
 #### Deploy
+
 |:ballot_box_with_check: DigitalOcean Droplet|
 |:ballot_box_with_check: NewRelic|
 
