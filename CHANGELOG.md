@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.4.3] - 2024-08-19
+
+- Add missing 'newrelic' import for cloud logging configuration
+
 ## [v1.4.2] - 2024-08-17
 
 - Remove 'newrelic' import from main.ts
