@@ -1,3 +1,4 @@
+import 'newrelic';
 import { NestFactory } from '@nestjs/core';
 import {
   DocumentBuilder,
