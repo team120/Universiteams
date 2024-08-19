@@ -104,33 +104,51 @@ make lint
 make format
 ```
 
-## Backend Tech Stack
+## Technologies used
 
-### Common
+### Frontend
 
-| Tool                                            |
-| :---------------------------------------------- |
-| :ballot_box_with_check: JavaScript / TypeScript |
+| Name                              | How it contributes to the project              |
+| :-------------------------------- | :--------------------------------------------- |
+| :necktie: TypeScript              | Programming language that builds on JavaScript |
+| :rocket: Next.js                  | Fullstack framework for React.js               |
+| :basket: Mantine                  | Really cool component library                  |
+| :bone: HTML5 & CSS3               | The basics for the web!                        |
+| :art: Sass CSS                    | Simple stylization                             |
+| :framed_picture: Tabler Icons     | Icons Mantine-compatible                       |
+| :paintbrush: Prettier             | Nice code formatter                            |
+| :triangular_ruler: ESLint         | Complete linter with strict rules              |
+| :guide_dog: Husky                 | Git hooks to assure quality commits            |
+| :test_tube: Jest                  | Easy unit testing                              |
+| :package: TurboPack               | JavaScript very fast bundler                   |
+| :page_with_curl: GitHub Actions   | CI/CD automation                               |
+| :arrow_up_small: Deploy in Vercel | Deployment is very important!                  |
 
 ### Backend
 
-| Tool                               |
-| :--------------------------------- |
-| :ballot_box_with_check: Express    |
-| :ballot_box_with_check: NestJS     |
-| :ballot_box_with_check: TypeORM    |
-| :ballot_box_with_check: PostgreSQL |
-| :ballot_box_with_check: Docker     |
-
-#### Deploy
-
-|:ballot_box_with_check: DigitalOcean Droplet|
-|:ballot_box_with_check: NewRelic|
+| Name                               | How it contributes to the project                             |
+| :--------------------------------- | :------------------------------------------------------------ |
+| :necktie: TypeScript               | Programming language that builds on JavaScript                |
+| :green_book: Node.js               | JavaScript runtime built on V8 JavaScript engine              |
+| :cat: Nest.js                      | Framework for building efficient, scalable Node.js web apps   |
+| :world_map: TypeORM                | Object-relational mapping (ORM) tool for Node.js              |
+| :card_file_box: PostgreSQL         | Open-source relational database management system (RDBMS)     |
+| :floppy_disk: JSON Web Token (JWT) | Compact and self-contained way for securely transmitting info |
+| :paintbrush: Prettier              | Nice code formatter                                           |
+| :triangular_ruler: ESLint          | Complete linter with strict rules                             |
+| :test_tube: Jest                   | Easy unit testing                                             |
+| :alembic: Supertest                | High-level HTTP abstraction for E2E integration testing       |
+| :open_book: Swagger                | Interactive, machine and human-readable API documentation     |
+| :gear: Traefik                     | HTTP reverse proxy and load balancer                          |
+| :whale: Docker                     | Separates the app from the infrastructure with containers     |
+| :cloud: Terraform                  | Infrastructure as code tool to manage the infra in any cloud  |
+| :airplane: New Relic               | Monitor and analyze deployments                               |
+| :droplet: DigitalOcean Droplet     | Deploy in scalable cloud virtual machines                     |
 
 ## Authors
 
-| Name               | GitHub Account                             |
-| :----------------- | :----------------------------------------- |
-| Recalde, Alejandro | :octocat: https://github.com/alereca       |
-| Antonelli, Nicolás | :octocat: https://github.com/NicoAntonelli |
-| Acciarri, Joshua   | :octocat: https://github.com/JAcciarri     |
+| Name                        | GitHub Account                          |
+| :-------------------------- | :-------------------------------------- |
+| :octocat: Alejandro Recalde | :link: https://github.com/alereca       |
+| :octocat: Nicolás Antonelli | :link: https://github.com/NicoAntonelli |
+| :octocat: Joshua Acciarri   | :link: https://github.com/JAcciarri     |
