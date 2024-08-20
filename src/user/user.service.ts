@@ -4,7 +4,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { Repository } from 'typeorm';
 import { UserShowDto, UsersResult } from './dtos/user.show.dto';
-import { User } from './user.entity';
+import { User, UserSystemRole } from './user.entity';
 import {
   PaginationAttributes,
   UserFilters,
@@ -99,6 +99,24 @@ export class UserService {
         throw new DbException(e.message, e.stack);
       });
     if (!user) throw new NotFound('User not found');
+    return this.entityMapper.mapValue(UserShowDto, user);
+  }
+
+  async promoteToAdmin(userId: number): Promise<UserShowDto> {
+    this.logger.debug('Promote user to admin');
+    const user = await this.userRepository
+      .findOne({ where: { id: userId } })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    if (!user) throw new NotFound('User not found');
+    // If user already has ADMIN role, return. Otherwise update user role
+    if (user.systemRole === UserSystemRole.ADMIN)
+      return this.entityMapper.mapValue(UserShowDto, user);
+    user.systemRole = UserSystemRole.ADMIN;
+    await this.userRepository.save(user).catch((e: Error) => {
+      throw new DbException(e.message, e.stack);
+    });
     return this.entityMapper.mapValue(UserShowDto, user);
   }
 }
