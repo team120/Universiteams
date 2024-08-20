@@ -72,7 +72,6 @@ export class Seed {
     await this.projectRepo.save(Object.values(projects));
 
     await this.computeProjectsUserCount();
-    await this.computeInterestsRefsCount();
   }
 
   async removeSeedDbData() {
