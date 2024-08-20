@@ -244,13 +244,15 @@ export class AuthService {
       );
 
       // Add new affiliations
-      await queryRunner.manager.save(affiliationsToAdd).catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+      await queryRunner.manager
+        .save(UserAffiliation, affiliationsToAdd)
+        .catch((e: Error) => {
+          throw new DbException(e.message, e.stack);
+        });
 
       // Remove old affiliations
       await queryRunner.manager
-        .remove(affiliationsToRemove)
+        .remove(UserAffiliation, affiliationsToRemove)
         .catch((e: Error) => {
           throw new DbException(e.message, e.stack);
         });
