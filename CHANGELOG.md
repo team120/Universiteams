@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.4.4] - 2024-08-20
+
+- Fix bug when registering a department in profile route
+
 ## [v1.4.3] - 2024-08-19
 
 - Add missing 'newrelic' import for cloud logging configuration
