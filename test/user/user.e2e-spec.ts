@@ -53,14 +53,14 @@ describe('User Actions (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'user3@example.com', password: 'Password_3' });
-        const accessTokenCookie = res.header['set-cookie'][0];
+      const accessTokenCookie = res.header['set-cookie'][0];
       await request(app.getHttpServer())
-        .post('/users/1/promote').set('Cookie', accessTokenCookie)
+        .post('/users/1/promote')
+        .set('Cookie', accessTokenCookie)
         .then((res) => {
           expect(res.status).toBe(401);
           expect(res.body.message).toEqual('Unauthorized');
         });
     });
   });
-
 });
