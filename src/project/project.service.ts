@@ -222,7 +222,6 @@ export class ProjectService {
             .getRepository(Interest)
             .save({
               name: interestName,
-              projectRefsCounter: 1,
               verified: false,
             })
             .catch((err: Error) => {
@@ -375,7 +374,6 @@ export class ProjectService {
             Interest,
             {
               name: interestName,
-              projectRefsCounter: 1,
               verified: false,
             },
           );

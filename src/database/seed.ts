@@ -72,7 +72,6 @@ export class Seed {
     await this.projectRepo.save(Object.values(projects));
 
     await this.computeProjectsUserCount();
-    await this.computeInterestsRefsCount();
   }
 
   async removeSeedDbData() {
@@ -100,32 +99,6 @@ export class Seed {
       SET "userCount" = "computedUserCount"
       FROM project_user_counts
       WHERE project.id = project_user_counts.id;
-    `);
-  }
-
-  private async computeInterestsRefsCount() {
-    await this.projectRepo.query(`
-      UPDATE interest
-      SET "projectRefsCounter" = projects_interest_count."count"
-      FROM (
-        SELECT i.id, count(pi."interestId") as "count"
-        FROM public.interest i
-        LEFT JOIN project_interest pi
-          ON id = pi."interestId"
-        GROUP BY i.id
-        ) as projects_interest_count
-      WHERE interest.id = projects_interest_count.id;
-
-      UPDATE interest
-      SET "userRefsCounter" = users_interest_count."count"
-      FROM (
-        SELECT i.id, count(ui."interestId") as "count"
-        FROM public.interest i
-        LEFT JOIN user_interest ui
-          ON i.id = ui."interestId"
-        GROUP BY i.id
-        ) as users_interest_count
-      WHERE interest.id = users_interest_count.id;
     `);
   }
 

@@ -19,10 +19,6 @@ export class Interest {
   logicalDeleteDate: Date;
   @Column()
   name: string;
-  @Column({ default: 0 })
-  projectRefsCounter: number;
-  @Column({ default: 0 })
-  userRefsCounter: number;
   @Column({ default: false })
   verified: boolean;
 
