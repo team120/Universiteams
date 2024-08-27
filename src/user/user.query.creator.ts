@@ -122,7 +122,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .setParameters(query.getParameters());
 
     const finalQuerySorted = this.applySorting(sortAttributes, finalQuery);
-
+    this.logger.debug('SQL Final: ' + finalQuerySorted.getSql());
     return finalQuerySorted;
   }
 }

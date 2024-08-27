@@ -74,6 +74,16 @@ export class UserService {
       throw new DbException(err.message, err.stack);
     });
 
+    // If users contains one or more users with SUPER ADMIN role,
+    // then remove them from array and return the rest of the users
+    const superAdminIndexes: number[] = users
+      .map((user) => user.systemRole)
+      .map((role, index) => (role === UserSystemRole.SUPER_ADMIN ? index : -1))
+      .filter((index) => index !== -1);
+    if (superAdminIndexes.length > 0) {
+      superAdminIndexes.forEach((index) => users.splice(index, 1));
+    }
+
     return {
       users: this.entityMapper.mapArray(UserShowDto, users),
       usersCount: usersCount,
