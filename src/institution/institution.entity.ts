@@ -16,9 +16,9 @@ export class Institution {
   creationDate: string;
   @DeleteDateColumn()
   logicalDeleteDate: Date;
-  @Column()
+  @Column({ unique: true })
   name: string;
-  @Column()
+  @Column({ unique: true })
   abbreviation: string;
   @Column({ nullable: true })
   web: string;

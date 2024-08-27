@@ -17,7 +17,7 @@ export class Interest {
   creationDate: string;
   @DeleteDateColumn()
   logicalDeleteDate: Date;
-  @Column()
+  @Column({ unique: true })
   name: string;
   @Column({ default: false })
   verified: boolean;
