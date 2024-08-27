@@ -108,7 +108,9 @@ export class UserService {
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
-    if (!user) throw new NotFound('User not found');
+    if (!user) throw new NotFound('Usuario no encontrado');
+    if (user.systemRole === UserSystemRole.SUPER_ADMIN)
+      throw new NotFound('Usuario no disponible');
     return this.entityMapper.mapValue(UserShowDto, user);
   }
 
@@ -119,7 +121,7 @@ export class UserService {
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
-    if (!user) throw new NotFound('User not found');
+    if (!user) throw new NotFound('Usuario no encontrado');
     // If user already has ADMIN role, return. Otherwise update user role
     if (user.systemRole === UserSystemRole.ADMIN)
       return this.entityMapper.mapValue(UserShowDto, user);
