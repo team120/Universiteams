@@ -67,8 +67,14 @@ export class FacilityService {
       select: ['id'],
     });
     if (!institution) throw new NotFound('Institution not found');
-
     const facility = this.entityMapper.mapValue(Facility, createDto);
+    const existingFacility = await this.facilityRepository.findOne({
+      where: { name: facility.name },
+    });
+    if (existingFacility) {
+      throw new DbException('Ya existe una facilidad con ese nombre');
+    }
+
     const createdFacility = await this.facilityRepository
       .save({ institution: { id: institution.id }, ...facility })
       .catch((err: Error) => {

@@ -78,6 +78,13 @@ export class ResearchDepartmentService {
       ResearchDepartment,
       createDto,
     );
+    const existingDepartment = await this.departmentRepository.findOne({
+      where: { name: researchDepartment.name },
+    });
+    if (existingDepartment) {
+      throw new DbException('Ya existe un departamento con ese nombre');
+    }
+
     const createdDepartment = await this.departmentRepository
       .save({ facility: { id: facility.id }, ...researchDepartment })
       .catch((err: Error) => {

@@ -66,6 +66,12 @@ export class InstitutionService {
   ): Promise<InstitutionCreatedShowDto> {
     this.logger.debug('Create a new institution');
     const university = this.entityMapper.mapValue(Institution, createDto);
+    const existingUniversity = await this.institutionRepository.findOne({
+      where: { name: university.name },
+    });
+    if (existingUniversity) {
+      throw new DbException('Ya existe una institución con ese nombre');
+    }
     const createdUniversity = await this.institutionRepository
       .save(university)
       .catch((err: Error) => {
