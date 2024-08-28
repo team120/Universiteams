@@ -48,4 +48,19 @@ describe('User Actions (e2e)', () => {
         });
     });
   });
+  describe('promote user to admin', () => {
+    it('should return 401 unauthorized if current user is not SUPER_ADMIN', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: 'user3@example.com', password: 'Password_3' });
+      const accessTokenCookie = res.header['set-cookie'][0];
+      await request(app.getHttpServer())
+        .post('/users/1/promote')
+        .set('Cookie', accessTokenCookie)
+        .then((res) => {
+          expect(res.status).toBe(401);
+          expect(res.body.message).toEqual('Unauthorized');
+        });
+    });
+  });
 });
