@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { Repository } from 'typeorm';
-import { DbException, NotFound } from '../utils/exceptions/exceptions';
+import {
+  BadRequest,
+  DbException,
+  NotFound,
+} from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import {
   InstitutionCreatedShowDto,
@@ -70,7 +74,7 @@ export class InstitutionService {
       where: { name: university.name },
     });
     if (existingUniversity) {
-      throw new DbException('Ya existe una institución con ese nombre');
+      throw new BadRequest('Ya existe una institución con ese nombre');
     }
     const createdUniversity = await this.institutionRepository
       .save(university)
@@ -103,6 +107,12 @@ export class InstitutionService {
       where: { id: institutionId },
     });
     if (!institution) throw institutionNotFoundError;
+    const existingInstitution = await this.institutionRepository.findOne({
+      where: { name: institutionDto.name },
+    });
+    if (existingInstitution) {
+      throw new BadRequest('Ya existe una institución con ese nombre');
+    }
     await this.institutionRepository.update(institutionId, institutionDto);
     this.logger.debug(`Institution #${institution.id} successfully updated`);
   }

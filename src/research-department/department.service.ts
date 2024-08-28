@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { DbException, NotFound } from '../utils/exceptions/exceptions';
+import {
+  BadRequest,
+  DbException,
+  NotFound,
+} from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { Repository } from 'typeorm';
 import { ResearchDepartmentFindDto } from './dtos/department.find.dto';
@@ -82,7 +86,7 @@ export class ResearchDepartmentService {
       where: { name: researchDepartment.name },
     });
     if (existingDepartment) {
-      throw new DbException('Ya existe un departamento con ese nombre');
+      throw new BadRequest('Ya existe un departamento con ese nombre');
     }
 
     const createdDepartment = await this.departmentRepository
@@ -120,6 +124,12 @@ export class ResearchDepartmentService {
     });
     if (!researchDepartment)
       throw new NotFound('Research Department not found');
+    const existingDepartment = await this.departmentRepository.findOne({
+      where: { name: departmentDto.name },
+    });
+    if (existingDepartment) {
+      throw new BadRequest('Ya existe un departamento con ese nombre');
+    }
     await this.departmentRepository.update(departmentId, departmentDto);
     this.logger.debug(
       `Research Department #${researchDepartment.id} successfully updated`,
