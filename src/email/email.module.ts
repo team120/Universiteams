@@ -7,9 +7,15 @@ import { NodemailerEmailSender } from './nodemailer.email-sender';
 import { SendGridEmailSender } from './sendgrid.email-sender';
 import { SendInBlueEmailSender } from './sendinblue.email-sender';
 import { VerificationMessagesService } from './verification-messages.service';
+import { Enrollment } from '../enrollment/enrollment.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [ConfigModule, SerializationModule],
+  imports: [
+    TypeOrmModule.forFeature([Enrollment]),
+    ConfigModule,
+    SerializationModule,
+  ],
   providers: [
     EmailProcessor,
     VerificationMessagesService,

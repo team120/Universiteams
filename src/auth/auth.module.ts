@@ -13,6 +13,7 @@ import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration
 import { BullModule } from '@nestjs/bull';
 import { Interest } from '../interest/interest.entity';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
+import { emailQueueProcessor } from '../email/email.processor';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
     SerializationModule,
     ConfigModule,
     EmailModule,
-    BullModule.registerQueue({ name: 'emails' }),
+    BullModule.registerQueue({ name: emailQueueProcessor }),
   ],
   controllers: [AuthController],
   providers: [

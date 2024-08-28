@@ -31,6 +31,7 @@ import { EntityMapperService } from '../utils/serialization/entity-mapper.servic
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Response } from 'express';
 import {
+  emailQueueProcessor,
   emailVerificationEmailJob,
   forgotPasswordEmailJob,
 } from '../email/email.processor';
@@ -41,7 +42,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly tokenService: TokenService,
-    @InjectQueue('emails')
+    @InjectQueue(emailQueueProcessor)
     private readonly emailQueue: Queue,
     private readonly config: ConfigService,
     private readonly verificationMessageService: VerificationMessagesService,

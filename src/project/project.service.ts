@@ -45,7 +45,10 @@ import { Interest } from '../interest/interest.entity';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import { enrollmentRequestEmailJob } from '../email/email.processor';
+import {
+  emailQueueProcessor,
+  enrollmentRequestEmailJob,
+} from '../email/email.processor';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -67,7 +70,7 @@ export class ProjectService {
     @InjectRepository(Enrollment)
     private readonly enrollmentRepository: Repository<Enrollment>,
     private readonly queryCreator: QueryCreator,
-    @InjectQueue('emails')
+    @InjectQueue(emailQueueProcessor)
     private readonly emailQueue: Queue,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,

@@ -31,13 +31,15 @@ export interface IEmailService {
   sendVerificationEmail(user: User): Promise<void>;
 }
 
+export const emailQueueProcessor = 'emails';
+
 export const enrollmentRequestEmailJob = 'enrollment-request-notify';
 export const forgotPasswordEmailJob = 'forgot-password';
 export const emailVerificationEmailJob = 'email-verification';
 
 const emailFromName = 'Universiteams';
 
-@Processor('emails')
+@Processor(emailQueueProcessor)
 export class EmailProcessor {
   private selectedSender = 0;
 
