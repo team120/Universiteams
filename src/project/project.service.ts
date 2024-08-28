@@ -43,6 +43,8 @@ import { User } from '../user/user.entity';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -64,6 +66,8 @@ export class ProjectService {
     @InjectRepository(Enrollment)
     private readonly enrollmentRepository: Repository<Enrollment>,
     private readonly queryCreator: QueryCreator,
+    @InjectQueue('emails')
+    private readonly emailQueue: Queue,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
   ) {
@@ -540,20 +544,20 @@ export class ProjectService {
           break;
       }
 
-      await queryRunner.manager.upsert(
-        Enrollment,
-        {
-          project: {
-            id: project.id,
-          },
-          user: {
-            id: user.id,
-          },
-          requestState: RequestState.Pending,
-          requesterMessage: enrollmentRequest.message,
+      const pendingEnrollment = {
+        project: {
+          id: project.id,
         },
-        ['project', 'user'],
-      );
+        user: {
+          id: user.id,
+        },
+        requestState: RequestState.Pending,
+        requesterMessage: enrollmentRequest.message,
+      };
+      await queryRunner.manager.upsert(Enrollment, pendingEnrollment, [
+        'project',
+        'user',
+      ]);
 
       // Increase project enrollment request count
       await queryRunner.manager.update(Project, project.id, {
@@ -561,6 +565,12 @@ export class ProjectService {
       });
 
       await queryRunner.commitTransaction();
+
+      await this.emailQueue
+        .add('enrollment-request-notify', pendingEnrollment)
+        .catch((err: Error) => {
+          this.logger.error(err, err.message);
+        });
 
       this.logger.debug(
         `Project#${project.id} successfully requested enrollment by user#${user.id}`,

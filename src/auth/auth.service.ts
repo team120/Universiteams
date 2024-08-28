@@ -36,10 +36,6 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-    @InjectRepository(UserAffiliation)
-    private readonly userAffiliationRepo: Repository<UserAffiliation>,
-    @InjectRepository(Interest)
-    private readonly interestRepo: Repository<Interest>,
     private readonly tokenService: TokenService,
     @InjectQueue('emails')
     private readonly emailQueue: Queue,
