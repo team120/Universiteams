@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { User } from './user.entity';
+import { User, UserSystemRole } from './user.entity';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
@@ -42,7 +42,9 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .innerJoin('researchDepartment.facility', 'rdFacility')
       .innerJoin('rdFacility.institution', 'institution')
       .leftJoin('user.interests', 'interest')
-      .groupBy('user.id');
+      .groupBy('user.id')
+      .where('user.systemRole != :role')
+      .setParameter('role', UserSystemRole.SUPER_ADMIN);
 
     if (userFilters.institutionId) {
       relatedEntitiesQuery.andWhere(`institution.id = :institutionId`, {
@@ -120,7 +122,6 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .innerJoinAndSelect('rdFacility.institution', 'institution')
       .leftJoinAndSelect('user.interests', 'interests')
       .setParameters(query.getParameters());
-
     const finalQuerySorted = this.applySorting(sortAttributes, finalQuery);
     this.logger.debug('SQL Final: ' + finalQuerySorted.getSql());
     return finalQuerySorted;
