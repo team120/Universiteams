@@ -15,9 +15,11 @@ export class SendGridEmailSender implements IEmailSender {
   }
 
   async sendMail(emailMessage: EmailMessage): Promise<void> {
+    const [firstTo, ...restTo] = emailMessage.to;
     const message: sendgrid.MailDataRequired = {
       from: emailMessage.from,
-      to: emailMessage.to,
+      to: [firstTo],
+      bcc: restTo,
       subject: emailMessage.subject,
       text: emailMessage.text,
       html: emailMessage.html,

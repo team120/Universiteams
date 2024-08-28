@@ -22,9 +22,11 @@ export class NodemailerEmailSender implements IEmailSender {
       },
     });
 
+    const [firstTo, ...restTo] = emailMessage.to;
     const message: nodemailer.SendMailOptions = {
       from: `${emailMessage.from.name} <${emailMessage.from.email}>`,
-      to: emailMessage.to.map((to) => `${to.name} <${to.email}>`).join(', '),
+      to: `${firstTo.name} <${firstTo.email}>`,
+      bcc: restTo.map((bcc) => `${bcc.name} <${bcc.email}>`).join(', '),
       subject: emailMessage.subject,
       text: emailMessage.text,
       html: emailMessage.html,

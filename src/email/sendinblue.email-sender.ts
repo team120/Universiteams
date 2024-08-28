@@ -15,10 +15,13 @@ export class SendInBlueEmailSender implements IEmailSender {
     );
   }
   async sendMail(emailMessage: EmailMessage): Promise<void> {
+    const [firstTo, ...restTo] = emailMessage.to;
+
     const message: sendInBlue.SendSmtpEmail = {
       sender: emailMessage.from,
       replyTo: emailMessage.from,
-      to: emailMessage.to,
+      to: [firstTo],
+      bcc: restTo,
       subject: emailMessage.subject,
       htmlContent: emailMessage.html,
       textContent: emailMessage.text,
