@@ -30,6 +30,10 @@ import { Interest } from '../interest/interest.entity';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Response } from 'express';
+import {
+  emailVerificationEmailJob,
+  forgotPasswordEmailJob,
+} from '../email/email.processor';
 
 @Injectable()
 export class AuthService {
@@ -79,7 +83,7 @@ export class AuthService {
         throw new DbException(e.message, e.stack);
       });
 
-    await this.emailQueue.add('email-verification', insertedUser);
+    await this.emailQueue.add(emailVerificationEmailJob, insertedUser);
 
     return this.tokenService.generateTokens(insertedUser);
   }
@@ -114,9 +118,11 @@ export class AuthService {
   async forgotPassword(forgetPasswordDto: ForgetPasswordDto) {
     const user = await this.checkEmail(forgetPasswordDto.email);
 
-    await this.emailQueue.add('forgot-password', user).catch((err: Error) => {
-      this.logger.error(err, err.message);
-    });
+    await this.emailQueue
+      .add(forgotPasswordEmailJob, user)
+      .catch((err: Error) => {
+        this.logger.error(err, err.message);
+      });
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {

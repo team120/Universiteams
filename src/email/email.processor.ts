@@ -31,6 +31,10 @@ export interface IEmailService {
   sendVerificationEmail(user: User): Promise<void>;
 }
 
+export const enrollmentRequestEmailJob = 'enrollment-request-notify';
+export const forgotPasswordEmailJob = 'forgot-password';
+export const emailVerificationEmailJob = 'email-verification';
+
 @Processor('emails')
 export class EmailProcessor {
   private selectedSender = 0;
@@ -48,7 +52,7 @@ export class EmailProcessor {
       throw new Error('No email senders configured');
   }
 
-  @Process('email-verification')
+  @Process(emailVerificationEmailJob)
   async sendVerificationEmail(job: Job<User>) {
     const user = job.data;
     const verificationLink =
@@ -86,7 +90,7 @@ export class EmailProcessor {
     return {};
   }
 
-  @Process('forgot-password')
+  @Process(forgotPasswordEmailJob)
   async sendForgetPasswordEmail(job: Job<User>) {
     const user = job.data;
     const verificationLink =
@@ -124,7 +128,7 @@ export class EmailProcessor {
     return {};
   }
 
-  @Process('enrollment-request-notify')
+  @Process(enrollmentRequestEmailJob)
   async sendEnrollmentRequestNotifyEmail(job: Job<Enrollment>) {
     const enrollment = job.data;
 

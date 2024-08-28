@@ -45,6 +45,7 @@ import { Interest } from '../interest/interest.entity';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { enrollmentRequestEmailJob } from '../email/email.processor';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -567,7 +568,7 @@ export class ProjectService {
       await queryRunner.commitTransaction();
 
       await this.emailQueue
-        .add('enrollment-request-notify', pendingEnrollment)
+        .add(enrollmentRequestEmailJob, pendingEnrollment)
         .catch((err: Error) => {
           this.logger.error(err, err.message);
         });
