@@ -170,10 +170,12 @@ describe('auth', () => {
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledWith(
             expect.objectContaining({
-              to: {
-                email: registrationAttempt.email,
-                name: `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
-              },
+              to: [
+                {
+                  email: registrationAttempt.email,
+                  name: `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
+                },
+              ],
               subject: 'Por favor confirma tu correo electrónico',
               text: expect.not.stringContaining('link="undefined"'),
               html: expect.not.stringContaining('href="undefined"'),
