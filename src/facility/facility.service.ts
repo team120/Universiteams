@@ -92,7 +92,7 @@ export class FacilityService {
       if (error instanceof QueryFailedError) {
         if (error.driverError.code == POSTGRES_FK_CONSTRAINT_ERROR) {
           throw new FKConstraintException(
-            'No se puede eliminar la facilidad porque tiene departamentos asociados',
+            'No se puede eliminar la regional porque tiene departamentos asociados',
           );
         }
       }

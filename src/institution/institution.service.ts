@@ -94,7 +94,7 @@ export class InstitutionService {
         if (error instanceof QueryFailedError) {
           if (error.driverError.code == POSTGRES_FK_CONSTRAINT_ERROR) {
             throw new FKConstraintException(
-              'No se puede eliminar la institución porque tiene facilidades o departamentos asociados',
+              'No se puede eliminar la institución porque tiene regionales o departamentos asociados',
             );
           }
         }
