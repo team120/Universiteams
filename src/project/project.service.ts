@@ -571,7 +571,12 @@ export class ProjectService {
       await queryRunner.commitTransaction();
 
       await this.emailQueue
-        .add(enrollmentRequestEmailJob, pendingEnrollment)
+        .add(enrollmentRequestEmailJob, {
+          project: project,
+          user: user,
+          requestState: pendingEnrollment.requestState,
+          requesterMessage: pendingEnrollment.requesterMessage,
+        } as Enrollment)
         .catch((err: Error) => {
           this.logger.error(err, err.message);
         });
