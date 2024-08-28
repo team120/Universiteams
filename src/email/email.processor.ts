@@ -35,6 +35,8 @@ export const enrollmentRequestEmailJob = 'enrollment-request-notify';
 export const forgotPasswordEmailJob = 'forgot-password';
 export const emailVerificationEmailJob = 'email-verification';
 
+const emailFromName = 'Universiteams';
+
 @Processor('emails')
 export class EmailProcessor {
   private selectedSender = 0;
@@ -61,7 +63,7 @@ export class EmailProcessor {
     const message: EmailMessage = {
       from: {
         email: `${this.config.get(SecretsVaultKeys.EMAIL_USER)}`,
-        name: 'Universiteams',
+        name: emailFromName,
       },
       to: [{ email: user.email, name: `${user.firstName} ${user.lastName}` }],
       subject: 'Por favor confirma tu correo electrónico',
@@ -99,7 +101,7 @@ export class EmailProcessor {
     const message: EmailMessage = {
       from: {
         email: `${this.config.get(SecretsVaultKeys.EMAIL_USER)}`,
-        name: 'Universiteams',
+        name: emailFromName,
       },
       to: [{ email: user.email, name: `${user.firstName} ${user.lastName}` }],
       subject: '¿Olvidaste tu contraseña? Podemos ayudarte.',
@@ -145,7 +147,7 @@ export class EmailProcessor {
     const message: EmailMessage = {
       from: {
         email: `${this.config.get(SecretsVaultKeys.EMAIL_USER)}`,
-        name: 'Universiteams',
+        name: emailFromName,
       },
       to: enrolledAdmins.map((admin) => ({
         email: admin.user.email,
