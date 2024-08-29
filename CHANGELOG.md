@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.7.1] - 2024-08-29
+
+- Revert merge of pull request #189 from team120/188-only-allow-leaders-to-kick-or-promote-users
+
 ## [v1.7.0] - 2024-08-29
 
 - Merge pull request #190 from team120/999-check-and-modify-for-all-returning-api-messages-from-english-to-spanish
