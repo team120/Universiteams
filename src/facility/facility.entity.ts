@@ -6,11 +6,13 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { Institution } from '../institution/institution.entity';
 import { ResearchDepartment } from '../research-department/department.entity';
 
 @Entity()
+@Unique(['name', 'institution'])
 export class Facility {
   @PrimaryGeneratedColumn()
   id: number;

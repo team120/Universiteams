@@ -187,6 +187,18 @@ export class ProjectService {
       });
       if (!user) throw new NotFound(`User #${userId} not found`);
 
+      // Validate if there is an existing project with the same name
+      const existingProject = await queryRunner.manager
+        .getRepository(Project)
+        .findOne({
+          where: { name: createDto.name },
+        });
+      if (existingProject) {
+        throw new BadRequest(
+          'Ya existe un proyecto con el mismo nombre, por favor elige otro nombre',
+        );
+      }
+
       // If given, validate research department(s)
       if (
         Array.isArray(createDto.researchDepartmentsIds) &&
@@ -339,6 +351,17 @@ export class ProjectService {
     await queryRunner.startTransaction();
 
     try {
+      // Validate if there is an existing project with the same name
+      const existingProject = await queryRunner.manager
+        .getRepository(Project)
+        .findOne({
+          where: { name: updateDto.name },
+        });
+      if (existingProject) {
+        throw new BadRequest(
+          'Ya existe un proyecto con el mismo nombre, por favor elige otro nombre',
+        );
+      }
       // If given, validate research department(s)
       if (
         Array.isArray(updateDto.researchDepartmentsIds) &&

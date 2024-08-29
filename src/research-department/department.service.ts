@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import {
+  BadRequest,
   DbException,
   FKConstraintException,
   NotFound,
@@ -83,6 +84,13 @@ export class ResearchDepartmentService {
       ResearchDepartment,
       createDto,
     );
+    const existingDepartment = await this.departmentRepository.findOne({
+      where: { name: researchDepartment.name },
+    });
+    if (existingDepartment) {
+      throw new BadRequest('Ya existe un departamento con ese nombre');
+    }
+
     const createdDepartment = await this.departmentRepository
       .save({ facility: { id: facility.id }, ...researchDepartment })
       .catch((err: Error) => {
@@ -127,6 +135,12 @@ export class ResearchDepartmentService {
     });
     if (!researchDepartment)
       throw new NotFound('Research Department not found');
+    const existingDepartment = await this.departmentRepository.findOne({
+      where: { name: departmentDto.name },
+    });
+    if (existingDepartment) {
+      throw new BadRequest('Ya existe un departamento con ese nombre');
+    }
     await this.departmentRepository.update(departmentId, departmentDto);
     this.logger.debug(
       `Research Department #${researchDepartment.id} successfully updated`,

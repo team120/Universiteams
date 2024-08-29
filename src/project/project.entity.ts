@@ -38,7 +38,7 @@ export class Project {
   creationDate: string;
   @DeleteDateColumn()
   logicalDeleteDate: Date;
-  @Column()
+  @Column({ unique: true })
   name: string;
   @Column('text', { select: false, nullable: true })
   description: string;

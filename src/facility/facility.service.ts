@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import {
+  BadRequest,
   DbException,
   FKConstraintException,
   NotFound,
@@ -72,8 +73,14 @@ export class FacilityService {
       select: ['id'],
     });
     if (!institution) throw new NotFound('Institution not found');
-
     const facility = this.entityMapper.mapValue(Facility, createDto);
+    const existingFacility = await this.facilityRepository.findOne({
+      where: { name: facility.name },
+    });
+    if (existingFacility) {
+      throw new BadRequest('Ya existe una facilidad con ese nombre');
+    }
+
     const createdFacility = await this.facilityRepository
       .save({ institution: { id: institution.id }, ...facility })
       .catch((err: Error) => {
@@ -107,6 +114,12 @@ export class FacilityService {
       where: { id: facilityId },
     });
     if (!facility) throw new NotFound('Facility not found');
+    const existingFacility = await this.facilityRepository.findOne({
+      where: { name: facilityDto.name },
+    });
+    if (existingFacility) {
+      throw new BadRequest('Ya existe una facilidad con ese nombre');
+    }
     await this.facilityRepository.update(facilityId, facilityDto);
     this.logger.debug(`Facility #${facility.id} successfully updated`);
   }

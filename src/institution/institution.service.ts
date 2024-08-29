@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { QueryFailedError, Repository } from 'typeorm';
 import {
+  BadRequest,
   DbException,
   FKConstraintException,
   NotFound,
@@ -71,6 +72,12 @@ export class InstitutionService {
   ): Promise<InstitutionCreatedShowDto> {
     this.logger.debug('Create a new institution');
     const university = this.entityMapper.mapValue(Institution, createDto);
+    const existingUniversity = await this.institutionRepository.findOne({
+      where: { name: university.name },
+    });
+    if (existingUniversity) {
+      throw new BadRequest('Ya existe una institución con ese nombre');
+    }
     const createdUniversity = await this.institutionRepository
       .save(university)
       .catch((err: Error) => {
@@ -109,6 +116,12 @@ export class InstitutionService {
       where: { id: institutionId },
     });
     if (!institution) throw institutionNotFoundError;
+    const existingInstitution = await this.institutionRepository.findOne({
+      where: { name: institutionDto.name },
+    });
+    if (existingInstitution) {
+      throw new BadRequest('Ya existe una institución con ese nombre');
+    }
     await this.institutionRepository.update(institutionId, institutionDto);
     this.logger.debug(`Institution #${institution.id} successfully updated`);
   }
