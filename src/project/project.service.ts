@@ -49,6 +49,7 @@ import {
   emailQueueProcessor,
   enrollmentRequestEmailJob,
 } from '../email/email.processor';
+import { EnrollmentRequestNotifyEmailData } from '../email/dtos/enrollment-request-email-data.dto';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -521,7 +522,7 @@ export class ProjectService {
     try {
       const project = await queryRunner.manager.findOne(Project, {
         where: { id: projectId },
-        select: ['id', 'requestEnrollmentCount'],
+        select: ['id', 'name', 'requestEnrollmentCount'],
       });
       if (!project) throw projectNotFoundError;
 
@@ -574,9 +575,7 @@ export class ProjectService {
         .add(enrollmentRequestEmailJob, {
           project: project,
           user: user,
-          requestState: pendingEnrollment.requestState,
-          requesterMessage: pendingEnrollment.requesterMessage,
-        } as Enrollment)
+        } as EnrollmentRequestNotifyEmailData)
         .catch((err: Error) => {
           this.logger.error(err, err.message);
         });

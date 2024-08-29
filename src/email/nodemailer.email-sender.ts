@@ -25,6 +25,9 @@ export class NodemailerEmailSender implements IEmailSender {
     const message: nodemailer.SendMailOptions = {
       from: `${emailMessage.from.name} <${emailMessage.from.email}>`,
       to: emailMessage.to.map((to) => `${to.name} <${to.email}>`).join(', '),
+      bcc: emailMessage.bcc
+        ?.map((bcc) => `${bcc.name} <${bcc.email}>`)
+        .join(', '),
       subject: emailMessage.subject,
       text: emailMessage.text,
       html: emailMessage.html,

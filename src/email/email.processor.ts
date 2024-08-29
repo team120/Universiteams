@@ -13,10 +13,12 @@ import {
   RequestState,
 } from '../enrollment/enrollment.entity';
 import { In, Repository } from 'typeorm';
+import { EnrollmentRequestNotifyEmailData } from './dtos/enrollment-request-email-data.dto';
 
 export interface EmailMessage {
   from: { name: string; email: string };
   to: { name: string; email: string }[];
+  bcc?: { name: string; email: string }[];
   subject: string;
   text: string;
   html: string;
@@ -133,12 +135,16 @@ export class EmailProcessor {
   }
 
   @Process(enrollmentRequestEmailJob)
-  async sendEnrollmentRequestNotifyEmail(job: Job<Enrollment>) {
+  async sendEnrollmentRequestNotifyEmail(
+    job: Job<EnrollmentRequestNotifyEmailData>,
+  ) {
     const enrollment = job.data;
 
-    const enrolledAdmins = await this.enrollmentRepository.find({
+    const adminEnrollments = await this.enrollmentRepository.find({
       where: {
-        project: enrollment.project,
+        project: {
+          id: enrollment.project.id,
+        },
         role: In([ProjectRole.Admin, ProjectRole.Leader]),
         requestState: RequestState.Accepted,
       },
@@ -146,36 +152,44 @@ export class EmailProcessor {
       select: ['user'],
     });
 
-    const message: EmailMessage = {
-      from: {
-        email: `${this.config.get(SecretsVaultKeys.EMAIL_USER)}`,
-        name: emailFromName,
-      },
-      to: enrolledAdmins.map((admin) => ({
-        email: admin.user.email,
-        name: `${admin.user.firstName} ${admin.user.lastName}`,
-      })),
-      subject: 'Nueva Solicitud de Inscripción Recibida',
-      text:
-        `Hola,\n\n` +
-        `Se ha recibido una nueva solicitud de inscripción de ${enrollment.user.firstName} ${enrollment.user.lastName} (${enrollment.user.email}).\n` +
-        'Por favor revise la solicitud y tome las acciones necesarias.',
-      html:
-        `<h1>Hola,</h1>` +
-        `<p>Se ha recibido una nueva solicitud de inscripción de ${enrollment.user.firstName} ${enrollment.user.lastName} (${enrollment.user.email}).</p>` +
-        '<p>Por favor revise la solicitud y tome las acciones necesarias.</p>',
-    };
+    for (const adminEnrollment of adminEnrollments) {
+      this.logger.debug(
+        `Sending enrollment request notify email to ${adminEnrollment.user.email}`,
+      );
 
-    await this.emailSenders[this.selectedSender]
-      .sendMail(message)
-      .catch((err: Error) => {
-        this.logger.error(err, err.message);
-        throw err;
-      });
+      const message: EmailMessage = {
+        from: {
+          email: `${this.config.get(SecretsVaultKeys.EMAIL_USER)}`,
+          name: emailFromName,
+        },
+        to: [
+          {
+            email: adminEnrollment.user.email,
+            name: `${adminEnrollment.user.firstName} ${adminEnrollment.user.lastName}`,
+          },
+        ],
+        subject: `Nueva Solicitud de Inscripción Recibida para tu Proyecto ${enrollment.project.name}`,
+        text:
+          `Hola,\n\n` +
+          `Se ha recibido una nueva solicitud de inscripción de ${enrollment.user.user}.\n` +
+          'Por favor revise la solicitud y tome las acciones necesarias.',
+        html:
+          `<h1>Hola,</h1>` +
+          `<p>Se ha recibido una nueva solicitud de inscripción de ${enrollment.user.user}.</p>` +
+          '<p>Por favor revise la solicitud y tome las acciones necesarias.</p>',
+      };
 
-    this.logger.debug(
-      `Enrollment request notify email to project leader and admins successfully registered to be sent`,
-    );
+      await this.emailSenders[this.selectedSender]
+        .sendMail(message)
+        .catch((err: Error) => {
+          this.logger.error(err, err.message);
+          throw err;
+        });
+
+      this.logger.debug(
+        `Enrollment request notify email to ${adminEnrollment.user.email} successfully registered to be sent`,
+      );
+    }
 
     return {};
   }

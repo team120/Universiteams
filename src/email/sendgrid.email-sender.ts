@@ -18,6 +18,7 @@ export class SendGridEmailSender implements IEmailSender {
     const message: sendgrid.MailDataRequired = {
       from: emailMessage.from,
       to: emailMessage.to,
+      bcc: emailMessage.bcc,
       subject: emailMessage.subject,
       text: emailMessage.text,
       html: emailMessage.html,

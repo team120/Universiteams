@@ -19,6 +19,7 @@ export class SendInBlueEmailSender implements IEmailSender {
       sender: emailMessage.from,
       replyTo: emailMessage.from,
       to: emailMessage.to,
+      bcc: emailMessage.bcc,
       subject: emailMessage.subject,
       htmlContent: emailMessage.html,
       textContent: emailMessage.text,
