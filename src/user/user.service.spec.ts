@@ -63,7 +63,9 @@ describe('UserService', () => {
         userRepositoryMock.find.mockRejectedValue(new Error());
         await service.findAll().catch((error) => {
           expect(error).toBeInstanceOf(DbException);
-          expect(error.response).toBe('Internal Server Error');
+          expect(error.response).toBe(
+            'Ocurrió un error inesperado en el servidor',
+          );
         });
         expect(userRepositoryMock.find).toHaveBeenCalledTimes(1);
         expect.assertions(3);

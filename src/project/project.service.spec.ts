@@ -99,7 +99,9 @@ describe('ProjectService', () => {
         const anyId = 155;
         await service.findOne(anyId).catch((error) => {
           expect(error).toBeInstanceOf(DbException);
-          expect(error.response).toBe('Internal Server Error');
+          expect(error.response).toBe(
+            'Ocurrió un error inesperado en el servidor',
+          );
         });
         expect.assertions(2);
       });

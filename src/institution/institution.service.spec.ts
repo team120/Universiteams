@@ -53,7 +53,9 @@ describe('InstitutionService', () => {
         institutionRepositoryMock.find.mockRejectedValue(new Error());
         await service.find({}).catch((error) => {
           expect(error).toBeInstanceOf(DbException);
-          expect(error.response).toBe('Internal Server Error');
+          expect(error.response).toBe(
+            'Ocurrió un error inesperado en el servidor',
+          );
         });
         expect(institutionRepositoryMock.find).toHaveBeenCalledTimes(1);
         expect.assertions(3);
