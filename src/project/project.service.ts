@@ -797,7 +797,7 @@ export class ProjectService {
     });
 
     if (!project) {
-      throw new NotFound('Project not found');
+      throw new NotFound('Proyecto no encontrado');
     }
 
     const isUserAdmin = await this.isUserAdmin(currentUser, projectId);

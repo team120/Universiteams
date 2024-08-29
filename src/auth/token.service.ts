@@ -78,7 +78,7 @@ export class TokenService {
       this.logger.error(err);
 
       if (!(err instanceof jwt.TokenExpiredError))
-        throw new Unauthorized('Access token incorrectly formatted');
+        throw new Unauthorized('Token de acceso inválido');
 
       const token = this.entityMapper.mapValue(
         GeneralTokenDecoded,
@@ -119,7 +119,7 @@ export class TokenService {
       this.logger.error(err);
       return {
         isValid: false,
-        errorMessage: 'Refresh token is invalid',
+        errorMessage: 'Token refresh no es valido',
       };
     }
   }
