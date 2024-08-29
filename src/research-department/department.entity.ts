@@ -7,12 +7,14 @@ import {
   ManyToMany,
   CreateDateColumn,
   DeleteDateColumn,
+  Unique,
 } from 'typeorm';
 import { Project } from '../project/project.entity';
 import { UserAffiliation } from '../user-affiliation/user-affiliation.entity';
 import { Facility } from '../facility/facility.entity';
 
 @Entity()
+@Unique(['name', 'facility'])
 export class ResearchDepartment {
   @PrimaryGeneratedColumn()
   id: number;
@@ -20,9 +22,9 @@ export class ResearchDepartment {
   creationDate: string;
   @DeleteDateColumn()
   logicalDeleteDate: Date;
-  @Column({ unique: true })
+  @Column()
   name: string;
-  @Column({ unique: true })
+  @Column()
   abbreviation: string;
   @Column({ nullable: true })
   web: string;
