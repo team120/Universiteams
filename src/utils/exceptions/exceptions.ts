@@ -4,7 +4,10 @@ export const POSTGRES_FK_CONSTRAINT_ERROR = '23503';
 
 export class DbException extends HttpException {
   constructor(messageToLog?: string, stack?: string) {
-    super('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    super(
+      'Ocurrió un error inesperado en el servidor',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
     this.message = messageToLog;
     this.stack = stack;
   }
@@ -19,7 +22,7 @@ export class NotFound extends HttpException {
 
 export class Unauthorized extends HttpException {
   constructor(messageToLog?: string) {
-    super('Unauthorized', HttpStatus.UNAUTHORIZED);
+    super('No autorizado', HttpStatus.UNAUTHORIZED);
     this.message = messageToLog;
   }
 }

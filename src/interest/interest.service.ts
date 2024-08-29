@@ -48,7 +48,7 @@ export class InterestService {
       .catch((err: Error) => {
         throw new DbException(err.message, err.stack);
       });
-    if (!interest) throw new NotFound('Interest not found');
+    if (!interest) throw new NotFound('Interés no encontrado');
     await this.interestRepository.delete(interestId).catch((err: Error) => {
       throw new DbException(err.message, err.stack);
     });

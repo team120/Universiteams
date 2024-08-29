@@ -61,7 +61,7 @@ export class FacilityService {
         throw new DbException(err.message, err.stack);
       });
     if (!facility) {
-      throw new NotFound('Facility not found');
+      throw new NotFound('No se encontró esa regional');
     }
     return this.entityMapper.mapValue(FacilityShowDto, facility);
   }
@@ -72,7 +72,7 @@ export class FacilityService {
       where: { id: createDto.institutionId },
       select: ['id'],
     });
-    if (!institution) throw new NotFound('Institution not found');
+    if (!institution) throw new NotFound('Instución no encontrada');
     const facility = this.entityMapper.mapValue(Facility, createDto);
     const existingFacility = await this.facilityRepository.findOne({
       where: { name: facility.name },
@@ -94,7 +94,7 @@ export class FacilityService {
     const facility = await this.facilityRepository.findOne({
       where: { id: facilityId },
     });
-    if (!facility) throw new NotFound('Facility not found');
+    if (!facility) throw new NotFound('Regional no encontrada');
     await this.facilityRepository.delete(facilityId).catch((error: Error) => {
       if (error instanceof QueryFailedError) {
         if (error.driverError.code == POSTGRES_FK_CONSTRAINT_ERROR) {
@@ -113,7 +113,7 @@ export class FacilityService {
     const facility = await this.facilityRepository.findOne({
       where: { id: facilityId },
     });
-    if (!facility) throw new NotFound('Facility not found');
+    if (!facility) throw new NotFound('Regional no encontrada');
     const existingFacility = await this.facilityRepository.findOne({
       where: { name: facilityDto.name },
     });
