@@ -114,7 +114,7 @@ describe('auth', () => {
           .send({ email: 'user10045654@example.com', password: 'Password_1' })
           .then((res) => {
             expect(res.status).toBe(401);
-            expect(res.body.message).toBe('Unauthorized');
+            expect(res.body.message).toBe('No autorizado');
             expect(res.body.accessToken).not.toBeDefined();
           });
       });
@@ -126,7 +126,7 @@ describe('auth', () => {
           .send({ email: 'user1@example.com', password: 'password2' })
           .then((res) => {
             expect(res.status).toBe(401);
-            expect(res.body.message).toBe('Unauthorized');
+            expect(res.body.message).toBe('No autorizado');
             expect(res.body.accessToken).not.toBeDefined();
           });
       });
@@ -462,7 +462,7 @@ describe('auth', () => {
             });
 
           expect(res.status).toBe(401);
-          expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.message).toBe('No autorizado');
         });
         afterEach(() => {
           tokenExpirationTimesTesting.restore();
@@ -658,7 +658,7 @@ describe('auth', () => {
             });
 
           expect(res.status).toBe(401);
-          expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.message).toBe('No autorizado');
         });
         afterEach(() => {
           tokenExpirationTimesTesting.restore();
