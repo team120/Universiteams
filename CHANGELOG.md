@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.6.0] - 2024-08-29
+
+- Merge pull request #186 from team120/172-check-for-all-unique-fields-in-application-and-update-database
+- Merge pull request #185 from team120/feat/174-send-email-when-a-user-request-enrollment-to-a-project
+
 ## [v1.5.0] - 2024-08-28
 
 - Merge pull request #187 from team120/178-implement-a-specific-error-type-for-foreign-key-violations
