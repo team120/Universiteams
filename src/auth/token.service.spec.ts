@@ -76,7 +76,7 @@ describe('Token service', () => {
           service.checkAccessToken(token);
         } catch (err) {
           expect(err).toBeInstanceOf(Unauthorized);
-          expect(err.message).toBe('Access token incorrectly formatted');
+          expect(err.message).toBe('Token de acceso inválido');
         }
         expect.assertions(2);
       });
@@ -116,7 +116,7 @@ describe('Token service', () => {
         );
         const result = service.checkRefreshToken(token, user.refreshUserSecret);
         expect(result.isValid).toBe(false);
-        expect(result.errorMessage).toBe('Refresh token is invalid');
+        expect(result.errorMessage).toBe('El refresh token no es válido');
       });
     });
   });

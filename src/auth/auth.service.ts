@@ -58,10 +58,10 @@ export class AuthService {
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
-    if (!user) throw new Unauthorized('User not found');
+    if (!user) throw new Unauthorized('Usuario no encontrado');
 
     const hashMatches = await argon2.verify(user.password, loginDto.password);
-    if (!hashMatches) throw new Unauthorized('Password not matching');
+    if (!hashMatches) throw new Unauthorized('Las contraseñas no coinciden');
 
     return this.tokenService.generateTokens(user);
   }
@@ -299,7 +299,7 @@ export class AuthService {
     const user = await this.userRepo.findOne({
       where: { id: currentUser.id },
     });
-    if (!user) throw new NotFound('User not found');
+    if (!user) throw new NotFound('Usuario no encontrado');
     // Remove refreshUserSecret from user in db and then cookies from client side
     user.refreshUserSecret = uuid();
     await this.userRepo.save(user);

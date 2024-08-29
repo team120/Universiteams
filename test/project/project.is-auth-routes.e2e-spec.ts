@@ -69,7 +69,7 @@ describe('Project Actions (e2e)', () => {
                 .set('Cookie', accessTokenCookie);
               expect(secondfavoriteTryRes.status).toBe(400);
               expect(secondfavoriteTryRes.body.message).toBe(
-                'This project has been already favorited by this user',
+                'Este proyecto ya ha sido marcado como favorito por este usuario',
               );
 
               const favoriteCount = await conn.getRepository(Favorite).count({
@@ -108,7 +108,7 @@ describe('Project Actions (e2e)', () => {
               .set('Cookie', accessTokenCookie);
 
             expect(res.status).toBe(401);
-            expect(res.body.message).toBe('Unauthorized');
+            expect(res.body.message).toBe('No autorizado');
           });
           afterEach(async () => {
             const favorite = await conn.getRepository(Favorite).findOne({
@@ -124,7 +124,7 @@ describe('Project Actions (e2e)', () => {
             .post('/projects/1/favorite')
             .then((res) => {
               expect(res.status).toBe(401);
-              expect(res.body.message).toBe('Unauthorized');
+              expect(res.body.message).toBe('No autorizado');
             });
         });
       });
@@ -139,7 +139,7 @@ describe('Project Actions (e2e)', () => {
             .set('Cookie', cookie)
             .then((res) => {
               expect(res.status).toBe(401);
-              expect(res.body.message).toBe('Unauthorized');
+              expect(res.body.message).toBe('No autorizado');
             });
         });
       });
@@ -228,7 +228,7 @@ describe('Project Actions (e2e)', () => {
                   );
 
                 expect(res.status).toBe(401);
-                expect(res.body.message).toBe('Unauthorized');
+                expect(res.body.message).toBe('No autorizado');
               });
               afterEach(async () => {
                 const favorite = await conn.getRepository(Favorite).findOne({
@@ -262,7 +262,7 @@ describe('Project Actions (e2e)', () => {
                   .set('Cookie', expiredAccessTokenCookie)
                   .then((res) => {
                     expect(res.status).toBe(401);
-                    expect(res.body.message).toBe('Unauthorized');
+                    expect(res.body.message).toBe('No autorizado');
                   });
               });
             });
@@ -287,7 +287,7 @@ describe('Project Actions (e2e)', () => {
                   .set('Cookie', expiredRefreshTokenCookie)
                   .then((res) => {
                     expect(res.status).toBe(401);
-                    expect(res.body.message).toBe('Unauthorized');
+                    expect(res.body.message).toBe('No autorizado');
                   });
               });
             });
@@ -302,7 +302,7 @@ describe('Project Actions (e2e)', () => {
                   )
                   .then((res) => {
                     expect(res.status).toBe(401);
-                    expect(res.body.message).toBe('Unauthorized');
+                    expect(res.body.message).toBe('No autorizado');
                   });
               });
             });

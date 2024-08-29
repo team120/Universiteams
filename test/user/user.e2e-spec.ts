@@ -59,7 +59,7 @@ describe('User Actions (e2e)', () => {
         .set('Cookie', accessTokenCookie)
         .then((res) => {
           expect(res.status).toBe(401);
-          expect(res.body.message).toEqual('Unauthorized');
+          expect(res.body.message).toEqual('No autorizado');
         });
     });
   });

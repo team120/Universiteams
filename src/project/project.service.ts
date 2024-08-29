@@ -185,7 +185,7 @@ export class ProjectService {
         where: { id: userId },
         select: ['id'],
       });
-      if (!user) throw new NotFound(`User #${userId} not found`);
+      if (!user) throw new NotFound(`Usuario no encontrado`);
 
       // Validate if there is an existing project with the same name
       const existingProject = await queryRunner.manager
@@ -212,9 +212,7 @@ export class ProjectService {
               select: ['id'],
             });
           if (!departmentExists)
-            throw new NotFound(
-              `Research Department #${departmentId} not found`,
-            );
+            throw new NotFound(`Departamento #${departmentId} no encontrado`);
         }
       }
       // If given, validate interest(s)
@@ -228,7 +226,7 @@ export class ProjectService {
               select: ['id'],
             });
           if (!interestExists)
-            throw new NotFound(`Interest #${interestId} not found`);
+            throw new NotFound(`Interés #${interestId} no encontrado`);
           interestsIDsList.push(interestId);
         }
       }
@@ -252,7 +250,9 @@ export class ProjectService {
         }
       }
       if (interestsIDsList.length == 0) {
-        throw new BadRequest('At least one interest is required');
+        throw new BadRequest(
+          'Al menos un interés es requerido para crear un proyecto',
+        );
       }
       const newProject: Partial<Project> = {
         name: createDto.name,
@@ -321,7 +321,7 @@ export class ProjectService {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
     });
-    if (!project) throw new NotFound(`Project #${projectId} not found`);
+    if (!project) throw new NotFound(`Proyecto #${projectId} no encontrado`);
 
     // Perform softDelete instead of hard delete in order to be able to restore entity in the future
     await this.projectRepository.softDelete(projectId).catch((err: Error) => {
@@ -339,7 +339,7 @@ export class ProjectService {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
     });
-    if (!project) throw new NotFound(`Project #${projectId} not found`);
+    if (!project) throw new NotFound(`Proyecto #${projectId} no encontrado`);
     // Verify user role: Only leader is allowed to update the project
     if (!(await this.validateLeaderRoleInProject(currentUser.id, projectId))) {
       throw new Unauthorized(
@@ -376,9 +376,7 @@ export class ProjectService {
             },
           );
           if (!departmentExists)
-            throw new NotFound(
-              `Research Department #${departmentId} not found`,
-            );
+            throw new NotFound(`Departamento #${departmentId} no encontrado`);
         }
       }
 
@@ -391,7 +389,7 @@ export class ProjectService {
             select: ['id'],
           });
           if (!interestExists)
-            throw new NotFound(`Interest #${interestId} not found`);
+            throw new NotFound(`Interés #${interestId} no encontrado`);
           interestsIDsList.push(interestId);
         }
       }
@@ -469,7 +467,7 @@ export class ProjectService {
     });
     if (favorite)
       throw new BadRequest(
-        'This project has been already favorited by this user',
+        'Este proyecto ya ha sido marcado como favorito por este usuario',
       );
 
     await this.favoriteRepository
@@ -507,7 +505,9 @@ export class ProjectService {
       },
     });
     if (!favorite)
-      throw new BadRequest('This project has not been favorited by this user');
+      throw new BadRequest(
+        'Este proyecto no ha sido marcado como favorito por este usuario',
+      );
 
     await this.favoriteRepository
       .delete({
@@ -635,18 +635,18 @@ export class ProjectService {
       },
     });
     if (!enrollment)
-      throw new BadRequest('Este usuario no está inscrito en este proyecto');
+      throw new BadRequest('Este usuario no está inscripto en este proyecto');
 
     switch (enrollment.requestState) {
       case RequestState.Pending:
         break;
       case RequestState.Accepted:
         throw new BadRequest(
-          'Este usuario ya está inscrito en este proyecto, no se puede actualizar la solicitud',
+          'Este usuario ya está inscripto en este proyecto, no se puede actualizar la solicitud',
         );
       case RequestState.Unenrolled:
         throw new BadRequest(
-          'Este usuario no está inscrito en este proyecto, no se puede actualizar la solicitud',
+          'Este usuario no está inscripto en este proyecto, no se puede actualizar la solicitud',
         );
       case RequestState.Rejected:
         throw new BadRequest(
@@ -757,7 +757,7 @@ export class ProjectService {
       select: ['id', 'requestState'],
     });
     if (!enrollment)
-      throw new BadRequest('Este usuario no está inscrito en este proyecto');
+      throw new BadRequest('Este usuario no está inscripto en este proyecto');
 
     if (enrollment.requestState !== RequestState.Kicked) {
       throw new BadRequest(
@@ -787,7 +787,9 @@ export class ProjectService {
     currentUser: CurrentUserWithoutTokens,
   ): Promise<EnrollmentRequestsShowDto> {
     if (!currentUser)
-      throw new BadRequest('Current user is required to fetch enroll requests');
+      throw new BadRequest(
+        'El usuario actual es requerido para obtener las solicitudes de inscripción',
+      );
 
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
@@ -795,7 +797,7 @@ export class ProjectService {
     });
 
     if (!project) {
-      throw new NotFound('Project not found');
+      throw new NotFound('Proyecto no encontrado');
     }
 
     const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
@@ -856,7 +858,7 @@ export class ProjectService {
       },
     });
     if (!enrollment)
-      throw new BadRequest('This user is not enrolled in this project');
+      throw new BadRequest('Este usuario no está inscripto en este proyecto');
 
     // move to unenroll request state and add message
     await this.enrollmentRepository
@@ -1011,7 +1013,7 @@ export class ProjectService {
       select: ['id', 'requestState'],
     });
     if (!enrollment || enrollment.requestState !== RequestState.Accepted) {
-      throw new BadRequest('Este usuario no está inscrito en este proyecto');
+      throw new BadRequest('Este usuario no está inscripto en este proyecto');
     }
 
     // move to Kicked state
@@ -1074,7 +1076,7 @@ export class ProjectService {
       select: ['id', 'requestState'],
     });
     if (!enrollment || enrollment.requestState !== RequestState.Accepted) {
-      throw new BadRequest('Este usuario no está inscrito en este proyecto');
+      throw new BadRequest('Este usuario no está inscripto en este proyecto');
     }
 
     await this.enrollmentRepository

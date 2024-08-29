@@ -65,7 +65,7 @@ export class ResearchDepartmentService {
         throw new DbException(err.message, err.stack);
       });
     if (!department) {
-      throw new NotFound('Research Department not found');
+      throw new NotFound('Departamento no encontrado');
     }
     return this.entityMapper.mapValue(ResearchDepartmentShowDto, department);
   }
@@ -78,7 +78,7 @@ export class ResearchDepartmentService {
       where: { id: createDto.facilityId },
       select: ['id'],
     });
-    if (!facility) throw new NotFound('Facility not found');
+    if (!facility) throw new NotFound('Regional no encontrada');
 
     const researchDepartment = this.entityMapper.mapValue(
       ResearchDepartment,
@@ -107,7 +107,7 @@ export class ResearchDepartmentService {
     const department = await this.departmentRepository.findOne({
       where: { id: departmentId },
     });
-    if (!department) throw new NotFound('Research Department not found');
+    if (!department) throw new NotFound('Departamento no encontrado');
     await this.departmentRepository
       .delete(departmentId)
       .catch((error: Error) => {
@@ -133,8 +133,7 @@ export class ResearchDepartmentService {
     const researchDepartment = await this.departmentRepository.findOne({
       where: { id: departmentId },
     });
-    if (!researchDepartment)
-      throw new NotFound('Research Department not found');
+    if (!researchDepartment) throw new NotFound('Departamento no encontrado');
     const existingDepartment = await this.departmentRepository.findOne({
       where: { name: departmentDto.name },
     });

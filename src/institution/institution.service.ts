@@ -62,7 +62,7 @@ export class InstitutionService {
         throw new DbException(err.message, err.stack);
       });
     if (!institution) {
-      throw new NotFound('Institution not found');
+      throw new NotFound('Institucion no encontrada');
     }
     return this.entityMapper.mapValue(InstitutionShowDto, institution);
   }
