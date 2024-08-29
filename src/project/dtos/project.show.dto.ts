@@ -2,7 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { ResearchDepartmentShowDto } from '../../research-department/dtos/department.show.dto';
 import { EnrollmentShowDto } from '../../enrollment/dtos/enrollment.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
-import { ProjectType } from '../project.entity';
+import { ProjectLanguage, ProjectType } from '../project.entity';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { RequestState } from '../../enrollment/enrollment.entity';
 
@@ -14,6 +14,10 @@ export class ProjectInListDto {
   name: string;
   @Expose()
   type: ProjectType;
+  @Expose()
+  language: ProjectLanguage;
+  @Expose()
+  web: string;
   @ExposeType(Number)
   userCount: number;
   @ExposeType(Number)
