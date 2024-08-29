@@ -116,6 +116,7 @@ make format
 | :bone: HTML5 & CSS3               | The basics for the web!                        |
 | :art: Sass CSS                    | Simple stylization                             |
 | :framed_picture: Tabler Icons     | Icons Mantine-compatible                       |
+| :card_index: React-PDF            | Make customizable PDF reports                  |
 | :paintbrush: Prettier             | Nice code formatter                            |
 | :triangular_ruler: ESLint         | Complete linter with strict rules              |
 | :guide_dog: Husky                 | Git hooks to assure quality commits            |
