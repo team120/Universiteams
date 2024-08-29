@@ -116,7 +116,7 @@ describe('Token service', () => {
         );
         const result = service.checkRefreshToken(token, user.refreshUserSecret);
         expect(result.isValid).toBe(false);
-        expect(result.errorMessage).toBe('Token refresh no es valido');
+        expect(result.errorMessage).toBe('El refresh token no es válido');
       });
     });
   });

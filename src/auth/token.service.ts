@@ -119,7 +119,7 @@ export class TokenService {
       this.logger.error(err);
       return {
         isValid: false,
-        errorMessage: 'Token refresh no es valido',
+        errorMessage: 'El refresh token no es válido',
       };
     }
   }
