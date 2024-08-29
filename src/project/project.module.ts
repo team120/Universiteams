@@ -18,6 +18,8 @@ import { Enrollment } from '../enrollment/enrollment.entity';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
 import { User } from '../user/user.entity';
+import { BullModule } from '@nestjs/bull';
+import { emailQueueProcessor } from '../email/email.processor';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { User } from '../user/user.entity';
       Interest,
       User,
     ]),
+    BullModule.registerQueue({ name: emailQueueProcessor }),
     SerializationModule,
     AuthModule,
   ],

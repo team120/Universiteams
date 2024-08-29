@@ -7,9 +7,7 @@ export class CurrentUserDto {
   @Expose()
   id: number;
   @Expose()
-  firstName: string;
-  @Expose()
-  lastName: string;
+  user: string;
   @Expose()
   email: string;
   @ExposeType(Boolean)

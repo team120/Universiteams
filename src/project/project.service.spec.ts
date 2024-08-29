@@ -13,6 +13,8 @@ import { Enrollment } from '../enrollment/enrollment.entity';
 import { User } from '../user/user.entity';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
+import { getQueueToken } from '@nestjs/bull';
+import { emailQueueProcessor } from '../email/email.processor';
 
 describe('ProjectService', () => {
   let service: ProjectService;
@@ -48,6 +50,10 @@ describe('ProjectService', () => {
         },
         {
           provide: getRepositoryToken(Interest),
+          useValue: {},
+        },
+        {
+          provide: getQueueToken(emailQueueProcessor),
           useValue: {},
         },
         {

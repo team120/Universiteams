@@ -5,6 +5,8 @@ import { PinoLogger } from 'nestjs-pino';
 import { User } from '../user/user.entity';
 import { EmailProcessor, EMAIL_SENDERS } from './email.processor';
 import { VerificationMessagesService } from './verification-messages.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Enrollment } from '../enrollment/enrollment.entity';
 
 describe('Email processor', () => {
   let service: EmailProcessor;
@@ -28,6 +30,10 @@ describe('Email processor', () => {
         {
           provide: VerificationMessagesService,
           useValue: verificationMessagesServiceMock,
+        },
+        {
+          provide: getRepositoryToken(Enrollment),
+          useValue: {},
         },
         {
           provide: PinoLogger,

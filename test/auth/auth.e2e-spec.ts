@@ -83,8 +83,7 @@ describe('auth', () => {
         expect(res.status).toBe(200);
         expect(res.body.email).toBe('user1@example.com');
         expect(res.body.id).toBe(1);
-        expect(res.body.firstName).toBe('Juan');
-        expect(res.body.lastName).toBe('Rizzo');
+        expect(res.body.user).toBe('Juan Rizzo');
         expect(res.body.password).not.toBeDefined();
 
         const accessTokenCookie = setCookieParser.parse(
@@ -170,10 +169,12 @@ describe('auth', () => {
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledTimes(1);
           expect(emailSendersMock[0].sendMail).toHaveBeenCalledWith(
             expect.objectContaining({
-              to: {
-                email: registrationAttempt.email,
-                name: `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
-              },
+              to: [
+                {
+                  email: registrationAttempt.email,
+                  name: `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
+                },
+              ],
               subject: 'Por favor confirma tu correo electrónico',
               text: expect.not.stringContaining('link="undefined"'),
               html: expect.not.stringContaining('href="undefined"'),
@@ -184,8 +185,9 @@ describe('auth', () => {
           expect(res.status).toBe(201);
           expect(res.body.email).toBe(registrationAttempt.email);
           expect(res.body.id).toBeDefined();
-          expect(res.body.firstName).toBe(registrationAttempt.firstName);
-          expect(res.body.lastName).toBe(registrationAttempt.lastName);
+          expect(res.body.user).toBe(
+            `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
+          );
           expect(res.body.password).not.toBeDefined();
 
           const accessTokenCookie = setCookieParser.parse(
@@ -222,8 +224,9 @@ describe('auth', () => {
           expect(res.status).toBe(201);
           expect(res.body.email).toBe(registrationAttempt.email);
           expect(res.body.id).toBeDefined();
-          expect(res.body.firstName).toBe(registrationAttempt.firstName);
-          expect(res.body.lastName).toBe(registrationAttempt.lastName);
+          expect(res.body.user).toBe(
+            `${registrationAttempt.firstName} ${registrationAttempt.lastName}`,
+          );
           expect(res.body.password).not.toBeDefined();
 
           const accessTokenCookie = setCookieParser.parse(

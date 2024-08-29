@@ -35,7 +35,7 @@ export class TokenService {
       systemRole: user.systemRole,
     };
     return this.entityMapper.mapValue(CurrentUserDto, {
-      ...user,
+      ...tokenPayload,
       accessToken: `Bearer ${jwt.sign(
         tokenPayload,
         this.configService.get(SecretsVaultKeys.ACCESS_TOKEN),

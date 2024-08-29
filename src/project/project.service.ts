@@ -43,6 +43,13 @@ import { User } from '../user/user.entity';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
+import {
+  emailQueueProcessor,
+  enrollmentRequestEmailJob,
+} from '../email/email.processor';
+import { EnrollmentRequestNotifyEmailData } from '../email/dtos/enrollment-request-email-data.dto';
 
 const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
@@ -64,6 +71,8 @@ export class ProjectService {
     @InjectRepository(Enrollment)
     private readonly enrollmentRepository: Repository<Enrollment>,
     private readonly queryCreator: QueryCreator,
+    @InjectQueue(emailQueueProcessor)
+    private readonly emailQueue: Queue,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
   ) {
@@ -513,7 +522,7 @@ export class ProjectService {
     try {
       const project = await queryRunner.manager.findOne(Project, {
         where: { id: projectId },
-        select: ['id', 'requestEnrollmentCount'],
+        select: ['id', 'name', 'requestEnrollmentCount'],
       });
       if (!project) throw projectNotFoundError;
 
@@ -540,20 +549,20 @@ export class ProjectService {
           break;
       }
 
-      await queryRunner.manager.upsert(
-        Enrollment,
-        {
-          project: {
-            id: project.id,
-          },
-          user: {
-            id: user.id,
-          },
-          requestState: RequestState.Pending,
-          requesterMessage: enrollmentRequest.message,
+      const pendingEnrollment = {
+        project: {
+          id: project.id,
         },
-        ['project', 'user'],
-      );
+        user: {
+          id: user.id,
+        },
+        requestState: RequestState.Pending,
+        requesterMessage: enrollmentRequest.message,
+      };
+      await queryRunner.manager.upsert(Enrollment, pendingEnrollment, [
+        'project',
+        'user',
+      ]);
 
       // Increase project enrollment request count
       await queryRunner.manager.update(Project, project.id, {
@@ -561,6 +570,15 @@ export class ProjectService {
       });
 
       await queryRunner.commitTransaction();
+
+      await this.emailQueue
+        .add(enrollmentRequestEmailJob, {
+          project: project,
+          user: user,
+        } as EnrollmentRequestNotifyEmailData)
+        .catch((err: Error) => {
+          this.logger.error(err, err.message);
+        });
 
       this.logger.debug(
         `Project#${project.id} successfully requested enrollment by user#${user.id}`,

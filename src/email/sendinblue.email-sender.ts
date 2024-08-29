@@ -16,9 +16,10 @@ export class SendInBlueEmailSender implements IEmailSender {
   }
   async sendMail(emailMessage: EmailMessage): Promise<void> {
     const message: sendInBlue.SendSmtpEmail = {
-      sender: { email: emailMessage.from.email, name: emailMessage.from.name },
-      replyTo: { email: emailMessage.from.email, name: emailMessage.from.name },
-      to: [{ email: emailMessage.to.email, name: emailMessage.to.name }],
+      sender: emailMessage.from,
+      replyTo: emailMessage.from,
+      to: emailMessage.to,
+      bcc: emailMessage.bcc,
       subject: emailMessage.subject,
       htmlContent: emailMessage.html,
       textContent: emailMessage.text,
@@ -32,7 +33,9 @@ export class SendInBlueEmailSender implements IEmailSender {
     } catch (err) {
       this.logger.error(
         err as Error,
-        `SendInBlue failed to send this email ${emailMessage.subject} ${emailMessage.to.email}`,
+        `SendInBlue failed to send this email ${
+          emailMessage.subject
+        } ${emailMessage.to.map((to) => to.email).join(', ')}`,
       );
       throw err;
     }

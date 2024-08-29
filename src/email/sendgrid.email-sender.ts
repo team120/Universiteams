@@ -16,8 +16,9 @@ export class SendGridEmailSender implements IEmailSender {
 
   async sendMail(emailMessage: EmailMessage): Promise<void> {
     const message: sendgrid.MailDataRequired = {
-      from: `${emailMessage.from.name} <${emailMessage.from.email}>`,
-      to: `${emailMessage.to.name} <${emailMessage.to.email}>`,
+      from: emailMessage.from,
+      to: emailMessage.to,
+      bcc: emailMessage.bcc,
       subject: emailMessage.subject,
       text: emailMessage.text,
       html: emailMessage.html,
@@ -31,7 +32,9 @@ export class SendGridEmailSender implements IEmailSender {
     } catch (err) {
       this.logger.error(
         err as Error,
-        `SendGrid failed to send this email ${emailMessage.subject} ${emailMessage.to.email}`,
+        `SendGrid failed to send this email ${
+          emailMessage.subject
+        } ${emailMessage.to.map((to) => to.email).join(', ')}`,
       );
       throw err;
     }
