@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.5.0] - 2024-08-28
+
+- Merge pull request #187 from team120/178-implement-a-specific-error-type-for-foreign-key-violations
+- Merge pull request #171 from team120/138-admin-promotion-endpoint-superadmin-only
+- Merge pull request #170 from team120/157-remove-projectrefcounter-and-userrefcounter-from-interest-entity
+
 ## [v1.4.4] - 2024-08-20
 
 - Fix bug when registering a department in profile route
