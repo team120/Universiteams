@@ -4,10 +4,12 @@ import { PinoLogger } from 'nestjs-pino';
 import {
   BadRequest,
   DbException,
+  FKConstraintException,
   NotFound,
+  POSTGRES_FK_CONSTRAINT_ERROR,
 } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { ResearchDepartmentFindDto } from './dtos/department.find.dto';
 import { ResearchDepartment } from './department.entity';
 import {
@@ -106,9 +108,18 @@ export class ResearchDepartmentService {
       where: { id: departmentId },
     });
     if (!department) throw new NotFound('Research Department not found');
-    await this.departmentRepository.delete(departmentId).catch((err: Error) => {
-      throw new DbException(err.message, err.stack);
-    });
+    await this.departmentRepository
+      .delete(departmentId)
+      .catch((error: Error) => {
+        if (error instanceof QueryFailedError) {
+          if (error.driverError.code == POSTGRES_FK_CONSTRAINT_ERROR) {
+            throw new FKConstraintException(
+              'No se puede eliminar el departamento porque tiene proyectos asociados',
+            );
+          }
+        }
+        throw new DbException(error.message, error.stack);
+      });
     this.logger.debug(
       `Research Department #${department.id} successfully deleted`,
     );

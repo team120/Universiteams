@@ -4,10 +4,12 @@ import { PinoLogger } from 'nestjs-pino';
 import {
   BadRequest,
   DbException,
+  FKConstraintException,
   NotFound,
+  POSTGRES_FK_CONSTRAINT_ERROR,
 } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { Facility } from './facility.entity';
 import { FacilityShowDto } from './dtos/facility.show.dto';
 import { FacilityFindDto } from './dtos/facility.find.dto';
@@ -93,8 +95,15 @@ export class FacilityService {
       where: { id: facilityId },
     });
     if (!facility) throw new NotFound('Facility not found');
-    await this.facilityRepository.delete(facilityId).catch((err: Error) => {
-      throw new DbException(err.message, err.stack);
+    await this.facilityRepository.delete(facilityId).catch((error: Error) => {
+      if (error instanceof QueryFailedError) {
+        if (error.driverError.code == POSTGRES_FK_CONSTRAINT_ERROR) {
+          throw new FKConstraintException(
+            'No se puede eliminar la regional porque tiene departamentos asociados',
+          );
+        }
+      }
+      throw new DbException(error.message, error.stack);
     });
     this.logger.debug(`Facility #${facility.id} successfully deleted`);
   }

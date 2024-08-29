@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import {
   BadRequest,
   DbException,
+  FKConstraintException,
   NotFound,
+  POSTGRES_FK_CONSTRAINT_ERROR,
 } from '../utils/exceptions/exceptions';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import {
@@ -95,8 +97,15 @@ export class InstitutionService {
     if (!institution) throw institutionNotFoundError;
     await this.institutionRepository
       .delete(institutionId)
-      .catch((err: Error) => {
-        throw new DbException(err.message, err.stack);
+      .catch((error: Error) => {
+        if (error instanceof QueryFailedError) {
+          if (error.driverError.code == POSTGRES_FK_CONSTRAINT_ERROR) {
+            throw new FKConstraintException(
+              'No se puede eliminar la institución porque tiene regionales o departamentos asociados',
+            );
+          }
+        }
+        throw new DbException(error.message, error.stack);
       });
     this.logger.debug(`Institution #${institution.id} successfully deleted`);
   }

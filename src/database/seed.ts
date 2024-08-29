@@ -1164,6 +1164,16 @@ export class Seed {
           }),
         ],
       }),
+      universiteamsAdmin: this.usersRepo.create({
+        id: userIdGen.next(),
+        email: process.env.SUPER_ADMIN_EMAIL,
+        password: await argon2.hash(process.env.SUPER_ADMIN_PASSWORD),
+        firstName: 'Universiteams',
+        lastName: 'SuperAdmin',
+        isEmailVerified: true,
+        systemRole: UserSystemRole.SUPER_ADMIN,
+        interests: [interests.dataScience],
+      }),
     };
   }
 }
