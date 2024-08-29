@@ -989,8 +989,11 @@ export class ProjectService {
     });
     if (!project) throw projectNotFoundError;
 
-    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
-    if (!isUserAdmin) {
+    const isLeaderRole = await this.validateLeaderRoleInProject(
+      currentUser.id,
+      projectId,
+    );
+    if (!isLeaderRole) {
       throw new Unauthorized(
         'No tienes autorización para expulsar a los usuarios de este proyecto',
       );
@@ -1049,10 +1052,13 @@ export class ProjectService {
     });
     if (!project) throw projectNotFoundError;
 
-    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
-    if (!isUserAdmin) {
+    const isLeaderRole = await this.validateLeaderRoleInProject(
+      currentUser.id,
+      projectId,
+    );
+    if (!isLeaderRole) {
       throw new Unauthorized(
-        'No tienes autorización para cambiar los roles de los usuarios en este proyecto',
+        'No tienes autorización para cambiar los roles a los usuarios en este proyecto',
       );
     }
 
@@ -1114,7 +1120,9 @@ export class ProjectService {
       select: ['id', 'role'],
     });
     if (!userEnrollment)
-      throw new NotFound('User enrollment not found with those parameters');
+      throw new NotFound(
+        'No se encontro una inscripción para este usuario y proyecto',
+      );
     return userEnrollment.role === ProjectRole.Leader;
   }
 }
