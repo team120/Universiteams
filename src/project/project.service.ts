@@ -991,11 +991,8 @@ export class ProjectService {
     });
     if (!project) throw projectNotFoundError;
 
-    const isLeaderRole = await this.validateLeaderRoleInProject(
-      currentUser.id,
-      projectId,
-    );
-    if (!isLeaderRole) {
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
       throw new Unauthorized(
         'No tienes autorización para expulsar a los usuarios de este proyecto',
       );
@@ -1054,11 +1051,8 @@ export class ProjectService {
     });
     if (!project) throw projectNotFoundError;
 
-    const isLeaderRole = await this.validateLeaderRoleInProject(
-      currentUser.id,
-      projectId,
-    );
-    if (!isLeaderRole) {
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
       throw new Unauthorized(
         'No tienes autorización para cambiar los roles a los usuarios en este proyecto',
       );
