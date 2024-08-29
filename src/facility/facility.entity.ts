@@ -6,11 +6,13 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { Institution } from '../institution/institution.entity';
 import { ResearchDepartment } from '../research-department/department.entity';
 
 @Entity()
+@Unique(['name', 'institution'])
 export class Facility {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,9 +20,9 @@ export class Facility {
   creationDate: string;
   @DeleteDateColumn()
   logicalDeleteDate: Date;
-  @Column({ unique: true })
+  @Column()
   name: string;
-  @Column({ unique: true })
+  @Column()
   abbreviation: string;
   @Column({ nullable: true })
   web: string;
