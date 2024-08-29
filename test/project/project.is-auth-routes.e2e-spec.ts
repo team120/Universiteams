@@ -69,7 +69,7 @@ describe('Project Actions (e2e)', () => {
                 .set('Cookie', accessTokenCookie);
               expect(secondfavoriteTryRes.status).toBe(400);
               expect(secondfavoriteTryRes.body.message).toBe(
-                'This project has been already favorited by this user',
+                'Este proyecto ya ha sido marcado como favorito por este usuario',
               );
 
               const favoriteCount = await conn.getRepository(Favorite).count({
