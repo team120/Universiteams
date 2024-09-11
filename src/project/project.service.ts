@@ -35,7 +35,6 @@ import {
   EnrollmentRequestShowDto,
   EnrollmentRequestsShowDto,
 } from '../enrollment/dtos/enrollment-request.show.dto';
-import { EnrollmentRequestAdminDto as EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectShowCreatedDto } from './dtos/project.showCreated.dto';
@@ -905,7 +904,7 @@ export class ProjectService {
     projectId: number,
     userId: number,
     currentUser: CurrentUserWithoutTokens,
-    enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    enrollRequestAdminDto: EnrollmentRequestDto,
     action: 'approve' | 'reject',
   ) {
     const project = await this.projectRepository.findOne({
@@ -988,7 +987,7 @@ export class ProjectService {
     projectId: number,
     userId: number,
     currentUser: CurrentUserWithoutTokens,
-    enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },

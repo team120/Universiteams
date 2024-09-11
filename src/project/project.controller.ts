@@ -22,7 +22,6 @@ import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
 import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
-import { EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
@@ -191,7 +190,7 @@ export class ProjectController {
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
     await this.projectService.manageEnrollRequest(
       id,
@@ -209,7 +208,7 @@ export class ProjectController {
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
     await this.projectService.manageEnrollRequest(
       id,
@@ -227,7 +226,7 @@ export class ProjectController {
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
     await this.projectService.kickUser(
       id,
