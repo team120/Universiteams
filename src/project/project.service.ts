@@ -51,7 +51,7 @@ import {
 } from '../email/email.processor';
 import { EnrollmentRequestNotifyEmailData } from '../email/dtos/enrollment-request-email-data.dto';
 
-const projectNotFoundError = new NotFound(
+export const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
 );
 
@@ -561,12 +561,17 @@ export class ProjectService {
       });
       switch (enrollment?.requestState) {
         case RequestState.Pending:
+          if (enrollment.isLeaderToUserRequest) {
+            throw new BadRequest(
+              'Este usuario ya ha sido invitado para inscribirse en este proyecto',
+            );
+          }
           throw new BadRequest(
             'Este usuario ya ha solicitado la inscripción en este proyecto',
           );
         case RequestState.Accepted:
           throw new BadRequest(
-            'Este usuario ya está inscrito en este proyecto',
+            'Este usuario ya está inscripto en este proyecto',
           );
         default:
           break;
