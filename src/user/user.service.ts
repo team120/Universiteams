@@ -19,7 +19,7 @@ import {
   Unauthorized,
 } from '../utils/exceptions/exceptions';
 import { CurrentUserWithoutTokens } from 'src/auth/dtos/current-user.dto';
-import { EnrollmentRequestFromLeaderDto } from 'src/enrollment/dtos/enrollment.request.dto';
+import { EnrollmentRequestFromLeaderDto } from 'src/enrollment/dtos/enrollment-request.dto';
 import {
   Enrollment,
   ProjectRole,

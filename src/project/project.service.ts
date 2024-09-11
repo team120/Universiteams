@@ -29,7 +29,7 @@ import {
   ProjectRole,
   RequestState,
 } from '../enrollment/enrollment.entity';
-import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
+import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment-request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
 import {
   EnrollmentRequestShowDto,

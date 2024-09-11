@@ -20,7 +20,7 @@ import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectInListDto, ProjectsResult } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
-import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
+import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment-request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
