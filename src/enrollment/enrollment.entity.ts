@@ -38,6 +38,8 @@ export class Enrollment {
   requesterMessage: string;
   @Column({ nullable: true })
   adminMessage: string;
+  @Column({ default: false })
+  isLeaderToUserRequest: boolean;
   @ManyToOne(() => User, (user) => user.enrollments, {
     nullable: false,
     cascade: ['insert', 'update'],
