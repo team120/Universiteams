@@ -359,6 +359,161 @@ export class UserService {
     }
   }
 
+  async updateEnrollInvitation(
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+    enrollmentRequest: EnrollmentRequestFromLeaderDto,
+  ) {
+    const isUserAdmin = await this.isUserAdmin(
+      currentUser,
+      enrollmentRequest.projectId,
+    );
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para modificar invitaciones de inscripción a este proyecto',
+      );
+    }
+
+    const userToInvite = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!userToInvite) throw userNotFoundError;
+
+    const project = await this.projectRepository.findOne({
+      where: { id: enrollmentRequest.projectId },
+    });
+    if (!project) throw projectNotFoundError;
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: userToInvite.id,
+        },
+      },
+    });
+    if (!enrollment)
+      throw new BadRequest('Este usuario no está inscripto en este proyecto');
+
+    switch (enrollment.requestState) {
+      case RequestState.Pending:
+        break;
+      case RequestState.Accepted:
+        throw new BadRequest(
+          'Este usuario ya está inscripto en este proyecto, no se puede actualizar la solicitud',
+        );
+      case RequestState.Unenrolled:
+        throw new BadRequest(
+          'Este usuario no está inscripto en este proyecto, no se puede actualizar la solicitud',
+        );
+      case RequestState.Rejected:
+        throw new BadRequest(
+          'Esta solicitud ha sido rechazada, no se puede actualizar',
+        );
+      default:
+        throw new BadRequest('Estado de solicitud inválido');
+    }
+
+    await this.enrollmentRepository
+      .update(
+        {
+          project: {
+            id: project.id,
+          },
+          user: {
+            id: userToInvite.id,
+          },
+        },
+        {
+          requesterMessage: enrollmentRequest.message,
+        },
+      )
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+    this.logger.debug(
+      `User#${userToInvite.id}'s invitation to enroll was successfully updated by user#${currentUser.id} from project#${project.id}`,
+    );
+  }
+
+  async cancelEnrollInvitation(
+    userId: number,
+    projectId: number,
+    currentUser: CurrentUserWithoutTokens,
+  ) {
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para cancelar invitaciones de inscripción a este proyecto',
+      );
+    }
+
+    const userToInvite = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!userToInvite) throw userNotFoundError;
+
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id', 'requestEnrollmentCount'],
+    });
+    if (!project) throw projectNotFoundError;
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: userToInvite.id,
+        },
+      },
+      select: ['id', 'requestState'],
+    });
+    if (!enrollment)
+      throw new BadRequest('Este usuario no tiene una invitación pendiente');
+
+    if (
+      enrollment.requestState !== RequestState.Pending &&
+      enrollment.requestState !== RequestState.Rejected
+    ) {
+      throw new BadRequest('Esta invitación no está pendiente o fue rechazada');
+    }
+
+    await this.enrollmentRepository
+      .delete({
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: userToInvite.id,
+        },
+      })
+      .catch((e: Error) => {
+        throw new DbException(e.message, e.stack);
+      });
+
+    // Reduce user enrollment request invitation count only if the request was not rejected
+    // As rejected requests are not counted in the property
+    if (enrollment.requestState !== RequestState.Rejected) {
+      await this.userRepository
+        .update(userToInvite.id, {
+          requestEnrollmentInvitationsCount:
+            userToInvite.requestEnrollmentInvitationsCount - 1,
+        })
+        .catch((e: Error) => {
+          throw new DbException(e.message, e.stack);
+        });
+    }
+
+    this.logger.debug(
+      `Project#${project.id} successfully canceled enrollment by user#${currentUser.id}`,
+      `User#${userToInvite.id}'s invitation to enroll was successfully canceled by user#${currentUser.id} from project#${project.id}`,
+    );
+  }
+
   // To-do: unify this duplicated method with the one in project service
   private async isUserAdmin(
     currentUser: CurrentUserWithoutTokens,
