@@ -12,12 +12,48 @@ import {
   UserSortAttributes,
 } from './dtos/user.find.dto';
 import { QueryCreator } from './user.query.creator';
-import { DbException, NotFound } from '../utils/exceptions/exceptions';
+import {
+  BadRequest,
+  DbException,
+  NotFound,
+  Unauthorized,
+} from '../utils/exceptions/exceptions';
+import { CurrentUserWithoutTokens } from 'src/auth/dtos/current-user.dto';
+import { EnrollmentRequestFromLeaderDto } from 'src/enrollment/dtos/enrollment.request.dto';
+import {
+  Enrollment,
+  ProjectRole,
+  RequestState,
+} from 'src/enrollment/enrollment.entity';
+import { Project } from 'src/project/project.entity';
+import { projectNotFoundError } from 'src/project/project.service';
+import { EnrollmentInvitationNotifyEmailData } from 'src/email/dtos/enrollment-request-email-data.dto';
+import { InjectQueue } from '@nestjs/bull';
+import {
+  emailQueueProcessor,
+  enrollmentRequestEmailJob,
+} from 'src/email/email.processor';
+import { Queue } from 'bull';
+import {
+  EnrollmentRequestShowDto,
+  EnrollmentRequestsShowDto,
+} from 'src/enrollment/dtos/enrollment-request.show.dto';
+
+export const userNotFoundError = new NotFound(
+  'El ID no coincide con ningún usuario',
+);
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Project)
+    private readonly projectRepository: Repository<Project>,
+    @InjectRepository(Enrollment)
+    private readonly enrollmentRepository: Repository<Enrollment>,
+    @InjectQueue(emailQueueProcessor)
+    private readonly emailQueue: Queue,
     private readonly entityMapper: EntityMapperService,
     private readonly logger: PinoLogger,
     private readonly queryCreator: QueryCreator,
@@ -120,5 +156,129 @@ export class UserService {
       throw new DbException(e.message, e.stack);
     });
     return this.entityMapper.mapValue(UserShowDto, user);
+  }
+
+  async createEnrollInvitation(
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+    enrollmentRequest: EnrollmentRequestFromLeaderDto,
+  ) {
+    const queryRunner =
+      this.userRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
+
+    try {
+      const isUserAdmin = await this.isUserAdmin(
+        currentUser,
+        enrollmentRequest.projectId,
+      );
+      if (!isUserAdmin) {
+        throw new Unauthorized(
+          'No tienes autorización para enviar invitaciones de inscripción a este proyecto',
+        );
+      }
+
+      const userToInvite = await queryRunner.manager.findOne(User, {
+        where: { id: userId },
+        select: ['id', 'firstName', 'lastName'],
+      });
+      if (!userToInvite) throw userNotFoundError;
+
+      const project = await queryRunner.manager.findOne(Project, {
+        where: { id: enrollmentRequest.projectId },
+        select: ['id', 'name', 'requestEnrollmentCount'],
+      });
+      if (!project) throw projectNotFoundError;
+
+      const enrollment = await queryRunner.manager.findOne(Enrollment, {
+        where: {
+          project: {
+            id: project.id,
+          },
+          user: {
+            id: userToInvite.id,
+          },
+        },
+      });
+      switch (enrollment?.requestState) {
+        case RequestState.Pending:
+          if (enrollment.isLeaderToUserRequest) {
+            throw new BadRequest(
+              'Este usuario ya ha sido invitado para inscribirse en este proyecto',
+            );
+          }
+          throw new BadRequest(
+            'Este usuario ya ha solicitado la inscripción en este proyecto',
+          );
+        case RequestState.Accepted:
+          throw new BadRequest(
+            'Este usuario ya está inscripto en este proyecto',
+          );
+        default:
+          break;
+      }
+
+      const pendingEnrollment = {
+        project: {
+          id: project.id,
+        },
+        user: {
+          id: userToInvite.id,
+        },
+        requestState: RequestState.Pending,
+        requesterMessage: enrollmentRequest.message,
+        isLeaderToUserRequest: true,
+      };
+      await queryRunner.manager.upsert(Enrollment, pendingEnrollment, [
+        'project',
+        'user',
+      ]);
+
+      // Increase user enrollment invitations count
+      await queryRunner.manager.update(User, userToInvite.id, {
+        requestEnrollmentInvitationsCount:
+          userToInvite.requestEnrollmentInvitationsCount + 1,
+      });
+
+      await queryRunner.commitTransaction();
+
+      await this.emailQueue
+        .add(enrollmentRequestEmailJob, {
+          project: project,
+          user: userToInvite,
+        } as EnrollmentInvitationNotifyEmailData)
+        .catch((err: Error) => {
+          this.logger.error(err, err.message);
+        });
+
+      this.logger.debug(
+        `User#${userToInvite.id} was successfully invited to enroll by user#${currentUser.id} from project#${project.id}`,
+      );
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new DbException(err.message, err.stack);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // To-do: unify this duplicated method with the one in project service
+  private async isUserAdmin(
+    currentUser: CurrentUserWithoutTokens,
+    projectId: number,
+  ) {
+    const currentUserEnrollment = await this.enrollmentRepository
+      .createQueryBuilder('enrollment')
+      .select('enrollment.id')
+      .where('enrollment.userId = :userId', { userId: currentUser.id })
+      .andWhere('enrollment.projectId = :projectId', { projectId })
+      .andWhere('enrollment.role IN (:...roles)', {
+        roles: [ProjectRole.Admin, ProjectRole.Leader],
+      })
+      .getOne();
+
+    if (!currentUserEnrollment) return false;
+
+    return true;
   }
 }
