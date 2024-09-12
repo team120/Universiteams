@@ -18,7 +18,7 @@ import { UserFindDto } from './dtos/user.find.dto';
 import { UsersResult } from './dtos/user.show.dto';
 import { IsSuperAdminGuard } from '../auth/is.super.admin.guard';
 import { IsEmailVerifiedGuard } from '../auth/is-email-verified.guard';
-import { EnrollmentRequestFromLeaderDto } from '../enrollment/dtos/enrollment-request.dto';
+import { EnrollmentRequestFromRequesterDto } from '../enrollment/dtos/enrollment-request.dto';
 import { RequestWithUser } from '../utils/request-with-user';
 
 @ApiTags('users')
@@ -71,7 +71,7 @@ export class UserController {
   async enroll(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
-    @Body() enrollmentRequest: EnrollmentRequestFromLeaderDto,
+    @Body() enrollmentRequest: EnrollmentRequestFromRequesterDto,
   ) {
     await this.userService.createEnrollInvitation(
       id,
@@ -86,7 +86,7 @@ export class UserController {
   async updateEnrollRequest(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
-    @Body() enrollmentRequest: EnrollmentRequestFromLeaderDto,
+    @Body() enrollmentRequest: EnrollmentRequestFromRequesterDto,
   ) {
     await this.userService.updateEnrollInvitation(
       id,

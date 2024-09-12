@@ -17,7 +17,7 @@ export class EnrollmentRequestDto {
 }
 
 @Exclude()
-export class EnrollmentRequestFromLeaderDto {
+export class EnrollmentRequestFromRequesterDto {
   @Expose()
   @IsOptional()
   @Transform((params: TransformFnParams) => sanitizeHtml(params.value))

@@ -21,7 +21,7 @@ import {
   Unauthorized,
 } from '../utils/exceptions/exceptions';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
-import { EnrollmentRequestFromLeaderDto } from '../enrollment/dtos/enrollment-request.dto';
+import { EnrollmentRequestFromRequesterDto } from '../enrollment/dtos/enrollment-request.dto';
 import {
   Enrollment,
   ProjectRole,
@@ -258,7 +258,7 @@ export class UserService {
   async createEnrollInvitation(
     userId: number,
     currentUser: CurrentUserWithoutTokens,
-    enrollmentRequest: EnrollmentRequestFromLeaderDto,
+    enrollmentRequest: EnrollmentRequestFromRequesterDto,
   ) {
     const queryRunner =
       this.userRepository.manager.connection.createQueryRunner();
@@ -372,7 +372,7 @@ export class UserService {
   async updateEnrollInvitation(
     userId: number,
     currentUser: CurrentUserWithoutTokens,
-    enrollmentRequest: EnrollmentRequestFromLeaderDto,
+    enrollmentRequest: EnrollmentRequestFromRequesterDto,
   ) {
     const isUserAdmin = await this.isUserAdmin(
       currentUser,
