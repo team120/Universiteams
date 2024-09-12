@@ -1,6 +1,6 @@
 import { OmitType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, Min, MinLength } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { AscendingDescendingOrder } from '../../utils/sorting';
 
@@ -12,6 +12,10 @@ export enum UserSortByProperty {
 
 @Exclude()
 export class UserFindDto {
+  @Expose()
+  @IsOptional()
+  @MinLength(3)
+  generalSearch?: string;
   @IsOptional()
   @IsNumber()
   @ExposeType(Number)

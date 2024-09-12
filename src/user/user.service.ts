@@ -59,7 +59,14 @@ export class UserService {
     );
 
     const query = this.queryCreator.initialQuery();
-    const queryWithFilters = this.queryCreator.applyFilters(filters, query);
+    const queryWithSearch = this.queryCreator.applyUserTextSearch(
+      filters,
+      query,
+    );
+    const queryWithFilters = this.queryCreator.applyFilters(
+      filters,
+      queryWithSearch,
+    );
     const usersCount = await queryWithFilters.getCount();
     const queryWithPagination = this.queryCreator.applyPaginations(
       queryWithFilters,
