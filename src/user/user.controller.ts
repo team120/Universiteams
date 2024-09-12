@@ -54,19 +54,6 @@ export class UserController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Get(':id/enroll-requests')
-  async getEnrollRequestsForAnother(
-    @Req() request: RequestWithUser,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    return this.userService.getEnrollInvitationsForAnother(
-      id,
-      request.currentUser,
-    );
-  }
-
-  @UseGuards(...IsEmailVerifiedGuard)
-  @ApiCookieAuth()
   @Post(':id/enroll-request')
   async enroll(
     @Req() request: RequestWithUser,

@@ -208,53 +208,6 @@ export class UserService {
     };
   }
 
-  async getEnrollInvitationsForAnother(
-    userId: number,
-    currentUser: CurrentUserWithoutTokens,
-  ): Promise<EnrollmentRequestsShowDto> {
-    if (!currentUser)
-      throw new BadRequest(
-        'El usuario actual es requerido para obtener las solicitudes de inscripción',
-      );
-
-    const userToInvite = await this.userRepository.findOne({
-      where: { id: userId },
-      select: ['id', 'firstName', 'lastName'],
-    });
-    if (!userToInvite) throw userNotFoundError;
-
-    // To-do: debería validarse que el admin solo vea de este user las invitaciones de solicitud de proyectos que él pertenece
-
-    const enrollments = await this.enrollmentRepository.find({
-      where: {
-        user: {
-          id: userId,
-        },
-        requestState: RequestState.Pending,
-      },
-      relations: [
-        'user',
-        'user.interests',
-        'user.userAffiliations',
-        'user.userAffiliations.researchDepartment',
-        'user.userAffiliations.researchDepartment.facility',
-        'user.userAffiliations.researchDepartment.facility.institution',
-      ],
-    });
-    this.logger.debug(
-      `User#${userId}'s enroll invitations were successfully fetched by User#${currentUser.id}`,
-    );
-    this.logger.debug(enrollments);
-
-    return {
-      enrollmentRequests: this.entityMapper.mapArray(
-        EnrollmentRequestShowDto,
-        enrollments,
-      ),
-      requestEnrollmentCount: userToInvite.requestEnrollmentInvitationsCount,
-    };
-  }
-
   async createEnrollInvitation(
     userId: number,
     currentUser: CurrentUserWithoutTokens,
