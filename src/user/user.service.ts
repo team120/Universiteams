@@ -299,7 +299,7 @@ export class UserService {
       });
       switch (enrollment?.requestState) {
         case RequestState.Pending:
-          if (enrollment.isLeaderToUserRequest) {
+          if (enrollment.sender !== null && enrollment.sender !== undefined) {
             throw new BadRequest(
               'Este usuario ya ha sido invitado para inscribirse en este proyecto',
             );
@@ -315,26 +315,36 @@ export class UserService {
           break;
       }
 
-      const pendingEnrollment = {
+      const pendingEnrollment: Partial<Enrollment> = {
         project: {
           id: project.id,
-        },
+        } as Project,
         user: {
           id: userToInvite.id,
-        },
+        } as User,
+        sender: {
+          id: currentUser.id,
+        } as User,
         requestState: RequestState.Pending,
         requesterMessage: enrollmentRequest.message,
-        isLeaderToUserRequest: true,
       };
       await queryRunner.manager.upsert(Enrollment, pendingEnrollment, [
         'project',
         'user',
       ]);
 
+      // Validate and set enrollment invitations count
+      let invitations = 1;
+      if (
+        userToInvite.requestEnrollmentInvitationsCount !== null &&
+        !isNaN(userToInvite.requestEnrollmentInvitationsCount)
+      ) {
+        invitations = userToInvite.requestEnrollmentInvitationsCount + 1;
+      }
+
       // Increase user enrollment invitations count
       await queryRunner.manager.update(User, userToInvite.id, {
-        requestEnrollmentInvitationsCount:
-          userToInvite.requestEnrollmentInvitationsCount + 1,
+        requestEnrollmentInvitationsCount: invitations,
       });
 
       await queryRunner.commitTransaction();
@@ -353,7 +363,7 @@ export class UserService {
       );
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      throw new DbException(err.message, err.stack);
+      throw err;
     } finally {
       await queryRunner.release();
     }
@@ -431,7 +441,7 @@ export class UserService {
         },
       )
       .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
+        throw e;
       });
     this.logger.debug(
       `User#${userToInvite.id}'s invitation to enroll was successfully updated by user#${currentUser.id} from project#${project.id}`,
@@ -492,19 +502,27 @@ export class UserService {
         },
       })
       .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
+        throw e;
       });
+
+    // Validate and set enrollment invitations count
+    let invitations = 0;
+    if (
+      userToInvite.requestEnrollmentInvitationsCount !== null &&
+      !isNaN(userToInvite.requestEnrollmentInvitationsCount)
+    ) {
+      invitations = userToInvite.requestEnrollmentInvitationsCount - 1;
+    }
 
     // Reduce user enrollment request invitation count only if the request was not rejected
     // As rejected requests are not counted in the property
     if (enrollment.requestState !== RequestState.Rejected) {
       await this.userRepository
         .update(userToInvite.id, {
-          requestEnrollmentInvitationsCount:
-            userToInvite.requestEnrollmentInvitationsCount - 1,
+          requestEnrollmentInvitationsCount: invitations,
         })
         .catch((e: Error) => {
-          throw new DbException(e.message, e.stack);
+          throw e;
         });
     }
 

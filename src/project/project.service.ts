@@ -560,7 +560,7 @@ export class ProjectService {
       });
       switch (enrollment?.requestState) {
         case RequestState.Pending:
-          if (enrollment.isLeaderToUserRequest) {
+          if (enrollment.sender !== null && enrollment.sender !== undefined) {
             throw new BadRequest(
               'Este usuario ya ha sido invitado para inscribirse en este proyecto',
             );

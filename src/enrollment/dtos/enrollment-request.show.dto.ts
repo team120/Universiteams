@@ -12,8 +12,8 @@ export class EnrollmentRequestShowDto {
   creationDate: Date;
   @ExposeType(UserShowDto)
   user: UserShowDto;
-  @ExposeType(Boolean)
-  isLeaderToUserRequest: boolean;
+  @ExposeType(UserShowDto)
+  sender: UserShowDto;
 }
 
 @Exclude()

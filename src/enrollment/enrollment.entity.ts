@@ -38,14 +38,19 @@ export class Enrollment {
   requesterMessage: string;
   @Column({ nullable: true })
   adminMessage: string;
-  @Column({ default: false })
-  isLeaderToUserRequest: boolean;
   @ManyToOne(() => User, (user) => user.enrollments, {
     nullable: false,
     cascade: ['insert', 'update'],
     onUpdate: 'CASCADE',
   })
   user: User;
+  // An admin or leader can invite a user to a project
+  @ManyToOne(() => User, (user) => user.enrollments, {
+    nullable: true,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
+  sender: User;
   @ManyToOne(() => Project, (project) => project.enrollments, {
     nullable: false,
     cascade: ['insert', 'update'],

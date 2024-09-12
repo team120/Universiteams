@@ -38,7 +38,7 @@ export class User {
   firstName: string;
   @Column()
   lastName: string;
-  @Column({ select: false, default: 0 })
+  @Column({ default: 0 })
   requestEnrollmentInvitationsCount: number;
   @Column({ unique: true })
   @Generated('uuid')
