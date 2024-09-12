@@ -17,9 +17,9 @@ import { AppValidationPipe } from '../utils/validation.pipe';
 import { UserFindDto } from './dtos/user.find.dto';
 import { UsersResult } from './dtos/user.show.dto';
 import { IsSuperAdminGuard } from '../auth/is.super.admin.guard';
-import { IsEmailVerifiedGuard } from 'src/auth/is-email-verified.guard';
-import { EnrollmentRequestFromLeaderDto } from 'src/enrollment/dtos/enrollment-request.dto';
-import { RequestWithUser } from 'src/utils/request-with-user';
+import { IsEmailVerifiedGuard } from '../auth/is-email-verified.guard';
+import { EnrollmentRequestFromLeaderDto } from '../enrollment/dtos/enrollment-request.dto';
+import { RequestWithUser } from '../utils/request-with-user';
 
 @ApiTags('users')
 @Controller('users')

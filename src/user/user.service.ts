@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PinoLogger } from 'nestjs-pino';
-import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
+import { InjectQueue } from '@nestjs/bull';
 import { Repository } from 'typeorm';
+import { PinoLogger } from 'nestjs-pino';
+import { Queue } from 'bull';
+import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { UserShowDto, UsersResult } from './dtos/user.show.dto';
 import { User, UserSystemRole } from './user.entity';
 import {
@@ -18,26 +20,24 @@ import {
   NotFound,
   Unauthorized,
 } from '../utils/exceptions/exceptions';
-import { CurrentUserWithoutTokens } from 'src/auth/dtos/current-user.dto';
-import { EnrollmentRequestFromLeaderDto } from 'src/enrollment/dtos/enrollment-request.dto';
+import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
+import { EnrollmentRequestFromLeaderDto } from '../enrollment/dtos/enrollment-request.dto';
 import {
   Enrollment,
   ProjectRole,
   RequestState,
-} from 'src/enrollment/enrollment.entity';
-import { Project } from 'src/project/project.entity';
-import { projectNotFoundError } from 'src/project/project.service';
-import { EnrollmentInvitationNotifyEmailData } from 'src/email/dtos/enrollment-request-email-data.dto';
-import { InjectQueue } from '@nestjs/bull';
+} from '../enrollment/enrollment.entity';
+import { Project } from '../project/project.entity';
+import { projectNotFoundError } from '../project/project.service';
+import { EnrollmentInvitationNotifyEmailData } from '../email/dtos/enrollment-request-email-data.dto';
 import {
   emailQueueProcessor,
   enrollmentRequestEmailJob,
-} from 'src/email/email.processor';
-import { Queue } from 'bull';
+} from '../email/email.processor';
 import {
   EnrollmentRequestShowDto,
   EnrollmentRequestsShowDto,
-} from 'src/enrollment/dtos/enrollment-request.show.dto';
+} from '../enrollment/dtos/enrollment-request.show.dto';
 
 export const userNotFoundError = new NotFound(
   'El ID no coincide con ningún usuario',
