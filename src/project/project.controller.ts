@@ -221,16 +221,32 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Put(':id/enroll-requests/:userId/decline')
-  async declineEnrollRequest(
+  @Put(':id/invitation/accept')
+  async acceptEnrollRequest(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
-    @Param('userId', ParseIntPipe) userId: number,
     @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
     await this.projectService.manageEnrollRequest(
       id,
-      userId,
+      request.currentUser.id,
+      request.currentUser,
+      enrollRequestAdminDto,
+      'approve',
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/invitation/decline')
+  async declineEnrollRequest(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
+  ) {
+    await this.projectService.manageEnrollRequest(
+      id,
+      request.currentUser.id,
       request.currentUser,
       enrollRequestAdminDto,
       'decline',
