@@ -221,7 +221,7 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Put(':id/enroll-requests/:userId/approve')
+  @Put(':id/enroll-requests/:userId/decline')
   async declineEnrollRequest(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
