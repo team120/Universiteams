@@ -18,7 +18,7 @@ import { UserFindDto } from './dtos/user.find.dto';
 import { UsersResult } from './dtos/user.show.dto';
 import { IsSuperAdminGuard } from '../auth/is.super.admin.guard';
 import { IsEmailVerifiedGuard } from '../auth/is-email-verified.guard';
-import { EnrollmentRequestFromRequesterDto } from '../enrollment/dtos/enrollment-request.dto';
+import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment-request.dto';
 import { RequestWithUser } from '../utils/request-with-user';
 
 @ApiTags('users')
@@ -47,14 +47,16 @@ export class UserController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Post(':id/enroll-request')
+  @Post(':id/invitation/:projectId')
   async enroll(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
-    @Body() enrollmentRequest: EnrollmentRequestFromRequesterDto,
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Body() enrollmentRequest: EnrollmentRequestDto,
   ) {
     await this.userService.createEnrollInvitation(
       id,
+      projectId,
       request.currentUser,
       enrollmentRequest,
     );
@@ -62,14 +64,16 @@ export class UserController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Put(':id/enroll-request')
+  @Put(':id/invitation/:projectId')
   async updateEnrollRequest(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
-    @Body() enrollmentRequest: EnrollmentRequestFromRequesterDto,
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Body() enrollmentRequest: EnrollmentRequestDto,
   ) {
     await this.userService.updateEnrollInvitation(
       id,
+      projectId,
       request.currentUser,
       enrollmentRequest,
     );
@@ -77,7 +81,7 @@ export class UserController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Delete(':id/enroll-request/:projectId')
+  @Delete(':id/invitation/:projectId')
   async cancelEnrollRequest(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,

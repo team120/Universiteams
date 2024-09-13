@@ -21,7 +21,7 @@ import {
   Unauthorized,
 } from '../utils/exceptions/exceptions';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
-import { EnrollmentRequestFromRequesterDto } from '../enrollment/dtos/enrollment-request.dto';
+import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment-request.dto';
 import {
   Enrollment,
   ProjectRole,
@@ -156,18 +156,16 @@ export class UserService {
 
   async createEnrollInvitation(
     userId: number,
+    projectId: number,
     currentUser: CurrentUserWithoutTokens,
-    enrollmentRequest: EnrollmentRequestFromRequesterDto,
+    enrollmentRequest: EnrollmentRequestDto,
   ) {
     const queryRunner =
       this.userRepository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
 
     try {
-      const isUserAdmin = await this.isUserAdmin(
-        currentUser,
-        enrollmentRequest.projectId,
-      );
+      const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
       if (!isUserAdmin) {
         throw new Unauthorized(
           'No tienes autorización para enviar invitaciones de inscripción a este proyecto',
@@ -181,7 +179,7 @@ export class UserService {
       if (!userToInvite) throw userNotFoundError;
 
       const project = await queryRunner.manager.findOne(Project, {
-        where: { id: enrollmentRequest.projectId },
+        where: { id: projectId },
         select: ['id', 'name', 'requestEnrollmentCount'],
       });
       if (!project) throw projectNotFoundError;
@@ -270,13 +268,11 @@ export class UserService {
 
   async updateEnrollInvitation(
     userId: number,
+    projectId: number,
     currentUser: CurrentUserWithoutTokens,
-    enrollmentRequest: EnrollmentRequestFromRequesterDto,
+    enrollmentRequest: EnrollmentRequestDto,
   ) {
-    const isUserAdmin = await this.isUserAdmin(
-      currentUser,
-      enrollmentRequest.projectId,
-    );
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
     if (!isUserAdmin) {
       throw new Unauthorized(
         'No tienes autorización para modificar invitaciones de inscripción a este proyecto',
@@ -289,7 +285,7 @@ export class UserService {
     if (!userToInvite) throw userNotFoundError;
 
     const project = await this.projectRepository.findOne({
-      where: { id: enrollmentRequest.projectId },
+      where: { id: projectId },
     });
     if (!project) throw projectNotFoundError;
 

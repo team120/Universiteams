@@ -15,13 +15,3 @@ export class EnrollmentRequestDto {
   @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
   message?: string;
 }
-
-@Exclude()
-export class EnrollmentRequestFromRequesterDto {
-  @Expose()
-  @IsOptional()
-  @Transform((params: TransformFnParams) => sanitizeHtml(params.value))
-  message?: string;
-  @ExposeType(Number)
-  projectId: number;
-}
