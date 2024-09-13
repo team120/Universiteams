@@ -22,6 +22,7 @@ import {
   requestEnrollmentCountColumn,
   requestStateColumn,
   requesterMessageColumn,
+  senderNameColumn,
 } from './project.entity';
 import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
@@ -353,6 +354,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
         .addSelect('enrollment.adminMessage', adminMessageColumn)
         .addSelect(requestEnrollmentCountSelect, requestEnrollmentCountColumn)
+        .addSelect('concat(sender."firstName",\' \',sender."lastName")', senderNameColumn)
         .leftJoin(
           'project.favorites',
           'favorite',
@@ -363,12 +365,19 @@ export class QueryCreator extends EntityQueryCreator<Project> {
           'enrollment',
           'enrollment.userId = :currentUserId',
         )
+        .leftJoin(
+          'enrollment.sender',
+          'sender',
+          'enrollment.senderId = :currentUserId',
+        )
         .groupBy('project.id')
         .addGroupBy('favorite.userId')
         .addGroupBy('enrollment.requestState')
         .addGroupBy('enrollment.requesterMessage')
         .addGroupBy('enrollment.adminMessage')
         .addGroupBy('enrollment.role')
+        .addGroupBy('sender."firstName"')
+        .addGroupBy('sender."lastName"')
         .setParameter('currentUserId', currentUser.id)
         .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
 
@@ -393,6 +402,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addSelect(`"currentUserData"."${requesterMessageColumn}"`)
         .addSelect(`"currentUserData"."${adminMessageColumn}"`)
         .addSelect(`"currentUserData"."${requestEnrollmentCountColumn}"`)
+        .addSelect(`"currentUserData"."${senderNameColumn}"`)
         .setParameters(subqueryCurrentUserData.getParameters());
     }
 
@@ -455,6 +465,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
           'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
           requestEnrollmentCountColumn,
         )
+        .addSelect("concat(enrollment.sender.firstName,' ',enrollment.sender.lastName)", senderNameColumn)
         .leftJoin(
           'project.favorites',
           'favorite',
@@ -471,6 +482,8 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addGroupBy('enrollment.requesterMessage')
         .addGroupBy('enrollment.adminMessage')
         .addGroupBy('enrollment.role')
+        .addGroupBy('enrollment.sender.firstName')
+        .addGroupBy('enrollment.sender.lastName')
         .setParameter('currentUserId', currentUser.id)
         .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
 
@@ -485,6 +498,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addSelect(`"currentUserData"."${requesterMessageColumn}"`)
         .addSelect(`"currentUserData"."${adminMessageColumn}"`)
         .addSelect(`"currentUserData"."${requestEnrollmentCountColumn}"`)
+        .addSelect(`"currentUserData"."${senderNameColumn}"`)
         .setParameters(subqueryCurrentUserData.getParameters());
     }
 
