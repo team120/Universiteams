@@ -24,7 +24,8 @@ export enum RequestState {
   Kicked = 'Kicked',
 }
 
-export type ManageEnrollRequestAction = 'approve' | 'reject' | 'decline';
+export type ManageEnrollRequestAction = 'approve' | 'reject';
+export type ManageEnrollInvitationAction = 'accept' | 'decline';
 
 @Entity()
 @Index(['user', 'project'], { unique: true })
