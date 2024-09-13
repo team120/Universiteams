@@ -158,56 +158,6 @@ export class UserService {
     return this.entityMapper.mapValue(UserShowDto, user);
   }
 
-  async getEnrollInvitations(
-    currentUser: CurrentUserWithoutTokens,
-  ): Promise<EnrollmentRequestsShowDto> {
-    if (!currentUser)
-      throw new BadRequest(
-        'El usuario actual es requerido para obtener las invitaciones de inscripción',
-      );
-
-    const currentUserWithCount = await this.userRepository.findOne({
-      where: { id: currentUser.id },
-      select: [
-        'id',
-        'firstName',
-        'lastName',
-        'requestEnrollmentInvitationsCount',
-      ],
-    });
-    if (!currentUserWithCount) throw userNotFoundError;
-
-    const enrollments = await this.enrollmentRepository.find({
-      where: {
-        user: {
-          id: currentUser.id,
-        },
-        requestState: RequestState.Pending,
-      },
-      relations: [
-        'user',
-        'user.interests',
-        'user.userAffiliations',
-        'user.userAffiliations.researchDepartment',
-        'user.userAffiliations.researchDepartment.facility',
-        'user.userAffiliations.researchDepartment.facility.institution',
-      ],
-    });
-    this.logger.debug(
-      `User#${currentUser.id} successfully fetched enroll invitations`,
-    );
-    this.logger.debug(enrollments);
-
-    return {
-      enrollmentRequests: this.entityMapper.mapArray(
-        EnrollmentRequestShowDto,
-        enrollments,
-      ),
-      requestEnrollmentCount:
-        currentUserWithCount.requestEnrollmentInvitationsCount,
-    };
-  }
-
   async createEnrollInvitation(
     userId: number,
     currentUser: CurrentUserWithoutTokens,

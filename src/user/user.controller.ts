@@ -47,13 +47,6 @@ export class UserController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
-  @Get('enroll-requests/current')
-  async getEnrollRequests(@Req() request: RequestWithUser) {
-    return this.userService.getEnrollInvitations(request.currentUser);
-  }
-
-  @UseGuards(...IsEmailVerifiedGuard)
-  @ApiCookieAuth()
   @Post(':id/enroll-request')
   async enroll(
     @Req() request: RequestWithUser,
