@@ -227,9 +227,8 @@ export class ProjectController {
     @Param('id', ParseIntPipe) id: number,
     @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
-    await this.projectService.manageEnrollRequest(
+    await this.projectService.manageEnrollInvitation(
       id,
-      request.currentUser.id,
       request.currentUser,
       enrollRequestAdminDto,
       'approve',
@@ -244,9 +243,8 @@ export class ProjectController {
     @Param('id', ParseIntPipe) id: number,
     @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
-    await this.projectService.manageEnrollRequest(
+    await this.projectService.manageEnrollInvitation(
       id,
-      request.currentUser.id,
       request.currentUser,
       enrollRequestAdminDto,
       'decline',

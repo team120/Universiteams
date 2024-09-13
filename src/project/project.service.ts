@@ -26,6 +26,7 @@ import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import {
   Enrollment,
+  ManageEnrollInvitationAction,
   ManageEnrollRequestAction,
   ProjectRole,
   RequestState,
@@ -907,7 +908,7 @@ export class ProjectService {
     userId: number,
     currentUser: CurrentUserWithoutTokens,
     enrollRequestAdminDto: EnrollmentRequestDto,
-    action: ManageEnrollRequestAction,
+    action: ManageEnrollRequestAction | ManageEnrollInvitationAction,
   ) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
@@ -1035,6 +1036,21 @@ export class ProjectService {
         `User#${userId} successfully decreased its enrollment invitation count`,
       );
     }
+  }
+
+  async manageEnrollInvitation(
+    projectId: number,
+    currentUser: CurrentUserWithoutTokens,
+    enrollRequestAdminDto: EnrollmentRequestDto,
+    action: ManageEnrollInvitationAction,
+  ) {
+    this.manageEnrollRequest(
+      projectId,
+      currentUser.id,
+      currentUser,
+      enrollRequestAdminDto,
+      action,
+    );
   }
 
   async kickUser(
