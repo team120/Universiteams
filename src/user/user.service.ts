@@ -34,10 +34,6 @@ import {
   emailQueueProcessor,
   enrollmentRequestEmailJob,
 } from '../email/email.processor';
-import {
-  EnrollmentRequestShowDto,
-  EnrollmentRequestsShowDto,
-} from '../enrollment/dtos/enrollment-request.show.dto';
 
 export const userNotFoundError = new NotFound(
   'El ID no coincide con ningún usuario',
