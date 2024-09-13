@@ -930,6 +930,7 @@ export class ProjectService {
           id: userRequested.id,
         },
       },
+      relations: ['sender'],
       select: ['id', 'requestState', 'sender'],
     });
 
