@@ -354,7 +354,10 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
         .addSelect('enrollment.adminMessage', adminMessageColumn)
         .addSelect(requestEnrollmentCountSelect, requestEnrollmentCountColumn)
-        .addSelect('concat(sender."firstName",\' \',sender."lastName")', senderNameColumn)
+        .addSelect(
+          'concat(sender."firstName",\' \',sender."lastName")',
+          senderNameColumn,
+        )
         .leftJoin(
           'project.favorites',
           'favorite',
@@ -465,7 +468,10 @@ export class QueryCreator extends EntityQueryCreator<Project> {
           'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
           requestEnrollmentCountColumn,
         )
-        .addSelect("concat(enrollment.sender.firstName,' ',enrollment.sender.lastName)", senderNameColumn)
+        .addSelect(
+          "concat(enrollment.sender.firstName,' ',enrollment.sender.lastName)",
+          senderNameColumn,
+        )
         .leftJoin(
           'project.favorites',
           'favorite',

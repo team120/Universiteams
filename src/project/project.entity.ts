@@ -12,8 +12,6 @@ import {
 import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
 import { Favorite } from '../favorite/favorite.entity';
-import { UserShowDto } from '../user/dtos/user.show.dto';
-import { User } from '../user/user.entity';
 
 export enum ProjectType {
   Informal = 'Informal',
