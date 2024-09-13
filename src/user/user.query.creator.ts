@@ -29,6 +29,27 @@ export class QueryCreator extends EntityQueryCreator<User> {
     [UserSortByProperty.facility, 'rdFacility.name'],
   ]);
 
+  applyUserTextSearch(filters: UserFilters, query: SelectQueryBuilder<User>) {
+    const searchQuery = query.leftJoin(
+      'user_search_index',
+      'u_index',
+      'u_index.id = user.id',
+    );
+    if (!filters.generalSearch) return query;
+
+    const fullTextSearchConversion = filters.generalSearch
+      .replace(/\s/g, ':* & ')
+      .concat(':*');
+
+    searchQuery.where(
+      `u_index.document_with_weights @@ to_tsquery(user.language::regconfig, unaccent(:generalSearch))`,
+      {
+        generalSearch: fullTextSearchConversion,
+      },
+    );
+    return searchQuery;
+  }
+
   applyFilters(
     userFilters: UserFilters,
     query: SelectQueryBuilder<User>,
