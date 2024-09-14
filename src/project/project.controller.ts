@@ -231,7 +231,7 @@ export class ProjectController {
       id,
       request.currentUser,
       enrollRequestAdminDto,
-      'approve',
+      'accept',
     );
   }
 
