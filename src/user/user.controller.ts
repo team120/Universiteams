@@ -48,7 +48,7 @@ export class UserController {
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Post(':id/invitation/:projectId')
-  async enroll(
+  async createEnrollInvitation(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('projectId', ParseIntPipe) projectId: number,
@@ -65,7 +65,7 @@ export class UserController {
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Put(':id/invitation/:projectId')
-  async updateEnrollRequest(
+  async updateEnrollInvitation(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('projectId', ParseIntPipe) projectId: number,
@@ -82,7 +82,7 @@ export class UserController {
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Delete(':id/invitation/:projectId')
-  async cancelEnrollRequest(
+  async cancelEnrollInvitation(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('projectId', ParseIntPipe) projectId: number,
