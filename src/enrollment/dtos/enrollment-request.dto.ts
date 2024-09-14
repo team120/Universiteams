@@ -6,7 +6,6 @@ import {
 } from 'class-transformer';
 import { IsOptional } from 'class-validator';
 import * as sanitizeHtml from 'sanitize-html';
-import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 
 @Exclude()
 export class EnrollmentRequestDto {
