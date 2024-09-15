@@ -61,7 +61,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .innerJoin('rdFacility.institution', 'institution')
       .leftJoin('user.interests', 'interest')
       .groupBy('user.id')
-      .where('user.systemRole != :role')
+      .andWhere('user.systemRole != :role')
       .setParameter('role', UserSystemRole.SUPER_ADMIN);
 
     if (userFilters.institutionId) {
@@ -101,7 +101,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
     return relatedEntitiesQuery;
   }
 
-  applyPaginations(
+  applyPagination(
     filteredQuery: SelectQueryBuilder<User>,
     paginationAttributes: PaginationAttributes,
   ): SelectQueryBuilder<User> {
@@ -121,8 +121,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
     const orderDirection = sortAttributes.order
       ? sortAttributes.order
       : AscendingDescendingOrder.ascending;
-    query = query.orderBy(sortByProperty, orderDirection);
-    return query;
+    return query.orderBy(sortByProperty, orderDirection);
   }
 
   applyProjectionsAndSorting(

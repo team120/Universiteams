@@ -68,7 +68,7 @@ export class UserService {
       queryWithSearch,
     );
     const usersCount = await queryWithFilters.getCount();
-    const queryWithPagination = this.queryCreator.applyPaginations(
+    const queryWithPagination = this.queryCreator.applyPagination(
       queryWithFilters,
       paginationAttributes,
     );
