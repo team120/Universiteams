@@ -42,7 +42,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .concat(':*');
 
     searchQuery.where(
-      `u_index.document_with_weights @@ to_tsquery(user.language::regconfig, unaccent(:generalSearch))`,
+      `u_index.document_with_weights_user @@ to_tsquery(user.language::regconfig, unaccent(:generalSearch))`,
       {
         generalSearch: fullTextSearchConversion,
       },

@@ -5,5 +5,5 @@ export class UserSearchIndex {
   @ViewColumn()
   id: number;
   @ViewColumn()
-  document_with_weights: any;
+  document_with_weights_user: any;
 }
