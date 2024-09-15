@@ -124,8 +124,6 @@ export class ProjectService {
       currentUser,
     );
 
-    this.logger.info(extraFiltersAppliedSearchQuery.getSql());
-
     const projects = await paginationAppliedQuery
       .getMany()
       .catch((err: Error) => {

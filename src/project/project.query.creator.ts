@@ -355,7 +355,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addSelect('enrollment.adminMessage', adminMessageColumn)
         .addSelect(requestEnrollmentCountSelect, requestEnrollmentCountColumn)
         .addSelect(
-          'concat(sender."firstName",\' \',sender."lastName")',
+          "NULLIF(COALESCE(sender.\"firstName\", '') || ' ' || COALESCE(sender.\"lastName\", ''), ' ')",
           senderNameColumn,
         )
         .leftJoin(
@@ -368,11 +368,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
           'enrollment',
           'enrollment.userId = :currentUserId',
         )
-        .leftJoin(
-          'enrollment.sender',
-          'sender',
-          'enrollment.senderId = :currentUserId',
-        )
+        .leftJoin('enrollment.sender', 'sender')
         .groupBy('project.id')
         .addGroupBy('favorite.userId')
         .addGroupBy('enrollment.requestState')
