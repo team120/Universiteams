@@ -30,19 +30,17 @@ export class QueryCreator extends EntityQueryCreator<User> {
   ]);
 
   applyUserTextSearch(filters: UserFilters, query: SelectQueryBuilder<User>) {
-    const searchQuery = query.leftJoin(
-      'user_search_index',
-      'u_index',
-      'u_index.id = user.id',
-    );
     if (!filters.generalSearch) return query;
+    const searchQuery = this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoin('user_search_index', 'u_index', 'u_index.id = user.id');
 
     const fullTextSearchConversion = filters.generalSearch
       .replace(/\s/g, ':* & ')
       .concat(':*');
 
-    searchQuery.where(
-      `u_index.document_with_weights_user @@ to_tsquery(user.language::regconfig, unaccent(:generalSearch))`,
+    searchQuery.andWhere(
+      `u_index.document_with_weights_user @@ to_tsquery('spanish'::regconfig, :generalSearch)`,
       {
         generalSearch: fullTextSearchConversion,
       },
@@ -54,8 +52,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
     userFilters: UserFilters,
     query: SelectQueryBuilder<User>,
   ): SelectQueryBuilder<User> {
-    this.logger.debug('SQL Before applying filters');
-    this.logger.debug(query.getSql());
+    this.logger.debug('SQL Before applying filters' + query.getSql());
     const relatedEntitiesQuery = query
       .select('user.id', 'id')
       .innerJoin('user.userAffiliations', 'affiliations')
