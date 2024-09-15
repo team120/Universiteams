@@ -222,7 +222,7 @@ export class ProjectController {
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Put(':id/invitation/accept')
-  async acceptEnrollRequest(
+  async acceptEnrollInvitation(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Body() enrollRequestAdminDto: EnrollmentRequestDto,
@@ -238,7 +238,7 @@ export class ProjectController {
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
   @Put(':id/invitation/decline')
-  async declineEnrollRequest(
+  async declineEnrollInvitation(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Body() enrollRequestAdminDto: EnrollmentRequestDto,

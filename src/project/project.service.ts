@@ -911,7 +911,7 @@ export class ProjectService {
     action: ManageEnrollRequestAction,
   ) {
     const project = await this.getProject(projectId);
-    const userRequested = await this.getUser(userId);
+    const userRequested = await this.getUserWithInvitations(userId);
     const enrollment = await this.getEnrollmentPending(
       project.id,
       userRequested.id,
@@ -967,7 +967,7 @@ export class ProjectService {
     action: ManageEnrollInvitationAction,
   ) {
     const project = await this.getProject(projectId);
-    const currentUserFull = await this.getUser(currentUser.id);
+    const currentUserFull = await this.getUserWithInvitations(currentUser.id);
     const enrollment = await this.getEnrollmentPending(
       project.id,
       currentUser.id,
@@ -1160,7 +1160,7 @@ export class ProjectService {
     return project;
   }
 
-  private async getUser(userId: number): Promise<User> {
+  private async getUserWithInvitations(userId: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       select: ['id', 'requestEnrollmentInvitationsCount'],
