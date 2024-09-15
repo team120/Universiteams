@@ -29,12 +29,30 @@ export class QueryCreator extends EntityQueryCreator<User> {
     [UserSortByProperty.facility, 'rdFacility.name'],
   ]);
 
+  applyUserTextSearch(filters: UserFilters, query: SelectQueryBuilder<User>) {
+    if (!filters.generalSearch) return query;
+    const searchQuery = this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoin('user_search_index', 'u_index', 'u_index.id = user.id');
+
+    const fullTextSearchConversion = filters.generalSearch
+      .replace(/\s/g, ':* & ')
+      .concat(':*');
+
+    searchQuery.andWhere(
+      `u_index.document_with_weights_user @@ to_tsquery('spanish'::regconfig, :generalSearch)`,
+      {
+        generalSearch: fullTextSearchConversion,
+      },
+    );
+    return searchQuery;
+  }
+
   applyFilters(
     userFilters: UserFilters,
     query: SelectQueryBuilder<User>,
   ): SelectQueryBuilder<User> {
-    this.logger.debug('SQL Before applying filters');
-    this.logger.debug(query.getSql());
+    this.logger.debug('SQL Before applying filters' + query.getSql());
     const relatedEntitiesQuery = query
       .select('user.id', 'id')
       .innerJoin('user.userAffiliations', 'affiliations')
@@ -43,7 +61,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .innerJoin('rdFacility.institution', 'institution')
       .leftJoin('user.interests', 'interest')
       .groupBy('user.id')
-      .where('user.systemRole != :role')
+      .andWhere('user.systemRole != :role')
       .setParameter('role', UserSystemRole.SUPER_ADMIN);
 
     if (userFilters.institutionId) {
@@ -83,7 +101,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
     return relatedEntitiesQuery;
   }
 
-  applyPaginations(
+  applyPagination(
     filteredQuery: SelectQueryBuilder<User>,
     paginationAttributes: PaginationAttributes,
   ): SelectQueryBuilder<User> {
@@ -103,8 +121,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
     const orderDirection = sortAttributes.order
       ? sortAttributes.order
       : AscendingDescendingOrder.ascending;
-    query = query.orderBy(sortByProperty, orderDirection);
-    return query;
+    return query.orderBy(sortByProperty, orderDirection);
   }
 
   applyProjectionsAndSorting(

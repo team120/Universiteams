@@ -14,14 +14,27 @@ export class ViewRefresherService {
     this.logger.setContext(ViewRefresherService.name);
   }
 
-  @SkipWhenTestingInterval('search-index-refresher', 900000)
-  refreshFullTextSearchIndexMaterializedView() {
+  @SkipWhenTestingInterval('search-index-project-refresher', 900000)
+  refreshProjectFullTextSearchIndexMaterializedView() {
     this.logger.info('Refreshing project_search_index materialized view');
     this.dataSource
       .query('REFRESH MATERIALIZED VIEW CONCURRENTLY project_search_index')
       .catch((err) => {
         this.logger.error(
           'Error refreshing project_search_index materialized view',
+          err,
+        );
+      });
+  }
+
+  @SkipWhenTestingInterval('search-index-user-refresher', 900000)
+  refreshUserFullTextSearchIndexMaterializedView() {
+    this.logger.info('Refreshing user_search_index materialized view');
+    this.dataSource
+      .query('REFRESH MATERIALIZED VIEW CONCURRENTLY user_search_index')
+      .catch((err) => {
+        this.logger.error(
+          'Error refreshing user_search_index materialized view',
           err,
         );
       });
