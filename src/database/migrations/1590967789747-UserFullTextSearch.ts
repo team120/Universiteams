@@ -8,30 +8,14 @@ export class UserFullTextSearch1590967789747 implements MigrationInterface {
       const includeGroupByIndex = true;
       return `SELECT
       ${includeGroupByIndex ? 'u.id,' : ''}
-      to_tsvector(${
-        textSearchConfig
-      }, unaccent(coalesce(string_agg(u."firstName" || ' ' || u."lastName", ' '), ''))) ||
-      to_tsvector(${
-        textSearchConfig
-      }, unaccent(coalesce(string_agg(rd.name, ' '), ''))) ||
-      to_tsvector(${
-        textSearchConfig
-      }, unaccent(coalesce(string_agg(rd.abbreviation, ' '), ''))) ||
-      to_tsvector(${
-        textSearchConfig
-      }, unaccent(coalesce(string_agg(f.name, ' '), ''))) ||
-      to_tsvector(${
-        textSearchConfig
-      }, unaccent(coalesce(string_agg(f.abbreviation, ' '), ''))) ||
-      to_tsvector(${
-        textSearchConfig
-      }, unaccent(coalesce(string_agg(inst.name, ' '), ''))) ||
-      to_tsvector(${
-        textSearchConfig
-      }, unaccent(coalesce(string_agg(inst.abbreviation, ' '), ''))) ||
-      to_tsvector(${
-        textSearchConfig
-      }, unaccent(coalesce(string_agg(inter.name, ' '), ''))) as document_with_weights_user
+      to_tsvector(${textSearchConfig}, unaccent(coalesce(string_agg(u."firstName" || ' ' || u."lastName", ' '), ''))) ||
+      to_tsvector(${textSearchConfig}, unaccent(coalesce(string_agg(rd.name, ' '), ''))) ||
+      to_tsvector(${textSearchConfig}, unaccent(coalesce(string_agg(rd.abbreviation, ' '), ''))) ||
+      to_tsvector(${textSearchConfig}, unaccent(coalesce(string_agg(f.name, ' '), ''))) ||
+      to_tsvector(${textSearchConfig}, unaccent(coalesce(string_agg(f.abbreviation, ' '), ''))) ||
+      to_tsvector(${textSearchConfig}, unaccent(coalesce(string_agg(inst.name, ' '), ''))) ||
+      to_tsvector(${textSearchConfig}, unaccent(coalesce(string_agg(inst.abbreviation, ' '), ''))) ||
+      to_tsvector(${textSearchConfig}, unaccent(coalesce(string_agg(inter.name, ' '), ''))) as document_with_weights_user
     FROM "user" u
     INNER JOIN user_affiliation uaff
         ON u.id = uaff."userId"
@@ -53,7 +37,7 @@ export class UserFullTextSearch1590967789747 implements MigrationInterface {
     LEFT JOIN project pro
       ON enr."projectId" = pro.id
     GROUP BY 
-      u.id`
+      u.id`;
     };
 
     await queryRunner.query(`
@@ -69,7 +53,6 @@ export class UserFullTextSearch1590967789747 implements MigrationInterface {
       CREATE UNIQUE INDEX IF NOT EXISTS user_search_idx
       ON user_search_index(id);
     `);
-    
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
