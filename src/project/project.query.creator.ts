@@ -485,8 +485,8 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addGroupBy('enrollment.requesterMessage')
         .addGroupBy('enrollment.adminMessage')
         .addGroupBy('enrollment.role')
-        .addGroupBy('enrollment.sender.firstName')
-        .addGroupBy('enrollment.sender.lastName')
+        .addGroupBy('sender."firstName"')
+        .addGroupBy('sender."lastName"')
         .setParameter('currentUserId', currentUser.id)
         .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
 
