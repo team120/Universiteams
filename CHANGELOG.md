@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.8.1] - 2024-09-18
+
+- Fix project service update project method wrong relations management
+- Refactor user query creator to enhance full text search functionality and add new user properties
+
 ## [v1.8.0] - 2024-09-18
 
 - Merge pull request #193 from team120/152-support-full-and-fuzzy-text-search-for-users-route
