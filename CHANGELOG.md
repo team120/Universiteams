@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.8.0] - 2024-09-18
+
+- Merge pull request #193 from team120/152-support-full-and-fuzzy-text-search-for-users-route
+
 ## [v1.7.1] - 2024-08-29
 
 - Revert merge of pull request #189 from team120/188-only-allow-leaders-to-kick-or-promote-users
