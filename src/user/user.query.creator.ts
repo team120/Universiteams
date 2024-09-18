@@ -36,6 +36,7 @@ export class QueryCreator extends EntityQueryCreator<User> {
       .leftJoin('user_search_index', 'u_index', 'u_index.id = user.id');
 
     const fullTextSearchConversion = filters.generalSearch
+      .trim()
       .replace(/\s/g, ':* & ')
       .concat(':*');
 

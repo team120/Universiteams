@@ -865,6 +865,14 @@ export class Seed {
         password: await argon2.hash(`Password_${numGenMockPasswords.next()}`),
         firstName: 'Marcos',
         lastName: 'Sanchez',
+        isEmailVerified: true,
+        systemRole: UserSystemRole.USER,
+        interests: [
+          interests.backendDev,
+          interests.frontendDev,
+          interests.cryptoCurrency,
+          interests.environment,
+        ],
         userAffiliations: [
           this.userAffiliationRepo.create({
             researchDepartmentId: researchDepartments.utnFrroIq.id,
