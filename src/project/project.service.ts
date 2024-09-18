@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { IsNull, Not, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { Favorite } from '../favorite/favorite.entity';
 import {
@@ -346,113 +346,88 @@ export class ProjectService {
         'Solo el lider del proyecto puede actualizar sus datos',
       );
     }
-    const queryRunner =
-      this.projectRepository.manager.connection.createQueryRunner();
-    await queryRunner.startTransaction();
 
-    try {
-      // Validate if there is an existing project with the same name
-      const existingProject = await queryRunner.manager
-        .getRepository(Project)
-        .findOne({
-          where: { name: updateDto.name },
-        });
+    // Validate if there is an existing project with the same name
+    if (updateDto.name !== project.name) {
+      const existingProject = await this.projectRepository.findOne({
+        where: { name: updateDto.name },
+      });
       if (existingProject) {
         throw new BadRequest(
           'Ya existe un proyecto con el mismo nombre, por favor elige otro nombre',
         );
       }
-      // If given, validate research department(s)
-      if (
-        Array.isArray(updateDto.researchDepartmentsIds) &&
-        updateDto.researchDepartmentsIds.length > 0
-      ) {
-        for (const departmentId of updateDto.researchDepartmentsIds) {
-          const departmentExists = await queryRunner.manager.findOne(
-            ResearchDepartment,
-            {
-              where: { id: departmentId },
-              select: ['id'],
-            },
-          );
-          if (!departmentExists)
-            throw new NotFound(`Departamento #${departmentId} no encontrado`);
-        }
+    }
+    // If given, validate research department(s)
+    if (
+      Array.isArray(updateDto.researchDepartmentsIds) &&
+      updateDto.researchDepartmentsIds.length > 0
+    ) {
+      for (const departmentId of updateDto.researchDepartmentsIds) {
+        const departmentExists = await this.departmentRepository.findOne({
+          where: { id: departmentId },
+          select: ['id'],
+        });
+        if (!departmentExists)
+          throw new NotFound(`Departamento #${departmentId} no encontrado`);
       }
+    }
 
-      // If given, validate interest(s)
-      const interestsIDsList: number[] = [];
-      if (updateDto.interestsIds && updateDto.interestsIds.length > 0) {
-        for (const interestId of updateDto.interestsIds) {
-          const interestExists = await queryRunner.manager.findOne(Interest, {
-            where: { id: interestId },
-            select: ['id'],
-          });
-          if (!interestExists)
-            throw new NotFound(`Interés #${interestId} no encontrado`);
-          interestsIDsList.push(interestId);
-        }
+    // If given, validate interest(s)
+    const interestsIDsList: number[] = [];
+    if (updateDto.interestsIds && updateDto.interestsIds.length > 0) {
+      for (const interestId of updateDto.interestsIds) {
+        const interestExists = await this.interestRepository.findOne({
+          where: { id: interestId },
+          select: ['id'],
+        });
+        if (!interestExists)
+          throw new NotFound(`Interés #${interestId} no encontrado`);
+        interestsIDsList.push(interestId);
       }
+    }
 
-      // Create new interests if needed
-      if (
-        updateDto.interestsToCreate &&
-        updateDto.interestsToCreate.length > 0
-      ) {
-        for (const interestName of updateDto.interestsToCreate) {
-          const interestCreated: Interest = await queryRunner.manager.save(
-            Interest,
-            {
-              name: interestName,
-              verified: false,
-            },
-          );
-          interestsIDsList.push(interestCreated.id);
-        }
+    // Create new interests if needed
+    if (updateDto.interestsToCreate && updateDto.interestsToCreate.length > 0) {
+      for (const interestName of updateDto.interestsToCreate) {
+        const interestCreated: Interest = await this.interestRepository.save({
+          name: interestName,
+          verified: false,
+        });
+        interestsIDsList.push(interestCreated.id);
       }
+    }
 
-      // Update project with the new data
-      const updateProjectPartial: Partial<Project> = {
-        name: updateDto.name,
-        type: updateDto.type,
-        description: updateDto.description,
-        endDate: updateDto.endDate,
-        web: updateDto.web,
-      };
-      // Mapping departments and interests ids created and interests ids given
-      if (interestsIDsList.length > 0) {
-        const interests = interestsIDsList.map((interestId) => ({
-          id: interestId,
-        })) as Interest[];
-        updateProjectPartial.interests = interests;
-      }
+    // Update project with the new data
+    project.name = updateDto.name;
+    project.type = updateDto.type;
+    project.description = updateDto.description;
+    project.endDate = updateDto.endDate;
+    project.web = updateDto.web;
 
-      if (
-        updateDto.researchDepartmentsIds &&
-        updateDto.researchDepartmentsIds.length > 0
-      ) {
-        const departments = updateDto.researchDepartmentsIds.map((id) => ({
-          id: id,
-        })) as ResearchDepartment[];
-        updateProjectPartial.researchDepartments = departments;
-      }
+    if (interestsIDsList.length > 0) {
+      project.interests = await this.interestRepository.findBy({
+        id: In(interestsIDsList),
+      });
+    }
 
-      this.logger.debug(`Update project: ${updateProjectPartial}`);
-      const updatedProject: Project = await queryRunner.manager.save(Project, {
-        ...project,
-        ...updateProjectPartial,
+    if (
+      updateDto.researchDepartmentsIds &&
+      updateDto.researchDepartmentsIds.length > 0
+    ) {
+      project.researchDepartments = await this.departmentRepository.findBy({
+        id: In(updateDto.researchDepartmentsIds),
+      });
+    }
+
+    const updatedProject: Project = await this.projectRepository
+      .save(project)
+      .catch((err: Error) => {
+        throw new DbException(err.message, err.stack);
       });
 
-      await queryRunner.commitTransaction();
-
-      this.logger.debug(`Project #${project.id} successfully updated`);
-      return updatedProject;
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new DbException(err.message, err.stack);
-    } finally {
-      await queryRunner.release();
-    }
+    this.logger.debug(`Project #${project.id} successfully updated`);
+    return updatedProject;
   }
 
   async favorite(id: number, user: CurrentUserWithoutTokens) {
