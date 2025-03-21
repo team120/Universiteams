@@ -38,6 +38,8 @@ export class User {
   firstName: string;
   @Column()
   lastName: string;
+  @Column({ default: 0 })
+  requestEnrollmentInvitationsCount: number;
   @Column({ unique: true })
   @Generated('uuid')
   refreshUserSecret: string;

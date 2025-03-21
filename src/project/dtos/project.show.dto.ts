@@ -36,6 +36,8 @@ export class ProjectInListDto {
   requesterMessage?: string;
   @Expose()
   adminMessage?: string;
+  @Expose()
+  senderName?: string;
   @ExposeType(Number)
   requestEnrollmentCount: number;
   @ExposeType(ResearchDepartmentShowDto)

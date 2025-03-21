@@ -1,11 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { getQueueToken } from '@nestjs/bull';
 import { PinoLogger } from 'nestjs-pino';
 import { DbException } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { QueryCreator } from './user.query.creator';
+import { Project } from '../project/project.entity';
+import { Enrollment } from '../enrollment/enrollment.entity';
+import { emailQueueProcessor } from '../email/email.processor';
 
 describe('UserService', () => {
   let service: UserService;
@@ -25,6 +29,18 @@ describe('UserService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: userRepositoryMock,
+        },
+        {
+          provide: getRepositoryToken(Project),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(Enrollment),
+          useValue: {},
+        },
+        {
+          provide: getQueueToken(emailQueueProcessor),
+          useValue: {},
         },
         {
           provide: PinoLogger,
