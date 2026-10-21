@@ -16,8 +16,6 @@ export class UserShowDto {
   @Expose()
   email: string;
   @Expose()
-  requestEnrollmentInvitationsCount: number;
-  @Expose()
   @Type(() => UserAffiliationShowDto)
   userAffiliations: UserAffiliationShowDto[];
   @Expose()
@@ -34,7 +32,6 @@ export class UsersResult {
   users: UserShowDto[];
   usersCount: number;
 }
-
 export class UserSimpleShowDto extends OmitType(UserShowDto, [
   'userAffiliations',
   'interests',

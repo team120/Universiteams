@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
-import { In, IsNull, Not, Repository } from 'typeorm';
+import { EntityManager, In, IsNull, Not, Repository } from 'typeorm';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { Favorite } from '../favorite/favorite.entity';
 import {
@@ -48,14 +48,25 @@ import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import {
   emailQueueProcessor,
+  enrollmentInvitationEmailJob,
   enrollmentRequestEmailJob,
 } from '../email/email.processor';
-import { EnrollmentRequestNotifyEmailData } from '../email/dtos/enrollment-request-email-data.dto';
-import { userNotFoundError } from '../user/user.service';
+import {
+  EnrollmentInvitationNotifyEmailData,
+  EnrollmentRequestNotifyEmailData,
+} from '../email/dtos/enrollment-request-email-data.dto';
 
-export const projectNotFoundError = new NotFound(
+const projectNotFoundError = new NotFound(
   'El ID no coincide con ningún proyecto',
 );
+
+const userNotFoundError = new NotFound('Usuario no encontrado');
+
+// Keeps validation errors (BadRequest, Unauthorized...) and wraps anything else
+const rethrowAsDbException = (err: Error): never => {
+  if (err instanceof HttpException) throw err;
+  throw new DbException(err.message, err.stack);
+};
 
 @Injectable()
 export class ProjectService {
@@ -524,19 +535,14 @@ export class ProjectService {
       });
       if (!project) throw projectNotFoundError;
 
-      const enrollment = await queryRunner.manager.findOne(Enrollment, {
-        where: {
-          project: {
-            id: project.id,
-          },
-          user: {
-            id: user.id,
-          },
-        },
-      });
+      const enrollment = await this.findEnrollment(
+        queryRunner.manager,
+        project.id,
+        user.id,
+      );
       switch (enrollment?.requestState) {
         case RequestState.Pending:
-          if (enrollment.sender !== null && enrollment.sender !== undefined) {
+          if (enrollment.senderId !== null) {
             throw new BadRequest(
               'Este usuario ya ha sido invitado para inscribirse en este proyecto',
             );
@@ -552,15 +558,19 @@ export class ProjectService {
           break;
       }
 
-      const pendingEnrollment = {
+      // Reset every field a previous enrollment or invitation may have left
+      const pendingEnrollment: Partial<Enrollment> = {
         project: {
           id: project.id,
-        },
+        } as Project,
         user: {
           id: user.id,
-        },
+        } as User,
+        senderId: null,
+        role: ProjectRole.Member,
         requestState: RequestState.Pending,
         requesterMessage: enrollmentRequest.message,
+        adminMessage: null,
       };
       await queryRunner.manager.upsert(Enrollment, pendingEnrollment, [
         'project',
@@ -588,7 +598,7 @@ export class ProjectService {
       );
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      throw new DbException(err.message, err.stack);
+      rethrowAsDbException(err);
     } finally {
       await queryRunner.release();
     }
@@ -793,6 +803,7 @@ export class ProjectService {
           id: projectId,
         },
         requestState: RequestState.Pending,
+        senderId: IsNull(),
       },
       relations: [
         'user',
@@ -883,21 +894,12 @@ export class ProjectService {
     enrollRequestAdminDto: EnrollmentRequestDto,
     action: ManageEnrollRequestAction,
   ) {
-    const project = await this.getProject(projectId);
-    const userRequested = await this.getUserWithInvitations(userId);
-    const enrollment = await this.getEnrollmentPending(
-      project.id,
-      userRequested.id,
-    );
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id'],
+    });
+    if (!project) throw projectNotFoundError;
 
-    // Sender is an invitation-only field (enrollment requests from an admin to a user)
-    if (enrollment.sender !== null && enrollment.sender !== undefined) {
-      throw new BadRequest(
-        'Una solicitud de inscripción no puede tener cargado el campo de remitente (sender)',
-      );
-    }
-
-    // Only an admin can approve or reject enrollment requests
     const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
     if (!isUserAdmin) {
       throw new Unauthorized(
@@ -907,76 +909,301 @@ export class ProjectService {
       );
     }
 
-    // Update the request state
-    await this.updateRequestState(
-      action === 'approve' ? RequestState.Accepted : RequestState.Rejected,
-      project.id,
-      userRequested.id,
-      enrollment.id,
-      enrollRequestAdminDto.message,
-      action === 'approve' ? 'approved' : 'rejected',
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const enrollment = await this.findEnrollment(
+          manager,
+          project.id,
+          userId,
+        );
+        // An invitation is not a request: only the invited user can answer it
+        if (!enrollment || enrollment.senderId !== null)
+          throw new BadRequest('Este usuario no tiene una solicitud pendiente');
+
+        if (enrollment.requestState !== RequestState.Pending) {
+          throw new BadRequest('Esta solicitud no está pendiente');
+        }
+
+        // move to accepted or rejected state
+        await manager.update(Enrollment, enrollment.id, {
+          requestState:
+            action === 'approve'
+              ? RequestState.Accepted
+              : RequestState.Rejected,
+          adminMessage: enrollRequestAdminDto.message,
+        });
+
+        // increase project member count if approved
+        if (action === 'approve') {
+          await manager.increment(Project, { id: project.id }, 'userCount', 1);
+        }
+
+        await manager.decrement(
+          Project,
+          { id: project.id },
+          'requestEnrollmentCount',
+          1,
+        );
+      })
+      .catch(rethrowAsDbException);
+
+    this.logger.debug(
+      `Project#${project.id} successfully ${
+        action === 'approve' ? 'approved' : 'rejected'
+      } enrollment request by user#${userId}`,
     );
+  }
 
-    // Increase project member count if approved
-    if (action === 'approve') await this.updateProjectMemberCount(project);
+  async createEnrollInvitation(
+    projectId: number,
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+    invitation: EnrollmentRequestDto,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id', 'name'],
+    });
+    if (!project) throw projectNotFoundError;
 
-    // Decrease project enrollment request count
-    await this.projectRepository
-      .update(project.id, {
-        requestEnrollmentCount: project.requestEnrollmentCount - 1,
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para enviar invitaciones de inscripción a este proyecto',
+      );
+    }
+
+    const invitedUser = await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const user = await manager.findOne(User, {
+          where: { id: userId },
+          select: ['id', 'email', 'firstName', 'lastName'],
+        });
+        if (!user) throw userNotFoundError;
+
+        const enrollment = await this.findEnrollment(
+          manager,
+          project.id,
+          user.id,
+        );
+        switch (enrollment?.requestState) {
+          case RequestState.Pending:
+            if (enrollment.senderId !== null) {
+              throw new BadRequest(
+                'Este usuario ya ha sido invitado para inscribirse en este proyecto',
+              );
+            }
+            throw new BadRequest(
+              'Este usuario ya ha solicitado la inscripción en este proyecto',
+            );
+          case RequestState.Accepted:
+            throw new BadRequest(
+              'Este usuario ya está inscripto en este proyecto',
+            );
+          default:
+            break;
+        }
+
+        // Reset every field a previous enrollment or invitation may have left
+        const pendingInvitation: Partial<Enrollment> = {
+          project: {
+            id: project.id,
+          } as Project,
+          user: {
+            id: user.id,
+          } as User,
+          senderId: currentUser.id,
+          role: ProjectRole.Member,
+          requestState: RequestState.Pending,
+          requesterMessage: null,
+          adminMessage: invitation.message,
+        };
+        await manager.upsert(Enrollment, pendingInvitation, [
+          'project',
+          'user',
+        ]);
+
+        await manager.increment(
+          User,
+          { id: user.id },
+          'requestEnrollmentInvitationsCount',
+          1,
+        );
+
+        return user;
+      })
+      .catch(rethrowAsDbException);
+
+    await this.emailQueue
+      .add(enrollmentInvitationEmailJob, {
+        project: project,
+        user: invitedUser,
+      } as EnrollmentInvitationNotifyEmailData)
+      .catch((err: Error) => {
+        this.logger.error(err, err.message);
+      });
+
+    this.logger.debug(
+      `Project#${project.id} successfully invited user#${invitedUser.id} to enroll by user#${currentUser.id}`,
+    );
+  }
+
+  async updateEnrollInvitation(
+    projectId: number,
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+    invitation: EnrollmentRequestDto,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id'],
+    });
+    if (!project) throw projectNotFoundError;
+
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para modificar invitaciones de inscripción a este proyecto',
+      );
+    }
+
+    const enrollment = await this.findEnrollment(
+      this.enrollmentRepository.manager,
+      project.id,
+      userId,
+    );
+    if (
+      !enrollment ||
+      enrollment.senderId === null ||
+      enrollment.requestState !== RequestState.Pending
+    ) {
+      throw new BadRequest('Este usuario no tiene una invitación pendiente');
+    }
+
+    await this.enrollmentRepository
+      .update(enrollment.id, {
+        adminMessage: invitation.message,
       })
       .catch((e: Error) => {
         throw new DbException(e.message, e.stack);
       });
     this.logger.debug(
-      `Project#${project.id} successfully decreased its enrollment request count`,
+      `Project#${project.id} successfully updated enrollment invitation to user#${userId}`,
+    );
+  }
+
+  async cancelEnrollInvitation(
+    projectId: number,
+    userId: number,
+    currentUser: CurrentUserWithoutTokens,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id'],
+    });
+    if (!project) throw projectNotFoundError;
+
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para cancelar invitaciones de inscripción a este proyecto',
+      );
+    }
+
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const enrollment = await this.findEnrollment(
+          manager,
+          project.id,
+          userId,
+        );
+        if (!enrollment || enrollment.senderId === null)
+          throw new BadRequest(
+            'Este usuario no tiene una invitación pendiente',
+          );
+
+        if (
+          enrollment.requestState !== RequestState.Pending &&
+          enrollment.requestState !== RequestState.Declined
+        ) {
+          throw new BadRequest(
+            'Esta invitación no está pendiente o fue declinada',
+          );
+        }
+
+        await manager.delete(Enrollment, enrollment.id);
+
+        // Declined invitations are no longer counted in the invitations count
+        if (enrollment.requestState === RequestState.Pending) {
+          await manager.decrement(
+            User,
+            { id: userId },
+            'requestEnrollmentInvitationsCount',
+            1,
+          );
+        }
+      })
+      .catch(rethrowAsDbException);
+
+    this.logger.debug(
+      `Project#${project.id} successfully canceled enrollment invitation to user#${userId}`,
     );
   }
 
   async manageEnrollInvitation(
     projectId: number,
     currentUser: CurrentUserWithoutTokens,
-    enrollRequestAdminDto: EnrollmentRequestDto,
+    invitationAnswer: EnrollmentRequestDto,
     action: ManageEnrollInvitationAction,
   ) {
-    const project = await this.getProject(projectId);
-    const currentUserFull = await this.getUserWithInvitations(currentUser.id);
-    const enrollment = await this.getEnrollmentPending(
-      project.id,
-      currentUser.id,
-    );
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id'],
+    });
+    if (!project) throw projectNotFoundError;
 
-    // Sender can't be empty in an invitation
-    if (enrollment.sender === null || enrollment.sender === undefined) {
-      throw new BadRequest(
-        'Una invitación de inscripción debe tener cargado el campo de remitente (sender)',
-      );
-    }
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const enrollment = await this.findEnrollment(
+          manager,
+          project.id,
+          currentUser.id,
+        );
+        if (
+          !enrollment ||
+          enrollment.senderId === null ||
+          enrollment.requestState !== RequestState.Pending
+        ) {
+          throw new BadRequest(
+            'No tienes una invitación pendiente para este proyecto',
+          );
+        }
 
-    // Update the request state
-    await this.updateRequestState(
-      action === 'accept' ? RequestState.Accepted : RequestState.Declined,
-      project.id,
-      currentUser.id,
-      enrollment.id,
-      enrollRequestAdminDto.message,
-      action === 'accept' ? 'accepted' : 'declined',
-    );
+        // move to accepted or declined state
+        await manager.update(Enrollment, enrollment.id, {
+          requestState:
+            action === 'accept' ? RequestState.Accepted : RequestState.Declined,
+          requesterMessage: invitationAnswer.message,
+        });
 
-    // Increase project member count if approved
-    if (action === 'accept') await this.updateProjectMemberCount(project);
+        // increase project member count if accepted
+        if (action === 'accept') {
+          await manager.increment(Project, { id: project.id }, 'userCount', 1);
+        }
 
-    // Decrease user enrollment invitation count
-    await this.userRepository
-      .update(currentUserFull.id, {
-        requestEnrollmentInvitationsCount:
-          currentUserFull.requestEnrollmentInvitationsCount - 1,
+        await manager.decrement(
+          User,
+          { id: currentUser.id },
+          'requestEnrollmentInvitationsCount',
+          1,
+        );
       })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+      .catch(rethrowAsDbException);
+
     this.logger.debug(
-      `User#${currentUser.id} successfully decreased its enrollment invitation count`,
+      `Project#${project.id} successfully ${
+        action === 'accept' ? 'accepted' : 'declined'
+      } enrollment invitation by user#${currentUser.id}`,
     );
   }
 
@@ -1123,89 +1350,17 @@ export class ProjectService {
     return userEnrollment.role === ProjectRole.Leader;
   }
 
-  private async getProject(projectId: number): Promise<Project> {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-      select: ['id', 'userCount', 'requestEnrollmentCount'],
-    });
-    if (!project) throw projectNotFoundError;
-
-    return project;
-  }
-
-  private async getUserWithInvitations(userId: number): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      select: ['id', 'requestEnrollmentInvitationsCount'],
-    });
-    if (!user) throw userNotFoundError;
-
-    return user;
-  }
-
-  private async getEnrollmentPending(
+  private findEnrollment(
+    manager: EntityManager,
     projectId: number,
     userId: number,
-  ): Promise<Enrollment> {
-    const enrollment = await this.enrollmentRepository.findOne({
+  ): Promise<Enrollment | null> {
+    return manager.findOne(Enrollment, {
       where: {
-        project: {
-          id: projectId,
-        },
-        user: {
-          id: userId,
-        },
-        requestState: RequestState.Pending,
+        project: { id: projectId },
+        user: { id: userId },
       },
-      relations: ['sender'],
-      select: ['id', 'requestState', 'sender'],
+      select: ['id', 'requestState', 'senderId'],
     });
-    if (!enrollment) {
-      throw new BadRequest(
-        `El usuario#${userId} no tiene una solicitud pendiente para el proyecto#${projectId}`,
-      );
-    }
-
-    if (enrollment.requestState !== RequestState.Pending) {
-      throw new BadRequest(`La solicitud#${enrollment.id} no está pendiente`);
-    }
-
-    return enrollment;
-  }
-
-  private async updateRequestState(
-    requestState: RequestState,
-    projectId: number,
-    userId: number,
-    enrollmentId: number,
-    adminMessage: string,
-    actionVerb: string,
-  ) {
-    await this.enrollmentRepository
-      .update(enrollmentId, {
-        requestState: requestState,
-        adminMessage: adminMessage,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
-
-    this.logger.debug(
-      `Enrollment request of user#${userId} for project#${projectId} was successfully ${actionVerb}`,
-    );
-  }
-
-  private async updateProjectMemberCount(project: Project) {
-    await this.projectRepository
-      .update(project.id, {
-        userCount: project.userCount + 1,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
-
-    this.logger.debug(
-      `Project#${project.id} successfully increased its member count`,
-    );
   }
 }

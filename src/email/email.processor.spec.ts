@@ -7,6 +7,7 @@ import { EmailProcessor, EMAIL_SENDERS } from './email.processor';
 import { VerificationMessagesService } from './verification-messages.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Enrollment } from '../enrollment/enrollment.entity';
+import { EnrollmentInvitationNotifyEmailData } from './dtos/enrollment-request-email-data.dto';
 
 describe('Email processor', () => {
   let service: EmailProcessor;
@@ -87,6 +88,23 @@ describe('Email processor', () => {
         expect(emailSendersMock[1].sendMail).toBeCalledTimes(0);
         expect(emailSendersMock[2].sendMail).toBeCalledTimes(0);
       });
+    });
+  });
+
+  describe('sendEnrollmentInvitationNotifyEmail', () => {
+    it('should send one email to the invited user naming the project', async () => {
+      emailSendersMock[0].sendMail.mockResolvedValue({});
+
+      await service.sendEnrollmentInvitationNotifyEmail({
+        data: { project: { id: 1, name: 'Universiteams' }, user: { ...user } },
+      } as Job<EnrollmentInvitationNotifyEmailData>);
+
+      expect(emailSendersMock[0].sendMail).toBeCalledTimes(1);
+      const message = emailSendersMock[0].sendMail.mock.calls[0][0];
+      expect(message.to).toEqual([
+        { email: 'user1@example.com', name: 'Juan Acha' },
+      ]);
+      expect(message.subject).toContain('Universiteams');
     });
   });
 });

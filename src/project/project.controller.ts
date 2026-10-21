@@ -225,12 +225,12 @@ export class ProjectController {
   async acceptEnrollInvitation(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
-    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
+    @Body() invitationAnswer: EnrollmentRequestDto,
   ) {
     await this.projectService.manageEnrollInvitation(
       id,
       request.currentUser,
-      enrollRequestAdminDto,
+      invitationAnswer,
       'accept',
     );
   }
@@ -241,13 +241,62 @@ export class ProjectController {
   async declineEnrollInvitation(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
-    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
+    @Body() invitationAnswer: EnrollmentRequestDto,
   ) {
     await this.projectService.manageEnrollInvitation(
       id,
       request.currentUser,
-      enrollRequestAdminDto,
+      invitationAnswer,
       'decline',
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Post(':id/invitations/:userId')
+  async createEnrollInvitation(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() invitation: EnrollmentRequestDto,
+  ) {
+    await this.projectService.createEnrollInvitation(
+      id,
+      userId,
+      request.currentUser,
+      invitation,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/invitations/:userId')
+  async updateEnrollInvitation(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() invitation: EnrollmentRequestDto,
+  ) {
+    await this.projectService.updateEnrollInvitation(
+      id,
+      userId,
+      request.currentUser,
+      invitation,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Delete(':id/invitations/:userId')
+  async cancelEnrollInvitation(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    await this.projectService.cancelEnrollInvitation(
+      id,
+      userId,
+      request.currentUser,
     );
   }
 

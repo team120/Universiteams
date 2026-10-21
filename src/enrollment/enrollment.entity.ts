@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -38,8 +39,12 @@ export class Enrollment {
   role: ProjectRole;
   @Column({ default: RequestState.Pending })
   requestState: RequestState;
+  // Message written by the enrolled user: the request message, or the answer to
+  // an invitation
   @Column({ nullable: true })
   requesterMessage: string;
+  // Message written by a project admin or leader: the answer to a request, or
+  // the invitation message
   @Column({ nullable: true })
   adminMessage: string;
   @ManyToOne(() => User, (user) => user.enrollments, {
@@ -48,13 +53,12 @@ export class Enrollment {
     onUpdate: 'CASCADE',
   })
   user: User;
-  // An admin or leader can invite a user to a project
-  @ManyToOne(() => User, (user) => user.enrollments, {
-    nullable: true,
-    cascade: ['insert', 'update'],
-    onUpdate: 'CASCADE',
-  })
-  sender: User;
+  // Set only on invitations: the admin or leader who invited the user
+  @Column({ nullable: true })
+  senderId?: number;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'senderId' })
+  sender?: User;
   @ManyToOne(() => Project, (project) => project.enrollments, {
     nullable: false,
     cascade: ['insert', 'update'],

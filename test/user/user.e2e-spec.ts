@@ -36,6 +36,20 @@ describe('User Actions (e2e)', () => {
         });
     });
   });
+  describe('get users and get one user', () => {
+    it('should not expose the enrollment invitations count', async () => {
+      const listRes = await request(app.getHttpServer()).get('/users');
+      expect(listRes.body.users[0]).not.toHaveProperty(
+        'requestEnrollmentInvitationsCount',
+      );
+
+      const oneRes = await request(app.getHttpServer()).get('/users/1');
+      expect(oneRes.status).toBe(200);
+      expect(oneRes.body).not.toHaveProperty(
+        'requestEnrollmentInvitationsCount',
+      );
+    });
+  });
   describe('get users with pagination', () => {
     it('should return only five users when using limit', async () => {
       await request(app.getHttpServer())
