@@ -20,9 +20,8 @@ import { ProjectFindDto } from './dtos/project.find.dto';
 import { ProjectInListDto, ProjectsResult } from './dtos/project.show.dto';
 import { ProjectService } from './project.service';
 import { SetCurrentUserInterceptor } from '../auth/current-user.interceptor';
-import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment.request.dto';
+import { EnrollmentRequestDto } from '../enrollment/dtos/enrollment-request.dto';
 import { UnenrollDto } from '../enrollment/dtos/unenroll.dto';
-import { EnrollmentRequestAdminDto } from '../enrollment/dtos/enrollment-request-admin.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectUpdateDto } from './dtos/project.update.dto';
@@ -191,7 +190,7 @@ export class ProjectController {
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
     await this.projectService.manageEnrollRequest(
       id,
@@ -209,7 +208,7 @@ export class ProjectController {
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
     await this.projectService.manageEnrollRequest(
       id,
@@ -222,12 +221,93 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
+  @Put(':id/invitation/accept')
+  async acceptEnrollInvitation(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() invitationAnswer: EnrollmentRequestDto,
+  ) {
+    await this.projectService.manageEnrollInvitation(
+      id,
+      request.currentUser,
+      invitationAnswer,
+      'accept',
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/invitation/decline')
+  async declineEnrollInvitation(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() invitationAnswer: EnrollmentRequestDto,
+  ) {
+    await this.projectService.manageEnrollInvitation(
+      id,
+      request.currentUser,
+      invitationAnswer,
+      'decline',
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Post(':id/invitations/:userId')
+  async createEnrollInvitation(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() invitation: EnrollmentRequestDto,
+  ) {
+    await this.projectService.createEnrollInvitation(
+      id,
+      userId,
+      request.currentUser,
+      invitation,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Put(':id/invitations/:userId')
+  async updateEnrollInvitation(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() invitation: EnrollmentRequestDto,
+  ) {
+    await this.projectService.updateEnrollInvitation(
+      id,
+      userId,
+      request.currentUser,
+      invitation,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
+  @Delete(':id/invitations/:userId')
+  async cancelEnrollInvitation(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    await this.projectService.cancelEnrollInvitation(
+      id,
+      userId,
+      request.currentUser,
+    );
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
   @Put(':id/enrollments/:userId/kick')
   async kickUser(
     @Req() request: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() enrollRequestAdminDto: EnrollmentRequestAdminDto,
+    @Body() enrollRequestAdminDto: EnrollmentRequestDto,
   ) {
     await this.projectService.kickUser(
       id,
