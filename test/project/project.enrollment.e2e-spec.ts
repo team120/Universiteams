@@ -436,6 +436,39 @@ describe('Project enrollments (e2e)', () => {
     });
   });
 
+  describe('Project deletion', () => {
+    const deleteProject = async (cookie: string) =>
+      request(app.getHttpServer())
+        .delete(`/projects/${projectId}`)
+        .set('Cookie', cookie);
+
+    const getProjectWithDeleted = () =>
+      conn.getRepository(Project).findOne({
+        where: { id: projectId },
+        withDeleted: true,
+        select: ['id', 'logicalDeleteDate'],
+      });
+
+    afterEach(async () => {
+      await conn.getRepository(Project).restore(projectId);
+    });
+
+    it('should let the leader soft delete the project', async () => {
+      const res = await deleteProject(await login(leader));
+
+      expect(res.status).toBe(200);
+      expect(await getProject()).toBeNull();
+      expect((await getProjectWithDeleted()).logicalDeleteDate).not.toBeNull();
+    });
+
+    it('should not let a member delete the project', async () => {
+      const res = await deleteProject(await login(member));
+
+      expect(res.status).toBe(401);
+      expect(await getProject()).not.toBeNull();
+    });
+  });
+
   describe('Former admins', () => {
     it.each([RequestState.Kicked, RequestState.Unenrolled])(
       'should not let an admin whose enrollment is %s manage the project',
