@@ -8,7 +8,7 @@ Tooling runs inside Docker; the host has no `node_modules`. All test targets nee
 
 - Unit tests: `make test` (coverage: `make cov`)
 - E2E tests: `make e2e`
-- Lint and format: `npm run lint:check` and `npm run format:check` (what CI runs); `make lint` and `make format` apply fixes
+- Lint and format: `make lint-check` and `make format-check` (what CI runs); `make lint` and `make format` apply fixes
 
 ## Conventions
 
