@@ -42,24 +42,16 @@ jobs:
   lint-and-format:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
-      contents: write
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.head_ref }}
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: '18'
+          cache: 'npm'
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
       - name: Run Linter
-        run: npm run lint
-      - name: Run Formatter
-        run: npm run format
-      - name: Apply Linter and Formatter Changes
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          commit_message: 'Apply eslint and prettier code changes [skip ci]'
+        run: npm run lint:check
+      - name: Check Formatting
+        run: npm run format:check
