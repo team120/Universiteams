@@ -31,7 +31,21 @@ $ choco install make
 
 ## Local Environment
 
-### Setup and Running the app
+### Setup
+
+Create `docker.dev.env` once by copying the example and replacing the `change-me` values:
+
+```bash
+$ cp docker.dev.env.example docker.dev.env
+```
+
+Placeholder values are enough to run the app locally; sending emails (verification, password reset) needs a real `SENDINBLUE_API_KEY`.
+
+Alternatively, `./create-env-file.sh ENV=dev KEY=VALUE ...` generates the file from arguments (see the script for the full list). Arguments end up in your shell history, so prefer copying the example for real secrets.
+
+> Docker Desktop (or another Docker Engine) must be running.
+
+### Running the app
 
 ```bash
 $ make dev
@@ -43,11 +57,11 @@ $ make dev
 
 #### API
 
-[api.localhost](http://api.localhost)
+[api.localhost](http://api.localhost) (Swagger docs at [api.localhost/docs](http://api.localhost/docs))
 
 #### DB Admin
 
-[db.localhost](https://db.localhost)
+[db.localhost](http://db.localhost) (pgAdmin; the dev login is set in `docker-compose.dev.yml`)
 
 ### Teardown
 
@@ -74,6 +88,12 @@ $ make down-pd
 ```
 
 ## Test
+
+Tests run in Docker and need `docker.test.env`. Create it once with:
+
+```bash
+$ ./create-test-env-file.sh
+```
 
 ```bash
 # unit tests
