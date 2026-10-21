@@ -115,13 +115,21 @@ $ make e2e-dg name="jest_test_partial_description"
 ## Lint
 
 ```bash
+# fix
 make lint
+
+# check only (as CI does)
+make lint-check
 ```
 
 ## Format
 
 ```bash
+# fix
 make format
+
+# check only (as CI does)
+make format-check
 ```
 
 ## Technologies used

@@ -93,3 +93,13 @@ lint:
 format:
 	docker compose -p dev -f docker-compose.dev.yml run --rm --no-deps app npm run format
 
+.PHONY: lint-check
+## lint-check:   Run eslint without fixing (as CI does)
+lint-check:
+	docker compose -p test -f docker-compose.test.yml run --build --rm --no-deps test npm run lint:check
+
+.PHONY: format-check
+## format-check:   Check formatting with prettier (as CI does)
+format-check:
+	docker compose -p test -f docker-compose.test.yml run --build --rm --no-deps test npm run format:check
+
