@@ -4,7 +4,7 @@ Universiteams API: a platform for university research projects. Students and tea
 
 ## Running checks
 
-Tooling runs inside Docker; the host has no `node_modules`. All test targets need `docker.test.env`; create it once with `./create-test-env-file.sh`.
+Tooling runs inside Docker; the host has no `node_modules`. Test and check targets need `docker.test.env` (no secrets); create it once with `./create-test-env-file.sh`.
 
 - Unit tests: `make test` (coverage: `make cov`)
 - E2E tests: `make e2e`
