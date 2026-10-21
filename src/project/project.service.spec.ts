@@ -348,4 +348,88 @@ describe('ProjectService', () => {
       });
     });
   });
+
+  // Every change locks the enrolled user before reading the enrollment, so a
+  // concurrent change (even one that brings the state back, like decline
+  // then request) has committed before the state is read
+  describe('when changing an enrollment', () => {
+    const admin = { id: 2 } as never;
+    const enrolledUser = { id: 8 } as never;
+    const enrollment = (requestState: RequestState, senderId: number | null) =>
+      ({ id: 10, requestState, senderId } as Enrollment);
+
+    beforeEach(() => {
+      projectRepositoryMock.findOne.mockResolvedValue({ id: 1 });
+      adminQueryBuilderMock.getOne.mockResolvedValue({ id: 99 });
+      managerMock.update.mockResolvedValue({ affected: 1 });
+      managerMock.delete.mockResolvedValue({ affected: 1 });
+    });
+
+    it.each([
+      [
+        'approve a request',
+        enrollment(RequestState.Pending, null),
+        () => service.manageEnrollRequest(1, 8, admin, {}, 'approve'),
+      ],
+      [
+        'accept an invitation',
+        enrollment(RequestState.Pending, 2),
+        () => service.manageEnrollInvitation(1, enrolledUser, {}, 'accept'),
+      ],
+      [
+        'decline an invitation',
+        enrollment(RequestState.Pending, 2),
+        () => service.manageEnrollInvitation(1, enrolledUser, {}, 'decline'),
+      ],
+      [
+        'update an invitation',
+        enrollment(RequestState.Pending, 2),
+        () => service.updateEnrollInvitation(1, 8, admin, {}),
+      ],
+      [
+        'cancel an invitation',
+        enrollment(RequestState.Pending, 2),
+        () => service.cancelEnrollInvitation(1, 8, admin),
+      ],
+      [
+        'update a request',
+        enrollment(RequestState.Pending, null),
+        () => service.updateEnrollRequest(1, enrolledUser, {}),
+      ],
+      [
+        'cancel a request',
+        enrollment(RequestState.Pending, null),
+        () => service.cancelEnrollRequest(1, enrolledUser),
+      ],
+      [
+        'kick a member',
+        enrollment(RequestState.Accepted, null),
+        () => service.kickUser(1, 8, admin, {}),
+      ],
+      [
+        'unenroll',
+        enrollment(RequestState.Accepted, null),
+        () => service.unenroll(1, enrolledUser, {}),
+      ],
+    ])(
+      'should lock the user before reading the enrollment to %s',
+      async (_, currentEnrollment, change) => {
+        managerMock.findOne.mockImplementation(async (entity: unknown) =>
+          entity === User ? { id: 8 } : currentEnrollment,
+        );
+
+        await change();
+
+        const [lockCall, enrollmentCall] = managerMock.findOne.mock.calls;
+        expect(lockCall).toEqual([
+          User,
+          expect.objectContaining({
+            where: { id: 8 },
+            lock: { mode: 'pessimistic_write' },
+          }),
+        ]);
+        expect(enrollmentCall[0]).toBe(Enrollment);
+      },
+    );
+  });
 });

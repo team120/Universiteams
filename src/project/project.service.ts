@@ -338,10 +338,39 @@ export class ProjectService {
     });
     if (!project) throw new NotFound(`Proyecto #${projectId} no encontrado`);
 
-    // Perform softDelete instead of hard delete in order to be able to restore entity in the future
-    await this.projectRepository.softDelete(projectId).catch((err: Error) => {
-      throw new DbException(err.message, err.stack);
-    });
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        // Pending invitations can't be answered once the project is deleted:
+        // remove them so the invited users' counts stay correct
+        const pendingInvitations = await manager.find(Enrollment, {
+          where: {
+            project: { id: projectId },
+            requestState: RequestState.Pending,
+            senderId: Not(IsNull()),
+          },
+          relations: { user: true },
+          select: { id: true, user: { id: true } },
+          // Same lock order in every deletion, so two deletions can't deadlock
+          order: { user: { id: 'ASC' } },
+        });
+        for (const invitation of pendingInvitations) {
+          await this.lockUser(manager, invitation.user.id);
+          await this.deleteEnrollment(manager, {
+            ...invitation,
+            requestState: RequestState.Pending,
+          });
+          await manager.decrement(
+            User,
+            { id: invitation.user.id },
+            'requestEnrollmentInvitationsCount',
+            1,
+          );
+        }
+
+        // Perform softDelete instead of hard delete in order to be able to restore entity in the future
+        await manager.softDelete(Project, projectId);
+      })
+      .catch(rethrowAsDbException);
     this.logger.debug(`Project #${projectId} successfully deleted`);
   }
 
@@ -621,61 +650,52 @@ export class ProjectService {
   ) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
+      select: ['id'],
     });
     if (!project) throw projectNotFoundError;
 
-    const enrollment = await this.enrollmentRepository.findOne({
-      where: {
-        project: {
-          id: project.id,
-        },
-        user: {
-          id: user.id,
-        },
-      },
-    });
-    if (!enrollment)
-      throw new BadRequest('Este usuario no está inscripto en este proyecto');
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const enrollment = await this.lockAndFindEnrollment(
+          manager,
+          project.id,
+          user.id,
+        );
+        if (!enrollment)
+          throw new BadRequest(
+            'Este usuario no está inscripto en este proyecto',
+          );
 
-    switch (enrollment.requestState) {
-      case RequestState.Pending:
-        // An invitation is answered with accept or decline, not edited
-        if (enrollment.senderId !== null)
-          throw new BadRequest('Este usuario no tiene una solicitud pendiente');
-        break;
-      case RequestState.Accepted:
-        throw new BadRequest(
-          'Este usuario ya está inscripto en este proyecto, no se puede actualizar la solicitud',
-        );
-      case RequestState.Unenrolled:
-        throw new BadRequest(
-          'Este usuario no está inscripto en este proyecto, no se puede actualizar la solicitud',
-        );
-      case RequestState.Rejected:
-        throw new BadRequest(
-          'Esta solicitud ha sido rechazada, no se puede actualizar',
-        );
-      default:
-        throw new BadRequest('Estado de solicitud inválido');
-    }
+        switch (enrollment.requestState) {
+          case RequestState.Pending:
+            // An invitation is answered with accept or decline, not edited
+            if (enrollment.senderId !== null)
+              throw new BadRequest(
+                'Este usuario no tiene una solicitud pendiente',
+              );
+            break;
+          case RequestState.Accepted:
+            throw new BadRequest(
+              'Este usuario ya está inscripto en este proyecto, no se puede actualizar la solicitud',
+            );
+          case RequestState.Unenrolled:
+            throw new BadRequest(
+              'Este usuario no está inscripto en este proyecto, no se puede actualizar la solicitud',
+            );
+          case RequestState.Rejected:
+            throw new BadRequest(
+              'Esta solicitud ha sido rechazada, no se puede actualizar',
+            );
+          default:
+            throw new BadRequest('Estado de solicitud inválido');
+        }
 
-    await this.enrollmentRepository
-      .update(
-        {
-          project: {
-            id: project.id,
-          },
-          user: {
-            id: user.id,
-          },
-        },
-        {
+        await this.changeEnrollmentState(manager, enrollment, {
           requesterMessage: enrollmentRequest.message,
-        },
-      )
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+        });
+      })
+      .catch(rethrowAsDbException);
+
     this.logger.debug(
       `Project#${project.id} successfully updated enrollment request by user#${user.id}`,
     );
@@ -690,7 +710,7 @@ export class ProjectService {
 
     await this.projectRepository.manager
       .transaction(async (manager) => {
-        const enrollment = await this.findEnrollment(
+        const enrollment = await this.lockAndFindEnrollment(
           manager,
           project.id,
           user.id,
@@ -843,7 +863,7 @@ export class ProjectService {
 
     await this.projectRepository.manager
       .transaction(async (manager) => {
-        const enrollment = await this.findEnrollment(
+        const enrollment = await this.lockAndFindEnrollment(
           manager,
           project.id,
           user.id,
@@ -893,7 +913,7 @@ export class ProjectService {
 
     await this.projectRepository.manager
       .transaction(async (manager) => {
-        const enrollment = await this.findEnrollment(
+        const enrollment = await this.lockAndFindEnrollment(
           manager,
           project.id,
           userId,
@@ -1051,24 +1071,28 @@ export class ProjectService {
       );
     }
 
-    const enrollment = await this.findEnrollment(
-      this.enrollmentRepository.manager,
-      project.id,
-      userId,
-    );
-    if (
-      !enrollment ||
-      enrollment.senderId === null ||
-      enrollment.requestState !== RequestState.Pending
-    ) {
-      throw new BadRequest('Este usuario no tiene una invitación pendiente');
-    }
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const enrollment = await this.lockAndFindEnrollment(
+          manager,
+          project.id,
+          userId,
+        );
+        if (
+          !enrollment ||
+          enrollment.senderId === null ||
+          enrollment.requestState !== RequestState.Pending
+        ) {
+          throw new BadRequest(
+            'Este usuario no tiene una invitación pendiente',
+          );
+        }
 
-    await this.changeEnrollmentState(
-      this.enrollmentRepository.manager,
-      enrollment,
-      { adminMessage: invitation.message },
-    ).catch(rethrowAsDbException);
+        await this.changeEnrollmentState(manager, enrollment, {
+          adminMessage: invitation.message,
+        });
+      })
+      .catch(rethrowAsDbException);
     this.logger.debug(
       `Project#${project.id} successfully updated enrollment invitation to user#${userId}`,
     );
@@ -1094,7 +1118,7 @@ export class ProjectService {
 
     await this.projectRepository.manager
       .transaction(async (manager) => {
-        const enrollment = await this.findEnrollment(
+        const enrollment = await this.lockAndFindEnrollment(
           manager,
           project.id,
           userId,
@@ -1146,7 +1170,7 @@ export class ProjectService {
 
     await this.projectRepository.manager
       .transaction(async (manager) => {
-        const enrollment = await this.findEnrollment(
+        const enrollment = await this.lockAndFindEnrollment(
           manager,
           project.id,
           currentUser.id,
@@ -1210,7 +1234,7 @@ export class ProjectService {
 
     await this.projectRepository.manager
       .transaction(async (manager) => {
-        const enrollment = await this.findEnrollment(
+        const enrollment = await this.lockAndFindEnrollment(
           manager,
           project.id,
           userId,
@@ -1336,6 +1360,17 @@ export class ProjectService {
       },
       select: ['id', 'requestState', 'senderId'],
     });
+  }
+
+  // Locks the enrolled user first, so any concurrent change to this user's
+  // enrollments has committed before the enrollment is read
+  private async lockAndFindEnrollment(
+    manager: EntityManager,
+    projectId: number,
+    userId: number,
+  ): Promise<Enrollment | null> {
+    await this.lockUser(manager, userId);
+    return this.findEnrollment(manager, projectId, userId);
   }
 
   private async lockUser(manager: EntityManager, userId: number) {

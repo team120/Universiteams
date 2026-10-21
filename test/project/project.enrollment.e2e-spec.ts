@@ -461,6 +461,19 @@ describe('Project enrollments (e2e)', () => {
       expect((await getProjectWithDeleted()).logicalDeleteDate).not.toBeNull();
     });
 
+    it('should remove pending invitations and restore the invited user count', async () => {
+      const leaderCookie = await login(leader);
+      await invite(leaderCookie);
+
+      const res = await deleteProject(leaderCookie);
+
+      expect(res.status).toBe(200);
+      expect(await getOutsiderEnrollment()).toBeNull();
+      expect(await getOutsiderInvitationsCount()).toBe(
+        initialOutsider.requestEnrollmentInvitationsCount,
+      );
+    });
+
     it('should not let a member delete the project', async () => {
       const res = await deleteProject(await login(member));
 
