@@ -33,17 +33,15 @@ $ choco install make
 
 ### Setup
 
-Create `docker.dev.env` once. Either run the script, passing the secrets as `KEY=VALUE` arguments:
+Create `docker.dev.env` once by copying the example and replacing the `change-me` values:
 
 ```bash
-$ ./create-env-file.sh ENV=dev POSTGRES_USER=<user> POSTGRES_PASSWORD=<password> \
-    ACCESS_TOKEN_SECRET=<secret> REFRESH_TOKEN_SECRET=<secret> \
-    EMAIL_VERIFICATION_LINK_SECRET=<secret> FORGET_PASSWORD_VERIFICATION_LINK_SECRET=<secret> \
-    SENDGRID_API_KEY=<key> SENDINBLUE_API_KEY=<key> \
-    SUPER_ADMIN_EMAIL=<email> SUPER_ADMIN_PASSWORD=<password>
+$ cp docker.dev.env.example docker.dev.env
 ```
 
-or copy [`docker.dev.env.example`](docker.dev.env.example) to `docker.dev.env` and replace the `change-me` values. Placeholder values are enough to run the app locally; sending emails (verification, password reset) needs a real `SENDINBLUE_API_KEY`.
+Placeholder values are enough to run the app locally; sending emails (verification, password reset) needs a real `SENDINBLUE_API_KEY`.
+
+Alternatively, `./create-env-file.sh ENV=dev KEY=VALUE ...` generates the file from arguments (see the script for the full list). Arguments end up in your shell history, so prefer copying the example for real secrets.
 
 > Docker Desktop (or another Docker Engine) must be running.
 
