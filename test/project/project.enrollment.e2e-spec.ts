@@ -296,6 +296,95 @@ describe('Project enrollments (e2e)', () => {
     (await conn.getRepository(User).findOne({ where: { id: outsiderId } }))
       .requestEnrollmentInvitationsCount;
 
+  const enrollOutsiderAsMember = async () => {
+    await requestEnrollAsOutsider();
+    await request(app.getHttpServer())
+      .put(`/projects/${projectId}/enroll-requests/${outsiderId}/approve`)
+      .set('Cookie', await login(leader))
+      .send({});
+  };
+
+  describe('Unenrollment and kick', () => {
+    const unenroll = async () =>
+      request(app.getHttpServer())
+        .put(`/projects/${projectId}/enrollment/unenroll`)
+        .set('Cookie', await login(outsider))
+        .send({ message: 'Me voy' });
+
+    const kick = async (cookie: string) =>
+      request(app.getHttpServer())
+        .put(`/projects/${projectId}/enrollments/${outsiderId}/kick`)
+        .set('Cookie', cookie)
+        .send({ message: 'Expulsado' });
+
+    describe('when the user is a member', () => {
+      beforeEach(async () => {
+        await enrollOutsiderAsMember();
+      });
+
+      it('should let the user unenroll and decrease the member count', async () => {
+        const res = await unenroll();
+        expect(res.status).toBe(200);
+
+        const enrollment = await getOutsiderEnrollment();
+        expect(enrollment.requestState).toBe(RequestState.Unenrolled);
+        expect(enrollment.requesterMessage).toBe('Me voy');
+        const project = await getProject();
+        expect(project.userCount).toBe(initialProject.userCount);
+      });
+
+      it('should let an admin kick the user and decrease the member count', async () => {
+        const res = await kick(await login(leader));
+        expect(res.status).toBe(200);
+
+        const enrollment = await getOutsiderEnrollment();
+        expect(enrollment.requestState).toBe(RequestState.Kicked);
+        expect(enrollment.adminMessage).toBe('Expulsado');
+        const project = await getProject();
+        expect(project.userCount).toBe(initialProject.userCount);
+      });
+
+      it('should not let a non-admin kick the user', async () => {
+        const res = await kick(await login(member));
+        expect(res.status).toBe(401);
+
+        const enrollment = await getOutsiderEnrollment();
+        expect(enrollment.requestState).toBe(RequestState.Accepted);
+      });
+
+      it('should let a kicked user acknowledge the kick', async () => {
+        await kick(await login(leader));
+        const res = await request(app.getHttpServer())
+          .delete(`/projects/${projectId}/enrollment`)
+          .set('Cookie', await login(outsider));
+
+        expect(res.status).toBe(200);
+        expect(await getOutsiderEnrollment()).toBeNull();
+      });
+    });
+
+    describe('when the user is not a member', () => {
+      it('should not let an admin kick the user', async () => {
+        const res = await kick(await login(leader));
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe(
+          'Este usuario no está inscripto en este proyecto',
+        );
+      });
+    });
+
+    describe('when the user only has a pending request', () => {
+      it('should let the user unenroll and decrease the member count', async () => {
+        await requestEnrollAsOutsider();
+        const res = await unenroll();
+
+        expect(res.status).toBe(200);
+        const project = await getProject();
+        expect(project.userCount).toBe(initialProject.userCount - 1);
+      });
+    });
+  });
+
   describe('Enrollment invitation', () => {
     let leaderCookie: string;
     beforeEach(async () => {
