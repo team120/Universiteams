@@ -8,6 +8,7 @@ import { Project } from '../../src/project/project.entity';
 import { User } from '../../src/user/user.entity';
 import {
   Enrollment,
+  ProjectRole,
   RequestState,
 } from '../../src/enrollment/enrollment.entity';
 import { enrollmentInvitationEmailJob } from '../../src/email/email.processor';
@@ -20,6 +21,15 @@ const leader = { email: 'user2@example.com', password: 'Password_2' };
 const member = { email: 'user1@example.com', password: 'Password_1' };
 const outsiderId = 8;
 const outsider = { email: 'user8@example.com', password: 'Password_8' };
+// User 9 has no enrollment in project 1 either
+const otherOutsiderId = 9;
+
+// Enough parallel calls to reliably hit a race between read and update
+const parallelCalls = 8;
+const statusesOfParallelCalls = async (call: () => Promise<request.Response>) =>
+  (await Promise.all(Array.from({ length: parallelCalls }, call))).map(
+    (res) => res.status,
+  );
 
 describe('Project enrollments (e2e)', () => {
   let app: INestApplication;
@@ -66,6 +76,9 @@ describe('Project enrollments (e2e)', () => {
     await conn
       .getRepository(Enrollment)
       .delete({ project: { id: projectId }, user: { id: outsiderId } });
+    await conn
+      .getRepository(Enrollment)
+      .delete({ project: { id: projectId }, user: { id: otherOutsiderId } });
     await conn.getRepository(Project).update(projectId, {
       userCount: initialProject.userCount,
       requestEnrollmentCount: initialProject.requestEnrollmentCount,
@@ -234,6 +247,24 @@ describe('Project enrollments (e2e)', () => {
       });
     });
 
+    describe('when an admin approves the same request several times at the same time', () => {
+      it('should update the counters once', async () => {
+        await requestEnrollAsOutsider();
+        const leaderCookie = await login(leader);
+
+        const statuses = await statusesOfParallelCalls(() =>
+          manageRequest('approve', leaderCookie),
+        );
+
+        expect(statuses.filter((status) => status === 200)).toHaveLength(1);
+        const project = await getProject();
+        expect(project.userCount).toBe(initialProject.userCount + 1);
+        expect(project.requestEnrollmentCount).toBe(
+          initialProject.requestEnrollmentCount,
+        );
+      });
+    });
+
     describe('when there is no request', () => {
       it('should return Bad Request', async () => {
         const res = await manageRequest('approve', await login(leader));
@@ -374,15 +405,60 @@ describe('Project enrollments (e2e)', () => {
     });
 
     describe('when the user only has a pending request', () => {
-      it('should let the user unenroll and decrease the member count', async () => {
+      it('should not let the user unenroll', async () => {
         await requestEnrollAsOutsider();
         const res = await unenroll();
 
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe(
+          'Este usuario no está inscripto en este proyecto',
+        );
+        const enrollment = await getOutsiderEnrollment();
+        expect(enrollment.requestState).toBe(RequestState.Pending);
         const project = await getProject();
-        expect(project.userCount).toBe(initialProject.userCount - 1);
+        expect(project.userCount).toBe(initialProject.userCount);
       });
     });
+
+    describe('when an admin kicks the same member several times at the same time', () => {
+      it('should decrease the member count once', async () => {
+        await enrollOutsiderAsMember();
+        const leaderCookie = await login(leader);
+
+        const statuses = await statusesOfParallelCalls(() =>
+          kick(leaderCookie),
+        );
+
+        expect(statuses.filter((status) => status === 200)).toHaveLength(1);
+        const project = await getProject();
+        expect(project.userCount).toBe(initialProject.userCount);
+      });
+    });
+  });
+
+  describe('Former admins', () => {
+    it.each([RequestState.Kicked, RequestState.Unenrolled])(
+      'should not let an admin whose enrollment is %s manage the project',
+      async (requestState: RequestState) => {
+        await conn.getRepository(Enrollment).insert({
+          project: { id: projectId },
+          user: { id: outsiderId },
+          role: ProjectRole.Admin,
+          requestState,
+        });
+
+        const res = await request(app.getHttpServer())
+          .post(`/projects/${projectId}/invitations/${otherOutsiderId}`)
+          .set('Cookie', await login(outsider))
+          .send({ message: 'Te invito al proyecto' });
+
+        expect(res.status).toBe(401);
+        const invitation = await conn.getRepository(Enrollment).findOne({
+          where: { project: { id: projectId }, user: { id: otherOutsiderId } },
+        });
+        expect(invitation).toBeNull();
+      },
+    );
   });
 
   describe('Enrollment invitation', () => {
@@ -462,6 +538,19 @@ describe('Project enrollments (e2e)', () => {
             (project: { id: number }) => project.id === projectId,
           ),
         ).toMatchObject({ senderName: 'Camila Villa' });
+      });
+    });
+
+    describe('when an admin invites the same user several times at the same time', () => {
+      it('should create one invitation and count it once', async () => {
+        const statuses = await statusesOfParallelCalls(() =>
+          invite(leaderCookie),
+        );
+
+        expect(statuses.filter((status) => status === 201)).toHaveLength(1);
+        expect(await getOutsiderInvitationsCount()).toBe(
+          initialOutsider.requestEnrollmentInvitationsCount + 1,
+        );
       });
     });
 
@@ -665,6 +754,62 @@ describe('Project enrollments (e2e)', () => {
         expect(enrollment.requestState).toBe(RequestState.Declined);
         const project = await getProject();
         expect(project.userCount).toBe(initialProject.userCount);
+        expect(await getOutsiderInvitationsCount()).toBe(
+          initialOutsider.requestEnrollmentInvitationsCount,
+        );
+      });
+    });
+
+    describe('when the invited user uses the request endpoints', () => {
+      beforeEach(async () => {
+        await invite(await login(leader));
+      });
+
+      it('should not let the user cancel the invitation as a request', async () => {
+        const res = await request(app.getHttpServer())
+          .delete(`/projects/${projectId}/enroll-request`)
+          .set('Cookie', outsiderCookie);
+
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe(
+          'Este usuario no tiene una solicitud pendiente',
+        );
+        expect(await getOutsiderEnrollment()).not.toBeNull();
+        const project = await getProject();
+        expect(project.requestEnrollmentCount).toBe(
+          initialProject.requestEnrollmentCount,
+        );
+        expect(await getOutsiderInvitationsCount()).toBe(
+          initialOutsider.requestEnrollmentInvitationsCount + 1,
+        );
+      });
+
+      it('should not let the user update the invitation as a request', async () => {
+        const res = await request(app.getHttpServer())
+          .put(`/projects/${projectId}/enroll-request`)
+          .set('Cookie', outsiderCookie)
+          .send({ message: 'Mensaje actualizado' });
+
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe(
+          'Este usuario no tiene una solicitud pendiente',
+        );
+        const enrollment = await getOutsiderEnrollment();
+        expect(enrollment.requesterMessage).toBeNull();
+      });
+    });
+
+    describe('when the user accepts the same invitation several times at the same time', () => {
+      it('should enroll the user and update the counters once', async () => {
+        await invite(await login(leader));
+
+        const statuses = await statusesOfParallelCalls(() =>
+          answerInvitation('accept'),
+        );
+
+        expect(statuses.filter((status) => status === 200)).toHaveLength(1);
+        const project = await getProject();
+        expect(project.userCount).toBe(initialProject.userCount + 1);
         expect(await getOutsiderInvitationsCount()).toBe(
           initialOutsider.requestEnrollmentInvitationsCount,
         );

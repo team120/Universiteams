@@ -4,12 +4,20 @@ import { PinoLogger } from 'nestjs-pino';
 import { Favorite } from '../favorite/favorite.entity';
 import { CURRENT_DATE_SERVICE } from '../utils/current-date';
 import { CurrentDateServiceMock } from '../utils/current-date.mock';
-import { DbException, NotFound } from '../utils/exceptions/exceptions';
+import {
+  BadRequest,
+  DbException,
+  NotFound,
+} from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { Project } from './project.entity';
 import { QueryCreator } from './project.query.creator';
 import { ProjectService } from './project.service';
-import { Enrollment } from '../enrollment/enrollment.entity';
+import {
+  Enrollment,
+  ProjectRole,
+  RequestState,
+} from '../enrollment/enrollment.entity';
 import { User } from '../user/user.entity';
 import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
@@ -23,6 +31,32 @@ describe('ProjectService', () => {
     findOne: jest.fn().mockReturnValue(getOneMock),
   };
   const currentDateServiceMock = new CurrentDateServiceMock('2022-01-01');
+  // Transaction manager used by the enrollment state changes
+  const managerMock = {
+    findOne: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    increment: jest.fn(),
+    decrement: jest.fn(),
+  };
+  const projectRepositoryMock = {
+    findOne: jest.fn(),
+    manager: {
+      transaction: jest.fn((work: (manager: unknown) => unknown) =>
+        work(managerMock),
+      ),
+    },
+  };
+  // isUserAdmin finds an admin enrollment through a query builder
+  const adminQueryBuilderMock = {
+    select: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getOne: jest.fn(),
+  };
+  const enrollmentRepositoryMock = {
+    createQueryBuilder: jest.fn(() => adminQueryBuilderMock),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,7 +64,7 @@ describe('ProjectService', () => {
         ProjectService,
         {
           provide: getRepositoryToken(Project),
-          useValue: {},
+          useValue: projectRepositoryMock,
         },
         {
           provide: getRepositoryToken(Favorite),
@@ -42,7 +76,7 @@ describe('ProjectService', () => {
         },
         {
           provide: getRepositoryToken(Enrollment),
-          useValue: {},
+          useValue: enrollmentRepositoryMock,
         },
         {
           provide: getRepositoryToken(ResearchDepartment),
@@ -74,6 +108,9 @@ describe('ProjectService', () => {
 
   afterEach(() => {
     getOneMock.getOne.mockReset();
+    Object.values(managerMock).forEach((mock) => mock.mockReset());
+    projectRepositoryMock.findOne.mockReset();
+    adminQueryBuilderMock.getOne.mockReset();
   });
 
   it('should be defined', () => {
@@ -105,6 +142,135 @@ describe('ProjectService', () => {
         });
         expect.assertions(2);
       });
+    });
+  });
+
+  // A concurrent call already changed the enrollment: the conditional update
+  // or delete matches no row, so no counter must change
+  describe('when a concurrent call changes the enrollment first', () => {
+    const currentUser = {
+      id: 2,
+      user: 'Camila Villa',
+      email: 'user2@example.com',
+      isEmailVerified: true,
+      systemRole: 'admin',
+    } as never;
+    const pendingEnrollment = (senderId: number | null) => ({
+      id: 10,
+      requestState: RequestState.Pending,
+      senderId,
+    });
+    const expectNoCounterChange = () => {
+      expect(managerMock.increment).not.toHaveBeenCalled();
+      expect(managerMock.decrement).not.toHaveBeenCalled();
+    };
+
+    beforeEach(() => {
+      projectRepositoryMock.findOne.mockResolvedValue({ id: 1 });
+      adminQueryBuilderMock.getOne.mockResolvedValue({ id: 99 });
+      managerMock.update.mockResolvedValue({ affected: 0 });
+      managerMock.delete.mockResolvedValue({ affected: 0 });
+    });
+
+    it('should not count an approved request twice', async () => {
+      managerMock.findOne.mockResolvedValue(pendingEnrollment(null));
+
+      await expect(
+        service.manageEnrollRequest(1, 8, currentUser, {}, 'approve'),
+      ).rejects.toBeInstanceOf(BadRequest);
+      expectNoCounterChange();
+    });
+
+    it('should not count an accepted invitation twice', async () => {
+      managerMock.findOne.mockResolvedValue(pendingEnrollment(2));
+
+      await expect(
+        service.manageEnrollInvitation(1, currentUser, {}, 'accept'),
+      ).rejects.toBeInstanceOf(BadRequest);
+      expectNoCounterChange();
+    });
+
+    it('should not count a canceled invitation twice', async () => {
+      managerMock.findOne.mockResolvedValue(pendingEnrollment(2));
+
+      await expect(
+        service.cancelEnrollInvitation(1, 8, currentUser),
+      ).rejects.toBeInstanceOf(BadRequest);
+      expectNoCounterChange();
+    });
+
+    it('should not count a canceled request twice', async () => {
+      managerMock.findOne.mockResolvedValue(pendingEnrollment(null));
+
+      await expect(
+        service.cancelEnrollRequest(1, currentUser),
+      ).rejects.toBeInstanceOf(BadRequest);
+      expectNoCounterChange();
+    });
+
+    it('should not count a kick twice', async () => {
+      managerMock.findOne.mockResolvedValue({
+        id: 10,
+        requestState: RequestState.Accepted,
+        senderId: null,
+      });
+
+      await expect(
+        service.kickUser(1, 8, currentUser, {}),
+      ).rejects.toBeInstanceOf(BadRequest);
+      expectNoCounterChange();
+    });
+
+    it('should not count an unenrollment twice', async () => {
+      managerMock.findOne.mockResolvedValue({
+        id: 10,
+        requestState: RequestState.Accepted,
+        senderId: null,
+      });
+
+      await expect(service.unenroll(1, currentUser, {})).rejects.toBeInstanceOf(
+        BadRequest,
+      );
+      expectNoCounterChange();
+    });
+  });
+
+  describe('when creating an enrollment for a user', () => {
+    it('should lock the invited user so concurrent invitations run one at a time', async () => {
+      const currentUser = { id: 2 } as never;
+      projectRepositoryMock.findOne.mockResolvedValue({ id: 1, name: 'P' });
+      adminQueryBuilderMock.getOne.mockResolvedValue({ id: 99 });
+      managerMock.findOne.mockResolvedValue(null);
+
+      await service
+        .createEnrollInvitation(1, 8, currentUser, {})
+        .catch(() => undefined);
+
+      expect(managerMock.findOne).toHaveBeenCalledWith(
+        User,
+        expect.objectContaining({
+          where: { id: 8 },
+          lock: { mode: 'pessimistic_write' },
+        }),
+      );
+    });
+
+    it('should only accept admins whose enrollment is accepted', async () => {
+      projectRepositoryMock.findOne.mockResolvedValue({ id: 1, name: 'P' });
+      adminQueryBuilderMock.getOne.mockResolvedValue(null);
+
+      await service
+        .createEnrollInvitation(1, 8, { id: 2 } as never, {})
+        .catch(() => undefined);
+
+      expect(adminQueryBuilderMock.andWhere).toHaveBeenCalledWith(
+        'enrollment.role IN (:...roles)',
+        { roles: [ProjectRole.Admin, ProjectRole.Leader] },
+      );
+      expect(adminQueryBuilderMock.andWhere).toHaveBeenCalledWith(
+        'enrollment.requestState = :acceptedState',
+        { acceptedState: RequestState.Accepted },
+      );
     });
   });
 });

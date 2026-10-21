@@ -62,6 +62,10 @@ const projectNotFoundError = new NotFound(
 
 const userNotFoundError = new NotFound('Usuario no encontrado');
 
+const enrollmentChangedError = new BadRequest(
+  'La inscripción fue modificada por otra operación, intenta nuevamente',
+);
+
 // Keeps validation errors (BadRequest, Unauthorized...) and wraps anything else
 const rethrowAsDbException = (err: Error): never => {
   if (err instanceof HttpException) throw err;
@@ -535,6 +539,9 @@ export class ProjectService {
       });
       if (!project) throw projectNotFoundError;
 
+      // Runs requests and invitations for this user one at a time
+      await this.lockUser(queryRunner.manager, user.id);
+
       const enrollment = await this.findEnrollment(
         queryRunner.manager,
         project.id,
@@ -578,9 +585,12 @@ export class ProjectService {
       ]);
 
       // Increase project enrollment request count
-      await queryRunner.manager.update(Project, project.id, {
-        requestEnrollmentCount: project.requestEnrollmentCount + 1,
-      });
+      await queryRunner.manager.increment(
+        Project,
+        { id: project.id },
+        'requestEnrollmentCount',
+        1,
+      );
 
       await queryRunner.commitTransaction();
 
@@ -629,6 +639,9 @@ export class ProjectService {
 
     switch (enrollment.requestState) {
       case RequestState.Pending:
+        // An invitation is answered with accept or decline, not edited
+        if (enrollment.senderId !== null)
+          throw new BadRequest('Este usuario no tiene una solicitud pendiente');
         break;
       case RequestState.Accepted:
         throw new BadRequest(
@@ -671,55 +684,44 @@ export class ProjectService {
   async cancelEnrollRequest(projectId: number, user: CurrentUserWithoutTokens) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
-      select: ['id', 'requestEnrollmentCount'],
+      select: ['id'],
     });
     if (!project) throw projectNotFoundError;
 
-    const enrollment = await this.enrollmentRepository.findOne({
-      where: {
-        project: {
-          id: project.id,
-        },
-        user: {
-          id: user.id,
-        },
-      },
-      select: ['id', 'requestState'],
-    });
-    if (!enrollment)
-      throw new BadRequest('Este usuario no tiene una solicitud pendiente');
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const enrollment = await this.findEnrollment(
+          manager,
+          project.id,
+          user.id,
+        );
+        // An invitation is answered with accept or decline, not canceled
+        if (!enrollment || enrollment.senderId !== null)
+          throw new BadRequest('Este usuario no tiene una solicitud pendiente');
 
-    if (
-      enrollment.requestState !== RequestState.Pending &&
-      enrollment.requestState !== RequestState.Rejected
-    ) {
-      throw new BadRequest('Esta solicitud no está pendiente o fue rechazada');
-    }
+        if (
+          enrollment.requestState !== RequestState.Pending &&
+          enrollment.requestState !== RequestState.Rejected
+        ) {
+          throw new BadRequest(
+            'Esta solicitud no está pendiente o fue rechazada',
+          );
+        }
 
-    await this.enrollmentRepository
-      .delete({
-        project: {
-          id: project.id,
-        },
-        user: {
-          id: user.id,
-        },
+        await this.deleteEnrollment(manager, enrollment);
+
+        // Reduce project enrollment request count only if the request was not rejected
+        // As rejected requests are not counted in the requestEnrollmentCount
+        if (enrollment.requestState !== RequestState.Rejected) {
+          await manager.decrement(
+            Project,
+            { id: project.id },
+            'requestEnrollmentCount',
+            1,
+          );
+        }
       })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
-
-    // Reduce project enrollment request count only if the request was not rejected
-    // As rejected requests are not counted in the requestEnrollmentCount
-    if (enrollment.requestState !== RequestState.Rejected) {
-      await this.projectRepository
-        .update(project.id, {
-          requestEnrollmentCount: project.requestEnrollmentCount - 1,
-        })
-        .catch((e: Error) => {
-          throw new DbException(e.message, e.stack);
-        });
-    }
+      .catch(rethrowAsDbException);
 
     this.logger.debug(
       `Project#${project.id} successfully canceled enrollment by user#${user.id}`,
@@ -835,55 +837,35 @@ export class ProjectService {
   ) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
+      select: ['id'],
     });
     if (!project) throw projectNotFoundError;
 
-    const enrollment = await this.enrollmentRepository.findOne({
-      where: {
-        project: {
-          id: project.id,
-        },
-        user: {
-          id: user.id,
-        },
-      },
-    });
-    if (!enrollment)
-      throw new BadRequest('Este usuario no está inscripto en este proyecto');
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const enrollment = await this.findEnrollment(
+          manager,
+          project.id,
+          user.id,
+        );
+        if (!enrollment || enrollment.requestState !== RequestState.Accepted)
+          throw new BadRequest(
+            'Este usuario no está inscripto en este proyecto',
+          );
 
-    // move to unenroll request state and add message
-    await this.enrollmentRepository
-      .update(
-        {
-          project: {
-            id: project.id,
-          },
-          user: {
-            id: user.id,
-          },
-        },
-        {
+        // move to unenroll request state and add message
+        await this.changeEnrollmentState(manager, enrollment, {
           requestState: RequestState.Unenrolled,
           requesterMessage: unenrollOptions.message,
-        },
-      )
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+        });
+
+        // decrease project member count
+        await manager.decrement(Project, { id: project.id }, 'userCount', 1);
+      })
+      .catch(rethrowAsDbException);
+
     this.logger.debug(
       `Project#${project.id} successfully unenrolled by user#${user.id}`,
-    );
-
-    // decrease project member count
-    await this.projectRepository
-      .update(project.id, {
-        userCount: project.userCount - 1,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
-    this.logger.debug(
-      `Project#${project.id} successfully decreased its member count`,
     );
   }
 
@@ -925,7 +907,7 @@ export class ProjectService {
         }
 
         // move to accepted or rejected state
-        await manager.update(Enrollment, enrollment.id, {
+        await this.changeEnrollmentState(manager, enrollment, {
           requestState:
             action === 'approve'
               ? RequestState.Accepted
@@ -975,9 +957,11 @@ export class ProjectService {
 
     const invitedUser = await this.projectRepository.manager
       .transaction(async (manager) => {
+        // Runs requests and invitations for this user one at a time
         const user = await manager.findOne(User, {
           where: { id: userId },
           select: ['id', 'email', 'firstName', 'lastName'],
+          lock: { mode: 'pessimistic_write' },
         });
         if (!user) throw userNotFoundError;
 
@@ -1080,13 +1064,11 @@ export class ProjectService {
       throw new BadRequest('Este usuario no tiene una invitación pendiente');
     }
 
-    await this.enrollmentRepository
-      .update(enrollment.id, {
-        adminMessage: invitation.message,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+    await this.changeEnrollmentState(
+      this.enrollmentRepository.manager,
+      enrollment,
+      { adminMessage: invitation.message },
+    ).catch(rethrowAsDbException);
     this.logger.debug(
       `Project#${project.id} successfully updated enrollment invitation to user#${userId}`,
     );
@@ -1131,7 +1113,7 @@ export class ProjectService {
           );
         }
 
-        await manager.delete(Enrollment, enrollment.id);
+        await this.deleteEnrollment(manager, enrollment);
 
         // Declined invitations are no longer counted in the invitations count
         if (enrollment.requestState === RequestState.Pending) {
@@ -1180,7 +1162,7 @@ export class ProjectService {
         }
 
         // move to accepted or declined state
-        await manager.update(Enrollment, enrollment.id, {
+        await this.changeEnrollmentState(manager, enrollment, {
           requestState:
             action === 'accept' ? RequestState.Accepted : RequestState.Declined,
           requesterMessage: invitationAnswer.message,
@@ -1215,7 +1197,7 @@ export class ProjectService {
   ) {
     const project = await this.projectRepository.findOne({
       where: { id: projectId },
-      select: ['id', 'userCount'],
+      select: ['id'],
     });
     if (!project) throw projectNotFoundError;
 
@@ -1226,44 +1208,32 @@ export class ProjectService {
       );
     }
 
-    const enrollment = await this.enrollmentRepository.findOne({
-      where: {
-        project: {
-          id: project.id,
-        },
-        user: {
-          id: userId,
-        },
-      },
-      select: ['id', 'requestState'],
-    });
-    if (!enrollment || enrollment.requestState !== RequestState.Accepted) {
-      throw new BadRequest('Este usuario no está inscripto en este proyecto');
-    }
+    await this.projectRepository.manager
+      .transaction(async (manager) => {
+        const enrollment = await this.findEnrollment(
+          manager,
+          project.id,
+          userId,
+        );
+        if (!enrollment || enrollment.requestState !== RequestState.Accepted) {
+          throw new BadRequest(
+            'Este usuario no está inscripto en este proyecto',
+          );
+        }
 
-    // Move to Kicked state
-    await this.enrollmentRepository
-      .update(enrollment.id, {
-        requestState: RequestState.Kicked,
-        adminMessage: enrollRequestAdminDto.message,
+        // Move to Kicked state
+        await this.changeEnrollmentState(manager, enrollment, {
+          requestState: RequestState.Kicked,
+          adminMessage: enrollRequestAdminDto.message,
+        });
+
+        // decrease project member count
+        await manager.decrement(Project, { id: project.id }, 'userCount', 1);
       })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
+      .catch(rethrowAsDbException);
+
     this.logger.debug(
       `Project#${project.id} successfully kicked user#${userId}`,
-    );
-
-    // decrease project member count
-    await this.projectRepository
-      .update(project.id, {
-        userCount: project.userCount - 1,
-      })
-      .catch((e: Error) => {
-        throw new DbException(e.message, e.stack);
-      });
-    this.logger.debug(
-      `Project#${project.id} successfully decreased its member count`,
     );
   }
 
@@ -1325,6 +1295,10 @@ export class ProjectService {
       .andWhere('enrollment.role IN (:...roles)', {
         roles: [ProjectRole.Admin, ProjectRole.Leader],
       })
+      // A kicked or unenrolled admin keeps the role but is no longer a member
+      .andWhere('enrollment.requestState = :acceptedState', {
+        acceptedState: RequestState.Accepted,
+      })
       .getOne();
 
     if (!currentUserEnrollment) return false;
@@ -1362,5 +1336,41 @@ export class ProjectService {
       },
       select: ['id', 'requestState', 'senderId'],
     });
+  }
+
+  private async lockUser(manager: EntityManager, userId: number) {
+    await manager.findOne(User, {
+      where: { id: userId },
+      select: ['id'],
+      lock: { mode: 'pessimistic_write' },
+    });
+  }
+
+  // Updates the enrollment only if its state is still the one that was read,
+  // so concurrent calls can't apply the same change (and counters) twice
+  private async changeEnrollmentState(
+    manager: EntityManager,
+    enrollment: Enrollment,
+    changes: Partial<
+      Pick<Enrollment, 'requestState' | 'requesterMessage' | 'adminMessage'>
+    >,
+  ) {
+    const result = await manager.update(
+      Enrollment,
+      { id: enrollment.id, requestState: enrollment.requestState },
+      changes,
+    );
+    if (result.affected !== 1) throw enrollmentChangedError;
+  }
+
+  private async deleteEnrollment(
+    manager: EntityManager,
+    enrollment: Enrollment,
+  ) {
+    const result = await manager.delete(Enrollment, {
+      id: enrollment.id,
+      requestState: enrollment.requestState,
+    });
+    if (result.affected !== 1) throw enrollmentChangedError;
   }
 }
