@@ -394,6 +394,41 @@ describe('Project enrollments (e2e)', () => {
       });
     });
 
+    describe('when an admin changes the role of a member', () => {
+      const changeRole = async (cookie: string) =>
+        request(app.getHttpServer())
+          .put(`/projects/${projectId}/enrollments/${outsiderId}/change-role`)
+          .set('Cookie', cookie)
+          .send({ role: ProjectRole.Admin });
+
+      it('should change the role', async () => {
+        await enrollOutsiderAsMember();
+        const res = await changeRole(await login(leader));
+
+        expect(res.status).toBe(200);
+        const enrollment = await getOutsiderEnrollment();
+        expect(enrollment.role).toBe(ProjectRole.Admin);
+      });
+
+      it('should not change the role of a user who is not a member', async () => {
+        await requestEnrollAsOutsider();
+        const res = await changeRole(await login(leader));
+
+        expect(res.status).toBe(400);
+        const enrollment = await getOutsiderEnrollment();
+        expect(enrollment.role).toBe(ProjectRole.Member);
+      });
+
+      it('should not let a non-admin change the role', async () => {
+        await enrollOutsiderAsMember();
+        const res = await changeRole(await login(member));
+
+        expect(res.status).toBe(401);
+        const enrollment = await getOutsiderEnrollment();
+        expect(enrollment.role).toBe(ProjectRole.Member);
+      });
+    });
+
     describe('when the user is not a member', () => {
       it('should not let an admin kick the user', async () => {
         const res = await kick(await login(leader));
