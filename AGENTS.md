@@ -4,11 +4,11 @@ Universiteams API: a platform for university research projects. Students and tea
 
 ## Running checks
 
-Tooling runs inside Docker; the host has no `node_modules`.
+Tooling runs inside Docker; the host has no `node_modules`. All test targets need `docker.test.env`; create it once with `./create-test-env-file.sh`.
 
 - Unit tests: `make test` (coverage: `make cov`)
-- E2E tests: `make e2e` (needs `docker.test.env`, created by `./create-test-env-file.sh`)
-- Lint and format: CI runs `eslint` and `prettier --check` on `src/` and `test/`
+- E2E tests: `make e2e`
+- Lint and format: `npm run lint:check` and `npm run format:check` (what CI runs); `make lint` and `make format` apply fixes
 
 ## Conventions
 
