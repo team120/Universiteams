@@ -8,6 +8,7 @@ import {
   BadRequest,
   DbException,
   NotFound,
+  Unauthorized,
 } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { Project } from './project.entity';
@@ -56,6 +57,7 @@ describe('ProjectService', () => {
   };
   const enrollmentRepositoryMock = {
     createQueryBuilder: jest.fn(() => adminQueryBuilderMock),
+    manager: managerMock,
   };
 
   beforeEach(async () => {
@@ -271,6 +273,79 @@ describe('ProjectService', () => {
         'enrollment.requestState = :acceptedState',
         { acceptedState: RequestState.Accepted },
       );
+    });
+  });
+
+  describe('updateEnrollInvitation', () => {
+    const currentUser = { id: 2 } as never;
+    beforeEach(() => {
+      projectRepositoryMock.findOne.mockResolvedValue({ id: 1 });
+      adminQueryBuilderMock.getOne.mockResolvedValue({ id: 99 });
+      managerMock.update.mockResolvedValue({ affected: 1 });
+    });
+
+    describe('when the invitation is pending', () => {
+      it('should change only the invitation message, if still pending', async () => {
+        managerMock.findOne.mockResolvedValue({
+          id: 10,
+          requestState: RequestState.Pending,
+          senderId: 2,
+        });
+
+        await service.updateEnrollInvitation(1, 8, currentUser, {
+          message: 'Nuevo mensaje',
+        });
+
+        expect(managerMock.update).toHaveBeenCalledTimes(1);
+        expect(managerMock.update).toHaveBeenCalledWith(
+          Enrollment,
+          { id: 10, requestState: RequestState.Pending },
+          { adminMessage: 'Nuevo mensaje' },
+        );
+      });
+    });
+
+    describe.each([
+      ['a request from the user', RequestState.Pending, null],
+      ['a declined invitation', RequestState.Declined, 2],
+      ['an accepted invitation', RequestState.Accepted, 2],
+    ])('when the enrollment is %s', (_, requestState, senderId) => {
+      it('should throw a BadRequest and not update it', async () => {
+        managerMock.findOne.mockResolvedValue({
+          id: 10,
+          requestState,
+          senderId,
+        });
+
+        await expect(
+          service.updateEnrollInvitation(1, 8, currentUser, {
+            message: 'Nuevo mensaje',
+          }),
+        ).rejects.toThrow('Este usuario no tiene una invitación pendiente');
+        expect(managerMock.update).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when there is no enrollment', () => {
+      it('should throw a BadRequest and not update anything', async () => {
+        managerMock.findOne.mockResolvedValue(null);
+
+        await expect(
+          service.updateEnrollInvitation(1, 8, currentUser, {}),
+        ).rejects.toBeInstanceOf(BadRequest);
+        expect(managerMock.update).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when the current user is not an admin', () => {
+      it('should throw Unauthorized and not look up the enrollment', async () => {
+        adminQueryBuilderMock.getOne.mockResolvedValue(null);
+
+        await expect(
+          service.updateEnrollInvitation(1, 8, currentUser, {}),
+        ).rejects.toBeInstanceOf(Unauthorized);
+        expect(managerMock.findOne).not.toHaveBeenCalled();
+      });
     });
   });
 });
