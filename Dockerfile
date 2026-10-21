@@ -25,7 +25,7 @@ ENTRYPOINT ["/sbin/tini", "--", "env", "NODE_ENV=prod", "node", "./dist/main"]
 
 # In order to avoid issues with user matching in host (dev machine) and container
 # Only use during development in your personal computers
-FROM base as dev
+FROM base AS dev
 LABEL org.opencontainers.image.vendor=universiteams
 USER root
 RUN chown -R root:root /home/node/app/src /home/node/app/test /home/node/app/dist
