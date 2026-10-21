@@ -7,7 +7,6 @@ do
 
     VALUE=${ARGUMENT:$KEY_LENGTH + 1}
 
-    echo "$KEY=$VALUE"
     export "$KEY"="$VALUE"
 done
 
