@@ -19,9 +19,6 @@ export class EnrollmentInvitations1590967789748 implements MigrationInterface {
         END IF;
       END $$`);
     await queryRunner.query(
-      `ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "requestEnrollmentInvitationsCount" integer NOT NULL DEFAULT 0`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "project" ADD COLUMN IF NOT EXISTS "senderName" character varying`,
     );
   }
@@ -29,9 +26,6 @@ export class EnrollmentInvitations1590967789748 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE "project" DROP COLUMN IF EXISTS "senderName"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "user" DROP COLUMN IF EXISTS "requestEnrollmentInvitationsCount"`,
     );
     await queryRunner.query(
       `ALTER TABLE "enrollment" DROP CONSTRAINT IF EXISTS "FK_ab2dfbbba3dac3fc922a69d7c59"`,

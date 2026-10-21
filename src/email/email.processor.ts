@@ -36,6 +36,15 @@ export interface IEmailService {
   sendVerificationEmail(user: User): Promise<void>;
 }
 
+// Values interpolated into email HTML come from user input
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 export const emailQueueProcessor = 'emails';
 
 export const enrollmentRequestEmailJob = 'enrollment-request-notify';
@@ -80,7 +89,7 @@ export class EmailProcessor {
         'Bienvenido a Universiteams. Estamos emocionados de tenerte a bordo y solo hay un paso para verificar si realmente es tu dirección de correo electrónico:' +
         `link="${verificationLink}" Confirmar Cuenta`,
       html:
-        `<h1>Hola ${user.firstName},</h1>` +
+        `<h1>Hola ${escapeHtml(user.firstName)},</h1>` +
         '<p>Bienvenido a Universiteams. Estamos emocionados de tenerte a bordo y solo hay un paso para verificar si realmente es tu dirección de correo electrónico:</p>' +
         '<p style="text-align:center">' +
         `<a href="${verificationLink}" style="background-color:#32c766;color:white;padding:15px 32px;text-decoration:none;padding:15px 32px;display:inline-block;font-size:16px;border-radius:7px">Confirmar Cuenta</a>` +
@@ -118,7 +127,7 @@ export class EmailProcessor {
         '¿Olvidaste tu contraseña? No te preocupes, nosotros te ayudamos. Haz clic en el enlace de abajo para restablecer tu contraseña.' +
         `link="${verificationLink}" Establecer nueva contraseña`,
       html:
-        `<h1>Hola ${user.firstName},</h1>` +
+        `<h1>Hola ${escapeHtml(user.firstName)},</h1>` +
         '<p>¿Olvidaste tu contraseña? No te preocupes, nosotros te ayudamos. Haz clic en el enlace de abajo para restablecer tu contraseña.</p>' +
         '<p style="text-align:center">' +
         `<a href="${verificationLink}" style="background-color:#32c766;color:white;padding:15px 32px;text-decoration:none;padding:15px 32px;display:inline-block;font-size:16px;border-radius:7px">Establecer nueva contraseña</a>` +
@@ -179,7 +188,9 @@ export class EmailProcessor {
           'Por favor revise la solicitud y tome las acciones necesarias.',
         html:
           `<h1>Hola,</h1>` +
-          `<p>Se ha recibido una nueva solicitud de inscripción de ${enrollment.user.user}.</p>` +
+          `<p>Se ha recibido una nueva solicitud de inscripción de ${escapeHtml(
+            enrollment.user.user,
+          )}.</p>` +
           '<p>Por favor revise la solicitud y tome las acciones necesarias.</p>',
       };
 
@@ -226,7 +237,9 @@ export class EmailProcessor {
         'Por favor revise la invitación y tome las acciones necesarias.',
       html:
         `<h1>Hola,</h1>` +
-        `<p>Se ha recibido una nueva invitación de inscripción a ${enrollment.project.name}.</p>` +
+        `<p>Se ha recibido una nueva invitación de inscripción a ${escapeHtml(
+          enrollment.project.name,
+        )}.</p>` +
         '<p>Por favor revise la invitación y tome las acciones necesarias.</p>',
     };
 

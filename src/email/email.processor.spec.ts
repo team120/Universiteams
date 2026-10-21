@@ -7,7 +7,10 @@ import { EmailProcessor, EMAIL_SENDERS } from './email.processor';
 import { VerificationMessagesService } from './verification-messages.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Enrollment } from '../enrollment/enrollment.entity';
-import { EnrollmentInvitationNotifyEmailData } from './dtos/enrollment-request-email-data.dto';
+import {
+  EnrollmentInvitationNotifyEmailData,
+  EnrollmentRequestNotifyEmailData,
+} from './dtos/enrollment-request-email-data.dto';
 
 describe('Email processor', () => {
   let service: EmailProcessor;
@@ -16,6 +19,7 @@ describe('Email processor', () => {
     { sendMail: jest.fn() },
     { sendMail: jest.fn() },
   ];
+  const enrollmentRepositoryMock = { find: jest.fn() };
   const verificationMessagesServiceMock = {
     generateVerifyEmailUrl: jest.fn(),
     generateForgetPasswordUrl: jest.fn(),
@@ -34,7 +38,7 @@ describe('Email processor', () => {
         },
         {
           provide: getRepositoryToken(Enrollment),
-          useValue: {},
+          useValue: enrollmentRepositoryMock,
         },
         {
           provide: PinoLogger,
@@ -105,6 +109,41 @@ describe('Email processor', () => {
         { email: 'user1@example.com', name: 'Juan Acha' },
       ]);
       expect(message.subject).toContain('Universiteams');
+    });
+  });
+
+  // Names come from user input, so they must not become HTML in the email
+  describe('when names contain HTML', () => {
+    const htmlName = '<a href="https://evil.example">Verifica tu cuenta</a>';
+    const escapedName =
+      '&lt;a href=&quot;https://evil.example&quot;&gt;Verifica tu cuenta&lt;/a&gt;';
+
+    it('should escape the project name in the invitation email', async () => {
+      emailSendersMock[0].sendMail.mockResolvedValue({});
+
+      await service.sendEnrollmentInvitationNotifyEmail({
+        data: { project: { id: 1, name: htmlName }, user: { ...user } },
+      } as Job<EnrollmentInvitationNotifyEmailData>);
+
+      const message = emailSendersMock[0].sendMail.mock.calls[0][0];
+      expect(message.html).toContain(escapedName);
+      expect(message.html).not.toContain('<a href');
+    });
+
+    it('should escape the requester name in the request email', async () => {
+      emailSendersMock[0].sendMail.mockResolvedValue({});
+      enrollmentRepositoryMock.find.mockResolvedValue([{ user: { ...user } }]);
+
+      await service.sendEnrollmentRequestNotifyEmail({
+        data: {
+          project: { id: 1, name: 'Universiteams' },
+          user: { id: 8, user: htmlName },
+        },
+      } as Job<EnrollmentRequestNotifyEmailData>);
+
+      const message = emailSendersMock[0].sendMail.mock.calls[0][0];
+      expect(message.html).toContain(escapedName);
+      expect(message.html).not.toContain('<a href');
     });
   });
 });

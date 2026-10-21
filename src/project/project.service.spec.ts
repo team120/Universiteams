@@ -411,6 +411,16 @@ describe('ProjectService', () => {
         enrollment(RequestState.Accepted, null),
         () => service.unenroll(1, enrolledUser, {}),
       ],
+      [
+        'acknowledge a kick',
+        enrollment(RequestState.Kicked, null),
+        () => service.ackKick(1, enrolledUser),
+      ],
+      [
+        'change the role of a member',
+        enrollment(RequestState.Accepted, null),
+        () => service.changeUserRole(1, 8, admin, { role: ProjectRole.Admin }),
+      ],
     ])(
       'should lock the user before reading the enrollment to %s',
       async (_, currentEnrollment, change) => {

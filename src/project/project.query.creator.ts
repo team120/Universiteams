@@ -29,6 +29,10 @@ import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { EntityQueryCreator } from '../utils/query.creator';
 import { AscendingDescendingOrder } from '../utils/sorting';
 
+// Full name of the admin who invited the current user, or null
+const senderNameSelect =
+  "NULLIF(COALESCE(sender.\"firstName\", '') || ' ' || COALESCE(sender.\"lastName\", ''), ' ')";
+
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<Project> {
   private sortBy = new Map([
@@ -354,10 +358,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
         .addSelect('enrollment.adminMessage', adminMessageColumn)
         .addSelect(requestEnrollmentCountSelect, requestEnrollmentCountColumn)
-        .addSelect(
-          "NULLIF(COALESCE(sender.\"firstName\", '') || ' ' || COALESCE(sender.\"lastName\", ''), ' ')",
-          senderNameColumn,
-        )
+        .addSelect(senderNameSelect, senderNameColumn)
         .leftJoin(
           'project.favorites',
           'favorite',
@@ -464,10 +465,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
           'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
           requestEnrollmentCountColumn,
         )
-        .addSelect(
-          "NULLIF(COALESCE(sender.\"firstName\", '') || ' ' || COALESCE(sender.\"lastName\", ''), ' ')",
-          senderNameColumn,
-        )
+        .addSelect(senderNameSelect, senderNameColumn)
         .leftJoin(
           'project.favorites',
           'favorite',

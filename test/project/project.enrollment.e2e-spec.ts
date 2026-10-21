@@ -5,7 +5,6 @@ import * as cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
 import { createProjectTestingApp } from './project.e2e.module';
 import { Project } from '../../src/project/project.entity';
-import { User } from '../../src/user/user.entity';
 import {
   Enrollment,
   ProjectRole,
@@ -35,7 +34,6 @@ describe('Project enrollments (e2e)', () => {
   let app: INestApplication;
   let conn: DataSource;
   let initialProject: Project;
-  let initialOutsider: User;
 
   const login = async (credentials: { email: string; password: string }) => {
     const res = await request(app.getHttpServer())
@@ -66,13 +64,12 @@ describe('Project enrollments (e2e)', () => {
     await conn.runMigrations();
 
     initialProject = await getProject();
-    initialOutsider = await conn
-      .getRepository(User)
-      .findOne({ where: { id: outsiderId } });
   });
 
   afterEach(async () => {
     jest.restoreAllMocks();
+    // A failed deletion test must not leave the project deleted for the next tests
+    await conn.getRepository(Project).restore(projectId);
     await conn
       .getRepository(Enrollment)
       .delete({ project: { id: projectId }, user: { id: outsiderId } });
@@ -82,10 +79,6 @@ describe('Project enrollments (e2e)', () => {
     await conn.getRepository(Project).update(projectId, {
       userCount: initialProject.userCount,
       requestEnrollmentCount: initialProject.requestEnrollmentCount,
-    });
-    await conn.getRepository(User).update(outsiderId, {
-      requestEnrollmentInvitationsCount:
-        initialOutsider.requestEnrollmentInvitationsCount,
     });
     await app.close();
   });
@@ -323,10 +316,6 @@ describe('Project enrollments (e2e)', () => {
       .set('Cookie', await login(outsider))
       .send({ message: 'Quiero participar' });
 
-  const getOutsiderInvitationsCount = async () =>
-    (await conn.getRepository(User).findOne({ where: { id: outsiderId } }))
-      .requestEnrollmentInvitationsCount;
-
   const enrollOutsiderAsMember = async () => {
     await requestEnrollAsOutsider();
     await request(app.getHttpServer())
@@ -484,29 +473,12 @@ describe('Project enrollments (e2e)', () => {
         select: ['id', 'logicalDeleteDate'],
       });
 
-    afterEach(async () => {
-      await conn.getRepository(Project).restore(projectId);
-    });
-
     it('should let the leader soft delete the project', async () => {
       const res = await deleteProject(await login(leader));
 
       expect(res.status).toBe(200);
       expect(await getProject()).toBeNull();
       expect((await getProjectWithDeleted()).logicalDeleteDate).not.toBeNull();
-    });
-
-    it('should remove pending invitations and restore the invited user count', async () => {
-      const leaderCookie = await login(leader);
-      await invite(leaderCookie);
-
-      const res = await deleteProject(leaderCookie);
-
-      expect(res.status).toBe(200);
-      expect(await getOutsiderEnrollment()).toBeNull();
-      expect(await getOutsiderInvitationsCount()).toBe(
-        initialOutsider.requestEnrollmentInvitationsCount,
-      );
     });
 
     it('should not let a member delete the project', async () => {
@@ -518,6 +490,25 @@ describe('Project enrollments (e2e)', () => {
   });
 
   describe('Former admins', () => {
+    it.each([RequestState.Kicked, RequestState.Unenrolled])(
+      'should not let a leader whose enrollment is %s delete the project',
+      async (requestState: RequestState) => {
+        await conn.getRepository(Enrollment).insert({
+          project: { id: projectId },
+          user: { id: outsiderId },
+          role: ProjectRole.Leader,
+          requestState,
+        });
+
+        const res = await request(app.getHttpServer())
+          .delete(`/projects/${projectId}`)
+          .set('Cookie', await login(outsider));
+
+        expect(res.status).toBe(401);
+        expect(await getProject()).not.toBeNull();
+      },
+    );
+
     it.each([RequestState.Kicked, RequestState.Unenrolled])(
       'should not let an admin whose enrollment is %s manage the project',
       async (requestState: RequestState) => {
@@ -563,16 +554,6 @@ describe('Project enrollments (e2e)', () => {
         expect(project.requestEnrollmentCount).toBe(
           initialProject.requestEnrollmentCount,
         );
-      });
-
-      it('should increase the user invitations count from its current value', async () => {
-        await conn
-          .getRepository(User)
-          .update(outsiderId, { requestEnrollmentInvitationsCount: 3 });
-
-        await invite(leaderCookie);
-
-        expect(await getOutsiderInvitationsCount()).toBe(4);
       });
 
       it('should queue the invitation email to the invited user', async () => {
@@ -623,15 +604,12 @@ describe('Project enrollments (e2e)', () => {
     });
 
     describe('when an admin invites the same user several times at the same time', () => {
-      it('should create one invitation and count it once', async () => {
+      it('should create one invitation', async () => {
         const statuses = await statusesOfParallelCalls(() =>
           invite(leaderCookie),
         );
 
         expect(statuses.filter((status) => status === 201)).toHaveLength(1);
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount + 1,
-        );
       });
     });
 
@@ -643,9 +621,6 @@ describe('Project enrollments (e2e)', () => {
         expect(res.status).toBe(400);
         expect(res.body.message).toBe(
           'Este usuario ya ha sido invitado para inscribirse en este proyecto',
-        );
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount + 1,
         );
       });
 
@@ -725,14 +700,11 @@ describe('Project enrollments (e2e)', () => {
         expect(enrollment.adminMessage).toBe('Invitación actualizada');
       });
 
-      it('should let the admin cancel it and restore the invitations count', async () => {
+      it('should let the admin cancel it', async () => {
         const res = await cancelInvitation();
         expect(res.status).toBe(200);
 
         expect(await getOutsiderEnrollment()).toBeNull();
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount,
-        );
       });
 
       it('should not let a non-admin cancel it', async () => {
@@ -746,7 +718,7 @@ describe('Project enrollments (e2e)', () => {
     });
 
     describe('when the invitation was declined', () => {
-      it('should let the admin cancel it without changing the invitations count', async () => {
+      it('should let the admin cancel it', async () => {
         await invite(leaderCookie);
         await request(app.getHttpServer())
           .put(`/projects/${projectId}/invitation/decline`)
@@ -756,9 +728,6 @@ describe('Project enrollments (e2e)', () => {
         const res = await cancelInvitation();
         expect(res.status).toBe(200);
         expect(await getOutsiderEnrollment()).toBeNull();
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount,
-        );
       });
     });
 
@@ -784,9 +753,6 @@ describe('Project enrollments (e2e)', () => {
         expect(res.status).toBe(400);
 
         expect(await getOutsiderEnrollment()).not.toBeNull();
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount,
-        );
         const project = await getProject();
         expect(project.requestEnrollmentCount).toBe(
           initialProject.requestEnrollmentCount + 1,
@@ -822,9 +788,6 @@ describe('Project enrollments (e2e)', () => {
         expect(enrollment.adminMessage).toBe('Te invito al proyecto');
         const project = await getProject();
         expect(project.userCount).toBe(initialProject.userCount + 1);
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount,
-        );
       });
 
       it('should let the user decline it', async () => {
@@ -835,9 +798,6 @@ describe('Project enrollments (e2e)', () => {
         expect(enrollment.requestState).toBe(RequestState.Declined);
         const project = await getProject();
         expect(project.userCount).toBe(initialProject.userCount);
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount,
-        );
       });
     });
 
@@ -859,9 +819,6 @@ describe('Project enrollments (e2e)', () => {
         const project = await getProject();
         expect(project.requestEnrollmentCount).toBe(
           initialProject.requestEnrollmentCount,
-        );
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount + 1,
         );
       });
 
@@ -891,9 +848,6 @@ describe('Project enrollments (e2e)', () => {
         expect(statuses.filter((status) => status === 200)).toHaveLength(1);
         const project = await getProject();
         expect(project.userCount).toBe(initialProject.userCount + 1);
-        expect(await getOutsiderInvitationsCount()).toBe(
-          initialOutsider.requestEnrollmentInvitationsCount,
-        );
       });
     });
 
