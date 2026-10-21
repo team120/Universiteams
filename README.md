@@ -31,7 +31,23 @@ $ choco install make
 
 ## Local Environment
 
-### Setup and Running the app
+### Setup
+
+Create `docker.dev.env` once. Either run the script, passing the secrets as `KEY=VALUE` arguments:
+
+```bash
+$ ./create-env-file.sh ENV=dev POSTGRES_USER=<user> POSTGRES_PASSWORD=<password> \
+    ACCESS_TOKEN_SECRET=<secret> REFRESH_TOKEN_SECRET=<secret> \
+    EMAIL_VERIFICATION_LINK_SECRET=<secret> FORGET_PASSWORD_VERIFICATION_LINK_SECRET=<secret> \
+    SENDGRID_API_KEY=<key> SENDINBLUE_API_KEY=<key> \
+    SUPER_ADMIN_EMAIL=<email> SUPER_ADMIN_PASSWORD=<password>
+```
+
+or copy [`docker.dev.env.example`](docker.dev.env.example) to `docker.dev.env` and replace the `change-me` values. Placeholder values are enough to run the app locally; sending emails (verification, password reset) needs a real `SENDINBLUE_API_KEY`.
+
+> Docker Desktop (or another Docker Engine) must be running.
+
+### Running the app
 
 ```bash
 $ make dev
@@ -43,11 +59,11 @@ $ make dev
 
 #### API
 
-[api.localhost](http://api.localhost)
+[api.localhost](http://api.localhost) (Swagger docs at [api.localhost/docs](http://api.localhost/docs))
 
 #### DB Admin
 
-[db.localhost](https://db.localhost)
+[db.localhost](http://db.localhost) (pgAdmin; the dev login is set in `docker-compose.dev.yml`)
 
 ### Teardown
 
@@ -74,6 +90,12 @@ $ make down-pd
 ```
 
 ## Test
+
+Tests run in Docker and need `docker.test.env`. Create it once with:
+
+```bash
+$ ./create-test-env-file.sh
+```
 
 ```bash
 # unit tests
