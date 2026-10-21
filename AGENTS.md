@@ -18,6 +18,19 @@ Tooling runs inside Docker; the host has no `node_modules`. Test and check targe
 
 ## Review guidelines
 
+### How to review
+
+- Review the entire PR diff in one pass and report every finding at once, P0 through P3. Don't stop after the most severe ones; a later round should not find something that was already in the diff.
+- On re-reviews, review the whole PR again, not only the new commits, and report everything still applicable in that single review.
+- When you find a defect, check every other place in the diff where the same kind of defect can occur, and report each one.
+- Also check these easy-to-miss areas:
+  - Concurrent requests: two calls racing on the same rows or counters.
+  - Interactions between flows that share the same rows (e.g. a request and an invitation on one enrollment).
+  - Cleanup when a parent record is deleted, and data left behind by a failed or partial operation.
+  - Authorization of every new or changed route, including users whose membership ended.
+
+### What to flag
+
 Flag these as issues:
 
 - A bug fix without a regression test that would fail without the fix.
