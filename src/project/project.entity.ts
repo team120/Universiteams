@@ -24,6 +24,7 @@ export const requestStateColumn = 'project_requestState';
 export const requesterMessageColumn = 'project_requesterMessage';
 export const adminMessageColumn = 'project_adminMessage';
 export const requestEnrollmentCountColumn = 'project_requestEnrollmentCount';
+export const senderNameColumn = 'project_senderName';
 
 export enum ProjectLanguage {
   SPANISH = 'spanish',
@@ -60,6 +61,8 @@ export class Project {
   requesterMessage?: string;
   @Column({ select: false, nullable: true })
   adminMessage?: string;
+  @Column({ select: false, nullable: true })
+  senderName?: string;
 
   @ManyToMany(
     () => ResearchDepartment,

@@ -18,10 +18,14 @@ export enum ProjectRole {
 export enum RequestState {
   Pending = 'Pending',
   Accepted = 'Accepted',
-  Rejected = 'Rejected',
+  Rejected = 'Rejected', // The admin or leader rejected the enrollment request
+  Declined = 'Declined', // The user declined the enrollment invitation
   Unenrolled = 'Unenrolled',
   Kicked = 'Kicked',
 }
+
+export type ManageEnrollRequestAction = 'approve' | 'reject';
+export type ManageEnrollInvitationAction = 'accept' | 'decline';
 
 @Entity()
 @Index(['user', 'project'], { unique: true })
@@ -44,6 +48,13 @@ export class Enrollment {
     onUpdate: 'CASCADE',
   })
   user: User;
+  // An admin or leader can invite a user to a project
+  @ManyToOne(() => User, (user) => user.enrollments, {
+    nullable: true,
+    cascade: ['insert', 'update'],
+    onUpdate: 'CASCADE',
+  })
+  sender: User;
   @ManyToOne(() => Project, (project) => project.enrollments, {
     nullable: false,
     cascade: ['insert', 'update'],
