@@ -585,6 +585,44 @@ describe('Project enrollments (e2e)', () => {
       },
     );
 
+    it.each([RequestState.Kicked, RequestState.Unenrolled])(
+      'should not let an admin whose enrollment is %s list the invitations',
+      async (requestState: RequestState) => {
+        await conn.getRepository(Enrollment).insert({
+          project: { id: projectId },
+          user: { id: outsiderId },
+          role: ProjectRole.Admin,
+          requestState,
+        });
+
+        const res = await request(app.getHttpServer())
+          .get(`/projects/${projectId}/invitations`)
+          .set('Cookie', await login(outsider));
+
+        expect(res.status).toBe(401);
+      },
+    );
+
+    it('should still show a project with no interests', async () => {
+      const interestsRelation = conn
+        .createQueryBuilder()
+        .relation(Project, 'interests')
+        .of(projectId);
+      const interests = await interestsRelation.loadMany();
+      await interestsRelation.remove(interests);
+
+      try {
+        const res = await request(app.getHttpServer()).get(
+          `/projects/${projectId}`,
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body.interests).toEqual([]);
+      } finally {
+        await interestsRelation.add(interests);
+      }
+    });
+
     it('should still list a project whose leader unenrolled', async () => {
       await conn
         .getRepository(Enrollment)
@@ -904,14 +942,16 @@ describe('Project enrollments (e2e)', () => {
         const res = await listInvitations(leaderCookie);
 
         expect(res.status).toBe(200);
-        expect(res.body).toHaveLength(1);
-        expect(res.body[0]).toMatchObject({
+        expect(res.body.enrollmentInvitations).toHaveLength(1);
+        expect(res.body.enrollmentInvitations[0]).toMatchObject({
           requestState: RequestState.Pending,
           adminMessage: 'Te invito al proyecto',
           user: { id: outsiderId },
           sender: { id: leaderId, firstName: 'Camila', lastName: 'Villa' },
         });
-        expect(res.body[0].user).not.toHaveProperty('password');
+        expect(res.body.enrollmentInvitations[0].user).not.toHaveProperty(
+          'password',
+        );
       });
     });
 
@@ -923,8 +963,8 @@ describe('Project enrollments (e2e)', () => {
         const res = await listInvitations(leaderCookie);
 
         expect(res.status).toBe(200);
-        expect(res.body).toHaveLength(1);
-        expect(res.body[0]).toMatchObject({
+        expect(res.body.enrollmentInvitations).toHaveLength(1);
+        expect(res.body.enrollmentInvitations[0]).toMatchObject({
           requestState: RequestState.Declined,
           requesterMessage: 'Respuesta del usuario',
         });
@@ -939,7 +979,7 @@ describe('Project enrollments (e2e)', () => {
         const res = await listInvitations(leaderCookie);
 
         expect(res.status).toBe(200);
-        expect(res.body).toHaveLength(0);
+        expect(res.body.enrollmentInvitations).toHaveLength(0);
       });
     });
 
@@ -950,7 +990,7 @@ describe('Project enrollments (e2e)', () => {
         const res = await listInvitations(leaderCookie);
 
         expect(res.status).toBe(200);
-        expect(res.body).toHaveLength(0);
+        expect(res.body.enrollmentInvitations).toHaveLength(0);
       });
     });
 

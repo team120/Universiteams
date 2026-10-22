@@ -22,3 +22,9 @@ export class EnrollmentInvitationShowDto {
   @ExposeType(UserSimpleShowDto)
   sender: UserSimpleShowDto;
 }
+
+@Exclude()
+export class EnrollmentInvitationsShowDto {
+  @ExposeType(EnrollmentInvitationShowDto)
+  enrollmentInvitations: EnrollmentInvitationShowDto[];
+}

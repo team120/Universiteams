@@ -37,7 +37,10 @@ import {
   EnrollmentRequestShowDto,
   EnrollmentRequestsShowDto,
 } from '../enrollment/dtos/enrollment-request.show.dto';
-import { EnrollmentInvitationShowDto } from '../enrollment/dtos/enrollment-invitation.show.dto';
+import {
+  EnrollmentInvitationShowDto,
+  EnrollmentInvitationsShowDto,
+} from '../enrollment/dtos/enrollment-invitation.show.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectShowCreatedDto } from './dtos/project.showCreated.dto';
@@ -805,7 +808,7 @@ export class ProjectService {
   async getEnrollInvitations(
     projectId: number,
     currentUser: CurrentUserWithoutTokens,
-  ): Promise<EnrollmentInvitationShowDto[]> {
+  ): Promise<EnrollmentInvitationsShowDto> {
     if (!currentUser)
       throw new BadRequest(
         'El usuario actual es requerido para obtener las invitaciones de inscripción',
@@ -840,7 +843,12 @@ export class ProjectService {
       `Project#${projectId} successfully fetched enroll invitations`,
     );
 
-    return this.entityMapper.mapArray(EnrollmentInvitationShowDto, enrollments);
+    return {
+      enrollmentInvitations: this.entityMapper.mapArray(
+        EnrollmentInvitationShowDto,
+        enrollments,
+      ),
+    };
   }
 
   async unenroll(

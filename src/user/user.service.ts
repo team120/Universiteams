@@ -115,7 +115,7 @@ export class UserService {
     user.enrollments = user.enrollments.filter(
       (enrollment) =>
         enrollment.requestState === RequestState.Accepted &&
-        enrollment.project !== null,
+        Boolean(enrollment.project),
     );
     return this.entityMapper.mapValue(UserShowDto, user);
   }

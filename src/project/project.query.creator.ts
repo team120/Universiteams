@@ -444,8 +444,9 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         'researchDepartmentFacility.institution',
         'researchDepartmentInstitution',
       )
-      .innerJoinAndSelect('project.interests', 'interests')
-      // A project with no members left is still shown, like in the list
+      // A project with no interests or no members left is still shown, like
+      // in the list
+      .leftJoinAndSelect('project.interests', 'interests')
       .leftJoinAndSelect(
         'project.enrollments',
         'enrollment',

@@ -299,6 +299,7 @@ describe('ProjectService', () => {
               requestState: In([RequestState.Pending, RequestState.Declined]),
               senderId: Not(IsNull()),
             },
+            relations: expect.arrayContaining(['user', 'sender']),
           }),
         );
       });
