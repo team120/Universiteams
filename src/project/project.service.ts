@@ -788,6 +788,7 @@ export class ProjectService {
         senderId: IsNull(),
       },
       relations: enrolledUserRelations,
+      order: { id: 'ASC' },
     });
     this.logger.debug(
       `Project#${projectId} successfully fetched enroll requests`,

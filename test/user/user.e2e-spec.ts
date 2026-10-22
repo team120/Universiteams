@@ -105,6 +105,7 @@ describe('User Actions (e2e)', () => {
       // The user may be a member of other projects
       for (const enrollment of res.body.enrollments) {
         expect(enrollment.project).toEqual(expect.any(Object));
+        expect(enrollment.project.id).not.toBe(projectId);
       }
     });
   });
