@@ -612,6 +612,34 @@ describe('Project enrollments (e2e)', () => {
       }
     });
 
+    it('should still show a project with no members left', async () => {
+      const enrollmentRepository = conn.getRepository(Enrollment);
+      const acceptedEnrollments = await enrollmentRepository.find({
+        where: {
+          project: { id: projectId },
+          requestState: RequestState.Accepted,
+        },
+        select: ['id'],
+      });
+      const acceptedIds = acceptedEnrollments.map(({ id }) => id);
+      await enrollmentRepository.update(acceptedIds, {
+        requestState: RequestState.Unenrolled,
+      });
+
+      try {
+        const res = await request(app.getHttpServer()).get(
+          `/projects/${projectId}`,
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body.enrollments).toEqual([]);
+      } finally {
+        await enrollmentRepository.update(acceptedIds, {
+          requestState: RequestState.Accepted,
+        });
+      }
+    });
+
     it('should show the request count to a current leader', async () => {
       const res = await request(app.getHttpServer())
         .get(`/projects/${projectId}`)

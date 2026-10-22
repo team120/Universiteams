@@ -35,10 +35,10 @@ const senderNameSelect =
 // Only current admins and leaders see the request count: a kicked or
 // unenrolled admin keeps the role but is no longer a member
 const requestEnrollmentCountSelect =
-  'CASE WHEN enrollment.role IN (:...roles) AND enrollment.requestState = :acceptedState THEN project.requestEnrollmentCount ELSE NULL END';
+  'CASE WHEN enrollment.role IN (:...requestCountRoles) AND enrollment.requestState = :requestCountState THEN project.requestEnrollmentCount ELSE NULL END';
 const requestEnrollmentCountParameters = {
-  roles: [ProjectRole.Leader, ProjectRole.Admin],
-  acceptedState: RequestState.Accepted,
+  requestCountRoles: [ProjectRole.Leader, ProjectRole.Admin],
+  requestCountState: RequestState.Accepted,
 };
 
 @Injectable()
@@ -445,13 +445,14 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         'researchDepartmentInstitution',
       )
       .innerJoinAndSelect('project.interests', 'interests')
-      .innerJoinAndSelect(
+      // A project with no members left is still shown, like in the list
+      .leftJoinAndSelect(
         'project.enrollments',
         'enrollment',
         'enrollment.requestState = :status',
         { status: RequestState.Accepted },
       )
-      .innerJoinAndSelect('enrollment.user', 'user')
+      .leftJoinAndSelect('enrollment.user', 'user')
       .leftJoinAndSelect('user.userAffiliations', 'userAffiliation')
       .leftJoinAndSelect(
         'userAffiliation.researchDepartment',
