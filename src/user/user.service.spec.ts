@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
+import { RequestState } from '../enrollment/enrollment.entity';
 import { DbException } from '../utils/exceptions/exceptions';
 import { SerializationModule } from '../utils/serialization/serialization.module';
 import { User } from './user.entity';
@@ -15,6 +16,7 @@ describe('UserService', () => {
   };
   const userRepositoryMock = {
     find: jest.fn(),
+    findOne: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -42,6 +44,7 @@ describe('UserService', () => {
 
   afterEach(() => {
     userRepositoryMock.find.mockReset();
+    userRepositoryMock.findOne.mockReset();
   });
 
   it('should be defined', () => {
@@ -69,6 +72,43 @@ describe('UserService', () => {
         });
         expect(userRepositoryMock.find).toHaveBeenCalledTimes(1);
         expect.assertions(3);
+      });
+    });
+  });
+
+  describe('find one method', () => {
+    describe('when the user has enrollments in several states', () => {
+      it('should return only the accepted enrollments', async () => {
+        userRepositoryMock.findOne.mockResolvedValue({
+          id: 8,
+          enrollments: Object.values(RequestState).map((requestState, i) => ({
+            id: i + 1,
+            requestState,
+            project: { id: i + 1 },
+          })),
+        });
+
+        const user = await service.findOne(8);
+
+        expect(user.enrollments).toHaveLength(1);
+        expect(user.enrollments[0].project.id).toBe(
+          Object.values(RequestState).indexOf(RequestState.Accepted) + 1,
+        );
+      });
+    });
+
+    describe('when the project of an accepted enrollment was deleted', () => {
+      it('should not return the enrollment', async () => {
+        userRepositoryMock.findOne.mockResolvedValue({
+          id: 8,
+          enrollments: [
+            { id: 1, requestState: RequestState.Accepted, project: null },
+          ],
+        });
+
+        const user = await service.findOne(8);
+
+        expect(user.enrollments).toHaveLength(0);
       });
     });
   });

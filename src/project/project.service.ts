@@ -37,6 +37,10 @@ import {
   EnrollmentRequestShowDto,
   EnrollmentRequestsShowDto,
 } from '../enrollment/dtos/enrollment-request.show.dto';
+import {
+  EnrollmentInvitationShowDto,
+  EnrollmentInvitationsShowDto,
+} from '../enrollment/dtos/enrollment-invitation.show.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectShowCreatedDto } from './dtos/project.showCreated.dto';
@@ -61,6 +65,16 @@ const projectNotFoundError = new NotFound(
 );
 
 const userNotFoundError = new NotFound('Usuario no encontrado');
+
+// What admins see of a user who requested to enroll or was invited
+const enrolledUserRelations = [
+  'user',
+  'user.interests',
+  'user.userAffiliations',
+  'user.userAffiliations.researchDepartment',
+  'user.userAffiliations.researchDepartment.facility',
+  'user.userAffiliations.researchDepartment.facility.institution',
+];
 
 const enrollmentChangedError = new BadRequest(
   'La inscripción fue modificada por otra operación, intenta nuevamente',
@@ -773,14 +787,8 @@ export class ProjectService {
         requestState: RequestState.Pending,
         senderId: IsNull(),
       },
-      relations: [
-        'user',
-        'user.interests',
-        'user.userAffiliations',
-        'user.userAffiliations.researchDepartment',
-        'user.userAffiliations.researchDepartment.facility',
-        'user.userAffiliations.researchDepartment.facility.institution',
-      ],
+      relations: enrolledUserRelations,
+      order: { id: 'ASC' },
     });
     this.logger.debug(
       `Project#${projectId} successfully fetched enroll requests`,
@@ -793,6 +801,54 @@ export class ProjectService {
         enrollments,
       ),
       requestEnrollmentCount: project.requestEnrollmentCount,
+    };
+  }
+
+  // Pending and declined invitations, so admins can update, cancel or dismiss
+  // them
+  async getEnrollInvitations(
+    projectId: number,
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<EnrollmentInvitationsShowDto> {
+    if (!currentUser)
+      throw new BadRequest(
+        'El usuario actual es requerido para obtener las invitaciones de inscripción',
+      );
+
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id'],
+    });
+
+    if (!project) throw projectNotFoundError;
+
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para obtener las invitaciones de inscripción de este proyecto',
+      );
+    }
+
+    const enrollments = await this.enrollmentRepository.find({
+      where: {
+        project: {
+          id: projectId,
+        },
+        requestState: In([RequestState.Pending, RequestState.Declined]),
+        senderId: Not(IsNull()),
+      },
+      relations: [...enrolledUserRelations, 'sender'],
+      order: { id: 'ASC' },
+    });
+    this.logger.debug(
+      `Project#${projectId} successfully fetched enroll invitations`,
+    );
+
+    return {
+      enrollmentInvitations: this.entityMapper.mapArray(
+        EnrollmentInvitationShowDto,
+        enrollments,
+      ),
     };
   }
 

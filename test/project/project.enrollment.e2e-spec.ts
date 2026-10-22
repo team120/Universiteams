@@ -531,6 +531,163 @@ describe('Project enrollments (e2e)', () => {
         expect(invitation).toBeNull();
       },
     );
+
+    it.each([RequestState.Kicked, RequestState.Unenrolled])(
+      'should not list an admin whose enrollment is %s among the project admins',
+      async (requestState: RequestState) => {
+        await conn.getRepository(Enrollment).insert({
+          project: { id: projectId },
+          user: { id: outsiderId },
+          role: ProjectRole.Admin,
+          requestState,
+        });
+
+        const res = await request(app.getHttpServer()).get('/projects');
+
+        expect(res.status).toBe(200);
+        const project = res.body.projects.find(
+          (listedProject: { id: number }) => listedProject.id === projectId,
+        );
+        const embeddedUserIds = project.enrollments.map(
+          (enrollment: { user: { id: number } }) => enrollment.user.id,
+        );
+        expect(embeddedUserIds).toContain(leaderId);
+        expect(embeddedUserIds).not.toContain(outsiderId);
+      },
+    );
+
+    it.each([RequestState.Kicked, RequestState.Unenrolled])(
+      'should not show the request count to an admin whose enrollment is %s',
+      async (requestState: RequestState) => {
+        await conn.getRepository(Enrollment).insert({
+          project: { id: projectId },
+          user: { id: outsiderId },
+          role: ProjectRole.Admin,
+          requestState,
+        });
+        const outsiderCookie = await login(outsider);
+
+        const oneRes = await request(app.getHttpServer())
+          .get(`/projects/${projectId}`)
+          .set('Cookie', outsiderCookie);
+        expect(oneRes.status).toBe(200);
+        expect(oneRes.body.requestEnrollmentCount).toBeNull();
+
+        const listRes = await request(app.getHttpServer())
+          .get('/projects')
+          .set('Cookie', outsiderCookie);
+        expect(listRes.status).toBe(200);
+        expect(
+          listRes.body.projects.find(
+            (project: { id: number }) => project.id === projectId,
+          ).requestEnrollmentCount,
+        ).toBeNull();
+      },
+    );
+
+    it.each([RequestState.Kicked, RequestState.Unenrolled])(
+      'should not let an admin whose enrollment is %s list the invitations',
+      async (requestState: RequestState) => {
+        await conn.getRepository(Enrollment).insert({
+          project: { id: projectId },
+          user: { id: outsiderId },
+          role: ProjectRole.Admin,
+          requestState,
+        });
+
+        const res = await request(app.getHttpServer())
+          .get(`/projects/${projectId}/invitations`)
+          .set('Cookie', await login(outsider));
+
+        expect(res.status).toBe(401);
+      },
+    );
+
+    it('should still show a project with no interests', async () => {
+      const interestsRelation = conn
+        .createQueryBuilder()
+        .relation(Project, 'interests')
+        .of(projectId);
+      const interests = await interestsRelation.loadMany();
+      await interestsRelation.remove(interests);
+
+      try {
+        const res = await request(app.getHttpServer()).get(
+          `/projects/${projectId}`,
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body.interests).toEqual([]);
+      } finally {
+        await interestsRelation.add(interests);
+      }
+    });
+
+    it('should still list a project whose leader unenrolled', async () => {
+      await conn
+        .getRepository(Enrollment)
+        .update(
+          { project: { id: projectId }, user: { id: leaderId } },
+          { requestState: RequestState.Unenrolled },
+        );
+
+      try {
+        const res = await request(app.getHttpServer()).get('/projects');
+
+        expect(res.status).toBe(200);
+        const project = res.body.projects.find(
+          (listedProject: { id: number }) => listedProject.id === projectId,
+        );
+        expect(project).toBeDefined();
+        expect(project.enrollments).toEqual([]);
+      } finally {
+        await conn
+          .getRepository(Enrollment)
+          .update(
+            { project: { id: projectId }, user: { id: leaderId } },
+            { requestState: RequestState.Accepted },
+          );
+      }
+    });
+
+    it('should still show a project with no members left', async () => {
+      const enrollmentRepository = conn.getRepository(Enrollment);
+      const acceptedEnrollments = await enrollmentRepository.find({
+        where: {
+          project: { id: projectId },
+          requestState: RequestState.Accepted,
+        },
+        select: ['id'],
+      });
+      const acceptedIds = acceptedEnrollments.map(({ id }) => id);
+      await enrollmentRepository.update(acceptedIds, {
+        requestState: RequestState.Unenrolled,
+      });
+
+      try {
+        const res = await request(app.getHttpServer()).get(
+          `/projects/${projectId}`,
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body.enrollments).toEqual([]);
+      } finally {
+        await enrollmentRepository.update(acceptedIds, {
+          requestState: RequestState.Accepted,
+        });
+      }
+    });
+
+    it('should show the request count to a current leader', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/projects/${projectId}`)
+        .set('Cookie', await login(leader));
+
+      expect(res.status).toBe(200);
+      expect(res.body.requestEnrollmentCount).toBe(
+        initialProject.requestEnrollmentCount,
+      );
+    });
   });
 
   describe('Enrollment invitation', () => {
@@ -757,6 +914,93 @@ describe('Project enrollments (e2e)', () => {
         expect(project.requestEnrollmentCount).toBe(
           initialProject.requestEnrollmentCount + 1,
         );
+      });
+    });
+  });
+
+  describe('Enrollment invitation list', () => {
+    let leaderCookie: string;
+    beforeEach(async () => {
+      leaderCookie = await login(leader);
+    });
+
+    const listInvitations = (cookie: string) =>
+      request(app.getHttpServer())
+        .get(`/projects/${projectId}/invitations`)
+        .set('Cookie', cookie);
+
+    const answerInvitationAsOutsider = async (action: 'accept' | 'decline') =>
+      request(app.getHttpServer())
+        .put(`/projects/${projectId}/invitation/${action}`)
+        .set('Cookie', await login(outsider))
+        .send({ message: 'Respuesta del usuario' });
+
+    describe('when there is a pending invitation', () => {
+      it('should return it with its sender and message', async () => {
+        await invite(leaderCookie);
+
+        const res = await listInvitations(leaderCookie);
+
+        expect(res.status).toBe(200);
+        expect(res.body.enrollmentInvitations).toHaveLength(1);
+        expect(res.body.enrollmentInvitations[0]).toMatchObject({
+          requestState: RequestState.Pending,
+          adminMessage: 'Te invito al proyecto',
+          user: { id: outsiderId },
+          sender: { id: leaderId, firstName: 'Camila', lastName: 'Villa' },
+        });
+        expect(res.body.enrollmentInvitations[0].user).not.toHaveProperty(
+          'password',
+        );
+      });
+    });
+
+    describe('when the invitation was declined', () => {
+      it('should return it with the answer of the invited user', async () => {
+        await invite(leaderCookie);
+        await answerInvitationAsOutsider('decline');
+
+        const res = await listInvitations(leaderCookie);
+
+        expect(res.status).toBe(200);
+        expect(res.body.enrollmentInvitations).toHaveLength(1);
+        expect(res.body.enrollmentInvitations[0]).toMatchObject({
+          requestState: RequestState.Declined,
+          requesterMessage: 'Respuesta del usuario',
+        });
+      });
+    });
+
+    describe('when the invitation was accepted', () => {
+      it('should not return it', async () => {
+        await invite(leaderCookie);
+        await answerInvitationAsOutsider('accept');
+
+        const res = await listInvitations(leaderCookie);
+
+        expect(res.status).toBe(200);
+        expect(res.body.enrollmentInvitations).toHaveLength(0);
+      });
+    });
+
+    describe('when the pending enrollment is a request from the user', () => {
+      it('should not return it', async () => {
+        await requestEnrollAsOutsider();
+
+        const res = await listInvitations(leaderCookie);
+
+        expect(res.status).toBe(200);
+        expect(res.body.enrollmentInvitations).toHaveLength(0);
+      });
+    });
+
+    describe('when a non-admin lists the invitations', () => {
+      it('should return Unauthorized', async () => {
+        await invite(leaderCookie);
+
+        const res = await listInvitations(await login(member));
+
+        expect(res.status).toBe(401);
       });
     });
   });
