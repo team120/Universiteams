@@ -24,6 +24,7 @@ import { ResearchDepartment } from '../research-department/department.entity';
 import { Interest } from '../interest/interest.entity';
 import { getQueueToken } from '@nestjs/bull';
 import { emailQueueProcessor } from '../email/email.processor';
+import { In, IsNull, Not } from 'typeorm';
 
 describe('ProjectService', () => {
   let service: ProjectService;
@@ -56,6 +57,7 @@ describe('ProjectService', () => {
     getOne: jest.fn(),
   };
   const enrollmentRepositoryMock = {
+    find: jest.fn(),
     createQueryBuilder: jest.fn(() => adminQueryBuilderMock),
     manager: managerMock,
   };
@@ -113,6 +115,7 @@ describe('ProjectService', () => {
     Object.values(managerMock).forEach((mock) => mock.mockReset());
     projectRepositoryMock.findOne.mockReset();
     adminQueryBuilderMock.getOne.mockReset();
+    enrollmentRepositoryMock.find.mockReset();
   });
 
   it('should be defined', () => {
@@ -273,6 +276,53 @@ describe('ProjectService', () => {
         'enrollment.requestState = :acceptedState',
         { acceptedState: RequestState.Accepted },
       );
+    });
+  });
+
+  describe('getEnrollInvitations', () => {
+    const currentUser = { id: 2 } as never;
+    beforeEach(() => {
+      projectRepositoryMock.findOne.mockResolvedValue({ id: 1 });
+    });
+
+    describe('when the current user is an admin', () => {
+      it('should find only pending and declined invitations', async () => {
+        adminQueryBuilderMock.getOne.mockResolvedValue({ id: 99 });
+        enrollmentRepositoryMock.find.mockResolvedValue([]);
+
+        await service.getEnrollInvitations(1, currentUser);
+
+        expect(enrollmentRepositoryMock.find).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: {
+              project: { id: 1 },
+              requestState: In([RequestState.Pending, RequestState.Declined]),
+              senderId: Not(IsNull()),
+            },
+          }),
+        );
+      });
+    });
+
+    describe('when the current user is not an admin', () => {
+      it('should throw Unauthorized and not look up the invitations', async () => {
+        adminQueryBuilderMock.getOne.mockResolvedValue(null);
+
+        await expect(
+          service.getEnrollInvitations(1, currentUser),
+        ).rejects.toBeInstanceOf(Unauthorized);
+        expect(enrollmentRepositoryMock.find).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when the project does not exist', () => {
+      it('should throw NotFound', async () => {
+        projectRepositoryMock.findOne.mockResolvedValue(null);
+
+        await expect(
+          service.getEnrollInvitations(1, currentUser),
+        ).rejects.toBeInstanceOf(NotFound);
+      });
     });
   });
 

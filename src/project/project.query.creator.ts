@@ -32,6 +32,10 @@ import { AscendingDescendingOrder } from '../utils/sorting';
 // Full name of the admin who invited the current user, or null
 const senderNameSelect =
   "NULLIF(COALESCE(sender.\"firstName\", '') || ' ' || COALESCE(sender.\"lastName\", ''), ' ')";
+// Only current admins and leaders see the request count: a kicked or
+// unenrolled admin keeps the role but is no longer a member
+const requestEnrollmentCountSelect =
+  'CASE WHEN enrollment.role IN (:...roles) AND enrollment.requestState = :acceptedState THEN project.requestEnrollmentCount ELSE NULL END';
 
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<Project> {
@@ -337,16 +341,20 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         'researchDepartmentInstitution',
       )
       .leftJoinAndSelect('project.interests', 'projectInterests')
-      .leftJoinAndSelect('project.enrollments', 'enrollment')
+      // Only embed current leaders and admins
+      .leftJoinAndSelect(
+        'project.enrollments',
+        'enrollment',
+        'enrollment.role IN (:...embeddedRoles) AND enrollment.requestState = :embeddedState',
+        {
+          embeddedRoles: [ProjectRole.Leader, ProjectRole.Admin],
+          embeddedState: RequestState.Accepted,
+        },
+      )
       .leftJoinAndSelect('enrollment.user', 'user')
-      // Only embed users with leader or admin role
-      .where(`enrollment is null OR enrollment.role = '${ProjectRole.Leader}'`)
-      .orWhere(`enrollment is null OR enrollment.role = '${ProjectRole.Admin}'`)
       .setParameters(subqueryProjectIds.getParameters());
 
     if (currentUser) {
-      const requestEnrollmentCountSelect =
-        'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END';
       const subqueryCurrentUserData = this.projectRepository
         .createQueryBuilder('project')
         .select('project.id as id')
@@ -379,7 +387,8 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addGroupBy('sender."firstName"')
         .addGroupBy('sender."lastName"')
         .setParameter('currentUserId', currentUser.id)
-        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
+        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin])
+        .setParameter('acceptedState', RequestState.Accepted);
 
       if (sortAttributes.sortBy === SortByProperty.requestEnrollmentCount) {
         const nullsLast = 'NULLS LAST';
@@ -461,10 +470,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addSelect('enrollment.requestState', requestStateColumn)
         .addSelect('enrollment.requesterMessage', requesterMessageColumn)
         .addSelect('enrollment.adminMessage', adminMessageColumn)
-        .addSelect(
-          'CASE WHEN enrollment.role IN (:...roles) THEN project.requestEnrollmentCount ELSE NULL END',
-          requestEnrollmentCountColumn,
-        )
+        .addSelect(requestEnrollmentCountSelect, requestEnrollmentCountColumn)
         .addSelect(senderNameSelect, senderNameColumn)
         .leftJoin(
           'project.favorites',
@@ -486,7 +492,8 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addGroupBy('sender."firstName"')
         .addGroupBy('sender."lastName"')
         .setParameter('currentUserId', currentUser.id)
-        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin]);
+        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin])
+        .setParameter('acceptedState', RequestState.Accepted);
 
       query
         .innerJoin(

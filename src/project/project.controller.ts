@@ -253,6 +253,16 @@ export class ProjectController {
 
   @UseGuards(...IsEmailVerifiedGuard)
   @ApiCookieAuth()
+  @Get(':id/invitations')
+  async getEnrollInvitations(
+    @Req() request: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.projectService.getEnrollInvitations(id, request.currentUser);
+  }
+
+  @UseGuards(...IsEmailVerifiedGuard)
+  @ApiCookieAuth()
   @Post(':id/invitations/:userId')
   async createEnrollInvitation(
     @Req() request: RequestWithUser,

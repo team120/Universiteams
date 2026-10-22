@@ -13,6 +13,7 @@ import {
 } from './dtos/user.find.dto';
 import { QueryCreator } from './user.query.creator';
 import { DbException, NotFound } from '../utils/exceptions/exceptions';
+import { RequestState } from '../enrollment/enrollment.entity';
 
 @Injectable()
 export class UserService {
@@ -108,6 +109,11 @@ export class UserService {
     if (!user) throw new NotFound('Usuario no encontrado');
     if (user.systemRole === UserSystemRole.SUPER_ADMIN)
       throw new NotFound('Usuario no disponible');
+    // Requests, invitations and past enrollments also have a row, but only
+    // accepted enrollments are projects the user is a member of
+    user.enrollments = user.enrollments.filter(
+      (enrollment) => enrollment.requestState === RequestState.Accepted,
+    );
     return this.entityMapper.mapValue(UserShowDto, user);
   }
 

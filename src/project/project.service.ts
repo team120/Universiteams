@@ -37,6 +37,7 @@ import {
   EnrollmentRequestShowDto,
   EnrollmentRequestsShowDto,
 } from '../enrollment/dtos/enrollment-request.show.dto';
+import { EnrollmentInvitationShowDto } from '../enrollment/dtos/enrollment-invitation.show.dto';
 import { EnrollmentChangeRole } from '../enrollment/dtos/enrollment-change-role';
 import { ProjectCreateDto } from './dtos/project.create.dto';
 import { ProjectShowCreatedDto } from './dtos/project.showCreated.dto';
@@ -794,6 +795,59 @@ export class ProjectService {
       ),
       requestEnrollmentCount: project.requestEnrollmentCount,
     };
+  }
+
+  // Pending and declined invitations, so admins can update, cancel or dismiss
+  // them
+  async getEnrollInvitations(
+    projectId: number,
+    currentUser: CurrentUserWithoutTokens,
+  ): Promise<EnrollmentInvitationShowDto[]> {
+    if (!currentUser)
+      throw new BadRequest(
+        'El usuario actual es requerido para obtener las invitaciones de inscripción',
+      );
+
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      select: ['id'],
+    });
+
+    if (!project) {
+      throw new NotFound('Proyecto no encontrado');
+    }
+
+    const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
+    if (!isUserAdmin) {
+      throw new Unauthorized(
+        'No tienes autorización para obtener las invitaciones de inscripción de este proyecto',
+      );
+    }
+
+    const enrollments = await this.enrollmentRepository.find({
+      where: {
+        project: {
+          id: projectId,
+        },
+        requestState: In([RequestState.Pending, RequestState.Declined]),
+        senderId: Not(IsNull()),
+      },
+      relations: [
+        'user',
+        'user.interests',
+        'user.userAffiliations',
+        'user.userAffiliations.researchDepartment',
+        'user.userAffiliations.researchDepartment.facility',
+        'user.userAffiliations.researchDepartment.facility.institution',
+        'sender',
+      ],
+      order: { id: 'ASC' },
+    });
+    this.logger.debug(
+      `Project#${projectId} successfully fetched enroll invitations`,
+    );
+
+    return this.entityMapper.mapArray(EnrollmentInvitationShowDto, enrollments);
   }
 
   async unenroll(

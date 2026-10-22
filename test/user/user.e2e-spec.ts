@@ -3,6 +3,14 @@ import { TestingModule, Test } from '@nestjs/testing';
 import { UserE2EModule } from './user.e2e.module';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
+import {
+  Enrollment,
+  RequestState,
+} from '../../src/enrollment/enrollment.entity';
+
+// User 8 has no enrollment in project 1 in the seed data
+const userId = 8;
+const projectId = 1;
 
 describe('User Actions (e2e)', () => {
   let app: INestApplication;
@@ -21,6 +29,9 @@ describe('User Actions (e2e)', () => {
   });
 
   afterEach(async () => {
+    await conn
+      .getRepository(Enrollment)
+      .delete({ project: { id: projectId }, user: { id: userId } });
     await app.close();
   });
 
@@ -36,6 +47,49 @@ describe('User Actions (e2e)', () => {
         });
     });
   });
+  describe('get one user', () => {
+    it.each(
+      Object.values(RequestState).filter(
+        (requestState) => requestState !== RequestState.Accepted,
+      ),
+    )(
+      'should not list a %s enrollment among the user projects',
+      async (requestState: RequestState) => {
+        await conn.getRepository(Enrollment).insert({
+          project: { id: projectId },
+          user: { id: userId },
+          requestState,
+        });
+
+        const res = await request(app.getHttpServer()).get(`/users/${userId}`);
+
+        expect(res.status).toBe(200);
+        expect(
+          res.body.enrollments.map(
+            (enrollment: { project: { id: number } }) => enrollment.project.id,
+          ),
+        ).not.toContain(projectId);
+      },
+    );
+
+    it('should list an accepted enrollment among the user projects', async () => {
+      await conn.getRepository(Enrollment).insert({
+        project: { id: projectId },
+        user: { id: userId },
+        requestState: RequestState.Accepted,
+      });
+
+      const res = await request(app.getHttpServer()).get(`/users/${userId}`);
+
+      expect(res.status).toBe(200);
+      expect(
+        res.body.enrollments.map(
+          (enrollment: { project: { id: number } }) => enrollment.project.id,
+        ),
+      ).toContain(projectId);
+    });
+  });
+
   describe('get users with pagination', () => {
     it('should return only five users when using limit', async () => {
       await request(app.getHttpServer())
