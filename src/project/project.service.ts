@@ -63,6 +63,16 @@ const projectNotFoundError = new NotFound(
 
 const userNotFoundError = new NotFound('Usuario no encontrado');
 
+// What admins see of a user who requested to enroll or was invited
+const enrolledUserRelations = [
+  'user',
+  'user.interests',
+  'user.userAffiliations',
+  'user.userAffiliations.researchDepartment',
+  'user.userAffiliations.researchDepartment.facility',
+  'user.userAffiliations.researchDepartment.facility.institution',
+];
+
 const enrollmentChangedError = new BadRequest(
   'La inscripción fue modificada por otra operación, intenta nuevamente',
 );
@@ -774,14 +784,7 @@ export class ProjectService {
         requestState: RequestState.Pending,
         senderId: IsNull(),
       },
-      relations: [
-        'user',
-        'user.interests',
-        'user.userAffiliations',
-        'user.userAffiliations.researchDepartment',
-        'user.userAffiliations.researchDepartment.facility',
-        'user.userAffiliations.researchDepartment.facility.institution',
-      ],
+      relations: enrolledUserRelations,
     });
     this.logger.debug(
       `Project#${projectId} successfully fetched enroll requests`,
@@ -813,9 +816,7 @@ export class ProjectService {
       select: ['id'],
     });
 
-    if (!project) {
-      throw new NotFound('Proyecto no encontrado');
-    }
+    if (!project) throw projectNotFoundError;
 
     const isUserAdmin = await this.isUserAdmin(currentUser, projectId);
     if (!isUserAdmin) {
@@ -832,15 +833,7 @@ export class ProjectService {
         requestState: In([RequestState.Pending, RequestState.Declined]),
         senderId: Not(IsNull()),
       },
-      relations: [
-        'user',
-        'user.interests',
-        'user.userAffiliations',
-        'user.userAffiliations.researchDepartment',
-        'user.userAffiliations.researchDepartment.facility',
-        'user.userAffiliations.researchDepartment.facility.institution',
-        'sender',
-      ],
+      relations: [...enrolledUserRelations, 'sender'],
       order: { id: 'ASC' },
     });
     this.logger.debug(

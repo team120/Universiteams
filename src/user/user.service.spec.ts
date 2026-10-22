@@ -96,5 +96,20 @@ describe('UserService', () => {
         );
       });
     });
+
+    describe('when the project of an accepted enrollment was deleted', () => {
+      it('should not return the enrollment', async () => {
+        userRepositoryMock.findOne.mockResolvedValue({
+          id: 8,
+          enrollments: [
+            { id: 1, requestState: RequestState.Accepted, project: null },
+          ],
+        });
+
+        const user = await service.findOne(8);
+
+        expect(user.enrollments).toHaveLength(0);
+      });
+    });
   });
 });

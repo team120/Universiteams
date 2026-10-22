@@ -12,7 +12,7 @@ It mainly consists of a web application, the main page will contain all the proj
 A user joins a project in one of two ways. Both end with an accepted enrollment, which makes the user a project member.
 
 - **Request:** the user asks to join (`POST /projects/:id/enroll-request`), and a project admin or leader approves or rejects it (`PUT /projects/:id/enroll-requests/:userId/approve|reject`).
-- **Invitation:** a project admin or leader invites the user (`POST /projects/:id/invitations/:userId`), and can edit or cancel the invitation (`PUT` and `DELETE` on the same route). The invited user accepts or declines it (`PUT /projects/:id/invitation/accept|decline`) and gets an email when invited.
+- **Invitation:** a project admin or leader invites the user (`POST /projects/:id/invitations/:userId`), and can edit or cancel the invitation (`PUT` and `DELETE` on the same route). Admins and leaders list the project's pending and declined invitations with `GET /projects/:id/invitations`. The invited user accepts or declines it (`PUT /projects/:id/invitation/accept|decline`) and gets an email when invited.
 
 Only admins and leaders whose enrollment is accepted can manage requests and invitations. Every route, with its body and responses, is in Swagger at http://api.localhost/docs.
 

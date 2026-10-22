@@ -36,6 +36,10 @@ const senderNameSelect =
 // unenrolled admin keeps the role but is no longer a member
 const requestEnrollmentCountSelect =
   'CASE WHEN enrollment.role IN (:...roles) AND enrollment.requestState = :acceptedState THEN project.requestEnrollmentCount ELSE NULL END';
+const requestEnrollmentCountParameters = {
+  roles: [ProjectRole.Leader, ProjectRole.Admin],
+  acceptedState: RequestState.Accepted,
+};
 
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<Project> {
@@ -387,8 +391,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addGroupBy('sender."firstName"')
         .addGroupBy('sender."lastName"')
         .setParameter('currentUserId', currentUser.id)
-        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin])
-        .setParameter('acceptedState', RequestState.Accepted);
+        .setParameters(requestEnrollmentCountParameters);
 
       if (sortAttributes.sortBy === SortByProperty.requestEnrollmentCount) {
         const nullsLast = 'NULLS LAST';
@@ -492,8 +495,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addGroupBy('sender."firstName"')
         .addGroupBy('sender."lastName"')
         .setParameter('currentUserId', currentUser.id)
-        .setParameter('roles', [ProjectRole.Leader, ProjectRole.Admin])
-        .setParameter('acceptedState', RequestState.Accepted);
+        .setParameters(requestEnrollmentCountParameters);
 
       query
         .innerJoin(

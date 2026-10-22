@@ -585,6 +585,33 @@ describe('Project enrollments (e2e)', () => {
       },
     );
 
+    it('should still list a project whose leader unenrolled', async () => {
+      await conn
+        .getRepository(Enrollment)
+        .update(
+          { project: { id: projectId }, user: { id: leaderId } },
+          { requestState: RequestState.Unenrolled },
+        );
+
+      try {
+        const res = await request(app.getHttpServer()).get('/projects');
+
+        expect(res.status).toBe(200);
+        const project = res.body.projects.find(
+          (listedProject: { id: number }) => listedProject.id === projectId,
+        );
+        expect(project).toBeDefined();
+        expect(project.enrollments).toEqual([]);
+      } finally {
+        await conn
+          .getRepository(Enrollment)
+          .update(
+            { project: { id: projectId }, user: { id: leaderId } },
+            { requestState: RequestState.Accepted },
+          );
+      }
+    });
+
     it('should show the request count to a current leader', async () => {
       const res = await request(app.getHttpServer())
         .get(`/projects/${projectId}`)
