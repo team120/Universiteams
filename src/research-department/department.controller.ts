@@ -14,7 +14,7 @@ import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { ResearchDepartmentFindDto } from './dtos/department.find.dto';
 import { ResearchDepartmentService } from './department.service';
-import { IsAdminGuard } from 'src/auth/is.admin.guard';
+import { IsAdminGuard } from '../auth/is.admin.guard';
 import { ResearchDepartmentCreateDto } from './dtos/department.create.dto';
 import { ResearchDepartmentUpdateDto } from './dtos/department.update.dto';
 

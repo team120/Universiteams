@@ -14,7 +14,7 @@ import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { FacilityService } from './facility.service';
 import { AppValidationPipe } from '../utils/validation.pipe';
 import { FacilityFindDto } from './dtos/facility.find.dto';
-import { IsAdminGuard } from 'src/auth/is.admin.guard';
+import { IsAdminGuard } from '../auth/is.admin.guard';
 import { FacilityCreateDto } from './dtos/facility.create.dto';
 import { FacilityUpdateDto } from './dtos/facility.update.dto';
 
