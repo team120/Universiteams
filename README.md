@@ -70,6 +70,8 @@ $ make dev
 
 [api.localhost](http://api.localhost) (Swagger docs at [api.localhost/docs](http://api.localhost/docs))
 
+Sessions live in two `HttpOnly` cookies set on login: `accessToken` (15 minutes) and `refreshToken` (7 days). When the access token has expired or its cookie is gone, `GET /auth/me` and every authenticated route renew the session with a valid refresh token and send fresh cookies in the response. Logging out revokes the refresh token.
+
 #### DB Admin
 
 [db.localhost](http://db.localhost) (pgAdmin; the dev login is set in `docker-compose.dev.yml`)

@@ -17,6 +17,7 @@ import { LoginDto } from '../../src/auth/dtos/login.dto';
 import { getQueueToken } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { ResetPasswordDto } from '../../src/auth/dtos/forget-password.dto';
+import { randomUUID } from 'crypto';
 
 describe('auth', () => {
   let app: INestApplication;
@@ -166,6 +167,194 @@ describe('auth', () => {
             expect(res.body.message).toBe('No autorizado');
             expect(res.body.accessToken).not.toBeDefined();
           });
+      });
+    });
+  });
+
+  describe('me', () => {
+    const login = async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: 'user1@example.com', password: 'Password_1' });
+      expect(res.status).toBe(200);
+      return {
+        accessTokenCookie: res.header['set-cookie'][0],
+        refreshTokenCookie: res.header['set-cookie'][1],
+      };
+    };
+    const expectUser1WithClaims = (body: Record<string, unknown>) => {
+      expect(Object.keys(body).sort()).toEqual(
+        [
+          'email',
+          'exp',
+          'iat',
+          'id',
+          'isEmailVerified',
+          'systemRole',
+          'user',
+        ].sort(),
+      );
+      expect(body).toMatchObject({
+        id: 1,
+        user: 'Juan Rizzo',
+        email: 'user1@example.com',
+        isEmailVerified: true,
+        systemRole: 'user',
+      });
+    };
+
+    afterEach(() => tokenExpirationTimesTesting.restore());
+
+    describe('when the access token is valid', () => {
+      it('should return the user and the token claims, without new cookies', async () => {
+        const { accessTokenCookie } = await login();
+
+        const res = await request(app.getHttpServer())
+          .get('/auth/me')
+          .set('Cookie', accessTokenCookie);
+
+        expect(res.status).toBe(200);
+        expectUser1WithClaims(res.body);
+        expect(res.body.exp).toBeGreaterThan(Date.now() / 1000);
+        expect(res.header['set-cookie']).toBeUndefined();
+      });
+    });
+    describe('when no cookies are sent', () => {
+      it('should return unauthorized', async () => {
+        const res = await request(app.getHttpServer()).get('/auth/me');
+
+        expect(res.status).toBe(401);
+        expect(res.body.message).toBe('No autorizado');
+      });
+    });
+    describe('when the access token is not a valid jwt and there is no refresh token', () => {
+      it('should return unauthorized', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/auth/me')
+          .set('Cookie', 'accessToken=Bearer not-a-jwt');
+
+        expect(res.status).toBe(401);
+        expect(res.body.message).toBe('No autorizado');
+      });
+    });
+    describe('when the access token is expired', () => {
+      let expiredAccessTokenCookie: string;
+      let validRefreshTokenCookie: string;
+      beforeEach(async () => {
+        tokenExpirationTimesTesting.set({
+          accessToken: { value: 0, dimension: 'seconds' },
+        });
+        const cookies = await login();
+        expiredAccessTokenCookie = cookies.accessTokenCookie;
+        validRefreshTokenCookie = cookies.refreshTokenCookie;
+        tokenExpirationTimesTesting.restore();
+      });
+
+      describe('and the refresh token is valid', () => {
+        it('should return the user with the new token claims and set fresh token cookies', async () => {
+          const res = await request(app.getHttpServer())
+            .get('/auth/me')
+            .set(
+              'Cookie',
+              `${expiredAccessTokenCookie}; ${validRefreshTokenCookie}`,
+            );
+
+          expect(res.status).toBe(200);
+          expectUser1WithClaims(res.body);
+          expect(res.body.exp).toBeGreaterThan(Date.now() / 1000);
+
+          const cookies = setCookieParser.parse(res.header['set-cookie']);
+          expect(cookies.map((cookie) => cookie.name)).toEqual([
+            'accessToken',
+            'refreshToken',
+          ]);
+          const newAccessToken = cookies[0].value;
+          expect(newAccessToken).toMatch(/Bearer\s\w+/gm);
+
+          // The new access token authenticates on its own
+          const next = await request(app.getHttpServer())
+            .get('/auth/me')
+            .set('Cookie', `accessToken=${newAccessToken}`);
+          expect(next.status).toBe(200);
+          expect(next.body.exp).toBe(res.body.exp);
+        });
+      });
+      describe('and the access token cookie is already gone (it expires with the token)', () => {
+        it('should renew the tokens with the refresh token alone', async () => {
+          const res = await request(app.getHttpServer())
+            .get('/auth/me')
+            .set('Cookie', validRefreshTokenCookie);
+
+          expect(res.status).toBe(200);
+          expectUser1WithClaims(res.body);
+          expect(res.body.exp).toBeGreaterThan(Date.now() / 1000);
+          const cookies = setCookieParser.parse(res.header['set-cookie']);
+          expect(cookies.map((cookie) => cookie.name)).toEqual([
+            'accessToken',
+            'refreshToken',
+          ]);
+        });
+      });
+      describe('and the user was deleted', () => {
+        beforeEach(async () => {
+          await conn.getRepository(User).softDelete({ id: 1 });
+        });
+        afterEach(async () => {
+          await conn.getRepository(User).restore({ id: 1 });
+        });
+
+        it('should return unauthorized, not a server error', async () => {
+          const res = await request(app.getHttpServer())
+            .get('/auth/me')
+            .set(
+              'Cookie',
+              `${expiredAccessTokenCookie}; ${validRefreshTokenCookie}`,
+            );
+
+          expect(res.status).toBe(401);
+          expect(res.body.message).toBe('No autorizado');
+          expect(res.header['set-cookie']).toBeUndefined();
+        });
+      });
+      describe('and there is no refresh token', () => {
+        it('should return unauthorized', async () => {
+          const res = await request(app.getHttpServer())
+            .get('/auth/me')
+            .set('Cookie', expiredAccessTokenCookie);
+
+          expect(res.status).toBe(401);
+          expect(res.body.message).toBe('No autorizado');
+          expect(res.header['set-cookie']).toBeUndefined();
+        });
+      });
+      describe('and the user logged out (the refresh token was revoked)', () => {
+        let originalSecret: string;
+        beforeEach(async () => {
+          originalSecret = (
+            await conn.getRepository(User).findOne({ where: { id: 1 } })
+          ).refreshUserSecret;
+          await conn
+            .getRepository(User)
+            .update({ id: 1 }, { refreshUserSecret: randomUUID() });
+        });
+        afterEach(async () => {
+          await conn
+            .getRepository(User)
+            .update({ id: 1 }, { refreshUserSecret: originalSecret });
+        });
+
+        it('should return unauthorized', async () => {
+          const res = await request(app.getHttpServer())
+            .get('/auth/me')
+            .set(
+              'Cookie',
+              `${expiredAccessTokenCookie}; ${validRefreshTokenCookie}`,
+            );
+
+          expect(res.status).toBe(401);
+          expect(res.body.message).toBe('No autorizado');
+          expect(res.header['set-cookie']).toBeUndefined();
+        });
       });
     });
   });

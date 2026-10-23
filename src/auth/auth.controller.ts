@@ -27,7 +27,6 @@ import { LoginDto } from './dtos/login.dto';
 import { RegisterDto } from './dtos/register.dto';
 import { VerifyDto } from './dtos/verify.dto';
 import { TokenService } from './token.service';
-import { Unauthorized } from '../utils/exceptions/exceptions';
 import { IsAuthService } from './is-auth.service';
 import { ProfileInputDto } from './dtos/profile.dto';
 import { IsAuthGuard } from './is-auth.guard';
@@ -127,13 +126,16 @@ export class AuthController {
     await this.authService.resetPassword(resetPasswordDto);
   }
 
+  @ApiOkResponse({
+    description:
+      'Returns the current user and its access token claims. Renews expired tokens with a valid refresh token cookie',
+  })
   @Get('me')
-  async getCurrentUser(@Req() request: RequestWithUser) {
-    if (!request.cookies) throw new Unauthorized('Cookie not provided');
-
-    return this.isAuthService.getCurrentUserDisplayInfo(
-      request.cookies['accessToken'],
-    );
+  async getCurrentUser(
+    @Req() request: RequestWithUser,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.isAuthService.getCurrentUserClaims(request, response);
   }
 
   @UseGuards(IsAuthGuard)
