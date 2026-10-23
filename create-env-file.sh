@@ -29,8 +29,9 @@ if [ "$ENV" = "dev" ]
 then
     FRONTEND_HOST="http://localhost:3000"
     echo FRONTEND_HOST="$FRONTEND_HOST" >> $ENV_FILE
-    echo SAME_SITE_POLICY="none" >> $ENV_FILE
-    echo SECURE_COOKIE="true" >> $ENV_FILE
+    # The frontend's dev server proxies the API, so cookies are first-party (see docker.dev.env.example)
+    echo SAME_SITE_POLICY="lax" >> $ENV_FILE
+    echo SECURE_COOKIE="false" >> $ENV_FILE
 fi
 
 if [ "$ENV" = "prod" ]
