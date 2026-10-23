@@ -14,9 +14,12 @@ import {
   AcceptedTokens,
   TokenExpirationTimes,
 } from '../utils/token-expiration/token-expiration-times';
+import { CookieSettings, parseCookieSettings } from './cookie-settings';
 
 @Injectable()
 export class TokenService {
+  private readonly cookieSettings: CookieSettings;
+
   constructor(
     private readonly entityMapper: EntityMapperService,
     private readonly configService: ConfigService,
@@ -24,6 +27,10 @@ export class TokenService {
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(TokenService.name);
+    this.cookieSettings = parseCookieSettings(
+      this.configService.get(SecretsVaultKeys.SAME_SITE_POLICY),
+      this.configService.get(SecretsVaultKeys.SECURE_COOKIE),
+    );
   }
 
   generateTokens(user: User) {
@@ -133,8 +140,8 @@ export class TokenService {
         ),
       ),
       httpOnly: true,
-      sameSite: this.configService.get(SecretsVaultKeys.SAME_SITE_POLICY),
-      secure: this.configService.get(SecretsVaultKeys.SECURE_COOKIE),
+      sameSite: this.cookieSettings.sameSite,
+      secure: this.cookieSettings.secure,
     });
     response.cookie('refreshToken', currentUser.refreshToken, {
       expires: add(
@@ -144,8 +151,8 @@ export class TokenService {
         ),
       ),
       httpOnly: true,
-      sameSite: this.configService.get(SecretsVaultKeys.SAME_SITE_POLICY),
-      secure: this.configService.get(SecretsVaultKeys.SECURE_COOKIE),
+      sameSite: this.cookieSettings.sameSite,
+      secure: this.cookieSettings.secure,
     });
   }
 }
