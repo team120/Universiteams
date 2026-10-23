@@ -107,8 +107,11 @@ describe('auth', () => {
         process.env.SECURE_COOKIE = 'false';
       });
       afterAll(() => {
-        process.env.SAME_SITE_POLICY = originalEnv.SAME_SITE_POLICY;
-        process.env.SECURE_COOKIE = originalEnv.SECURE_COOKIE;
+        // Assigning undefined would store the string "undefined"
+        for (const [key, value] of Object.entries(originalEnv)) {
+          if (value === undefined) delete process.env[key];
+          else process.env[key] = value;
+        }
       });
 
       it('should set both token cookies without Secure and with SameSite=Lax', async () => {
