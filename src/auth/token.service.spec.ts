@@ -8,6 +8,9 @@ import { Unauthorized } from '../utils/exceptions/exceptions';
 import { User } from '../user/user.entity';
 import { TokenExpirationTimes } from '../utils/token-expiration/token-expiration-times';
 import { PinoLogger } from 'nestjs-pino';
+import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
+import { CurrentUserDto } from './dtos/current-user.dto';
+import { Response } from 'express';
 
 describe('Token service', () => {
   let service: TokenService;
@@ -117,6 +120,73 @@ describe('Token service', () => {
         const result = service.checkRefreshToken(token, user.refreshUserSecret);
         expect(result.isValid).toBe(false);
         expect(result.errorMessage).toBe('El refresh token no es válido');
+      });
+    });
+  });
+});
+
+describe('Token service cookies', () => {
+  const createService = (env: Record<string, string>) =>
+    new TokenService(
+      {} as EntityMapperService,
+      { get: (key: string) => env[key] } as unknown as ConfigService,
+      {
+        getTokenExpirationInDurationFormat: () => ({ minutes: 15 }),
+      } as unknown as TokenExpirationTimes,
+      { setContext: jest.fn() } as unknown as PinoLogger,
+    );
+  const currentUser = {
+    accessToken: 'Bearer access',
+    refreshToken: 'Bearer refresh',
+  } as CurrentUserDto;
+
+  describe('appendTokenCookies', () => {
+    describe('when SECURE_COOKIE is "false" and SAME_SITE_POLICY is "lax"', () => {
+      it('should set both cookies without Secure and with SameSite=lax', () => {
+        const service = createService({
+          [SecretsVaultKeys.SAME_SITE_POLICY]: 'lax',
+          [SecretsVaultKeys.SECURE_COOKIE]: 'false',
+        });
+        const response = { cookie: jest.fn() } as unknown as Response;
+
+        service.appendTokenCookies(response, currentUser);
+
+        expect(response.cookie).toHaveBeenCalledTimes(2);
+        for (const [, , options] of (response.cookie as jest.Mock).mock.calls) {
+          expect(options.secure).toBe(false);
+          expect(options.sameSite).toBe('lax');
+          expect(options.httpOnly).toBe(true);
+        }
+      });
+    });
+    describe('when SECURE_COOKIE is "true" and SAME_SITE_POLICY is "none"', () => {
+      it('should set both cookies with Secure and SameSite=none', () => {
+        const service = createService({
+          [SecretsVaultKeys.SAME_SITE_POLICY]: 'none',
+          [SecretsVaultKeys.SECURE_COOKIE]: 'true',
+        });
+        const response = { cookie: jest.fn() } as unknown as Response;
+
+        service.appendTokenCookies(response, currentUser);
+
+        expect(response.cookie).toHaveBeenCalledTimes(2);
+        for (const [, , options] of (response.cookie as jest.Mock).mock.calls) {
+          expect(options.secure).toBe(true);
+          expect(options.sameSite).toBe('none');
+        }
+      });
+    });
+  });
+
+  describe('constructor', () => {
+    describe('when the cookie settings are invalid', () => {
+      it('should throw, so the app fails at startup', () => {
+        expect(() =>
+          createService({
+            [SecretsVaultKeys.SAME_SITE_POLICY]: 'none',
+            [SecretsVaultKeys.SECURE_COOKIE]: 'false',
+          }),
+        ).toThrow('SAME_SITE_POLICY=none requires SECURE_COOKIE=true');
       });
     });
   });

@@ -93,6 +93,40 @@ describe('auth', () => {
         expect(accessTokenCookie.value).toMatch(/Bearer\s\w+/gm);
         expect(accessTokenCookie.httpOnly).toBe(true);
         expect(accessTokenCookie.sameSite).toBe('None');
+        expect(accessTokenCookie.secure).toBe(true);
+      });
+    });
+    describe('when cookies are configured with SECURE_COOKIE=false and SAME_SITE_POLICY=lax', () => {
+      const originalEnv = {
+        SAME_SITE_POLICY: process.env.SAME_SITE_POLICY,
+        SECURE_COOKIE: process.env.SECURE_COOKIE,
+      };
+      // Runs before the outer beforeEach builds the app
+      beforeAll(() => {
+        process.env.SAME_SITE_POLICY = 'lax';
+        process.env.SECURE_COOKIE = 'false';
+      });
+      afterAll(() => {
+        process.env.SAME_SITE_POLICY = originalEnv.SAME_SITE_POLICY;
+        process.env.SECURE_COOKIE = originalEnv.SECURE_COOKIE;
+      });
+
+      it('should set both token cookies without Secure and with SameSite=Lax', async () => {
+        const res = await request(app.getHttpServer())
+          .post('/auth/login')
+          .send({ email: 'user1@example.com', password: 'Password_1' });
+
+        expect(res.status).toBe(200);
+        const cookies = setCookieParser.parse(res.header['set-cookie']);
+        expect(cookies.map((cookie) => cookie.name)).toEqual([
+          'accessToken',
+          'refreshToken',
+        ]);
+        for (const cookie of cookies) {
+          expect(cookie.secure).toBeUndefined();
+          expect(cookie.sameSite).toBe('Lax');
+          expect(cookie.httpOnly).toBe(true);
+        }
       });
     });
     describe('when supplied email is not valid', () => {

@@ -37,7 +37,8 @@ if [ "$ENV" = "prod" ]
 then
     FRONTEND_HOST="https://www.universiteams.com"
     echo FRONTEND_HOST="$FRONTEND_HOST" >> $ENV_FILE
-    echo SAME_SITE_POLICY="none" >> $ENV_FILE
+    # The frontend and the API share a site in production, so strict works there
+    echo SAME_SITE_POLICY="strict" >> $ENV_FILE
     echo SECURE_COOKIE="true" >> $ENV_FILE
 fi
 
