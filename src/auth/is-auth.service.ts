@@ -143,6 +143,10 @@ export class IsAuthService {
         throw new Unauthorized("Token's associated id doesn't match any user");
       });
 
+    // Missing or soft-deleted
+    if (!user)
+      throw new Unauthorized("Token's associated id doesn't match any user");
+
     const refreshTokenValidationResult = this.tokenService.checkRefreshToken(
       refreshToken,
       user.refreshUserSecret,

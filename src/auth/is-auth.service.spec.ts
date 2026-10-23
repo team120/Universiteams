@@ -14,6 +14,7 @@ describe('IsAuthService', () => {
   const newClaims = { id: 1, iat: 2000, exp: 2900 } as GeneralTokenDecoded;
   const user = { id: 1, refreshUserSecret: 'secret' } as User;
 
+  let findOne: jest.Mock;
   let tokenService: jest.Mocked<
     Pick<
       TokenService,
@@ -39,7 +40,7 @@ describe('IsAuthService', () => {
     };
     service = new IsAuthService(
       {
-        findOne: jest.fn().mockResolvedValue(user),
+        findOne: (findOne = jest.fn().mockResolvedValue(user)),
       } as unknown as Repository<User>,
       tokenService as unknown as TokenService,
       {
@@ -149,6 +150,29 @@ describe('IsAuthService', () => {
             response,
           ),
         ).rejects.toBeInstanceOf(Unauthorized);
+        expect(tokenService.appendTokenCookies).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when the refresh token belongs to a missing or deleted user', () => {
+      it('should throw unauthorized without renewing the tokens', async () => {
+        tokenService.checkAccessToken.mockReturnValue({
+          isValid: false,
+          decodedToken: claims,
+        });
+        tokenService.decodeToken.mockReturnValue(claims);
+        findOne.mockResolvedValue(null);
+
+        await expect(
+          service.getCurrentUserClaims(
+            requestWith({
+              accessToken: 'Bearer access',
+              refreshToken: 'Bearer refresh',
+            }),
+            response,
+          ),
+        ).rejects.toBeInstanceOf(Unauthorized);
+        expect(tokenService.checkRefreshToken).not.toHaveBeenCalled();
         expect(tokenService.appendTokenCookies).not.toHaveBeenCalled();
       });
     });

@@ -242,6 +242,43 @@ describe('auth', () => {
           expect(next.body.exp).toBe(res.body.exp);
         });
       });
+      describe('and the access token cookie is already gone (it expires with the token)', () => {
+        it('should renew the tokens with the refresh token alone', async () => {
+          const res = await request(app.getHttpServer())
+            .get('/auth/me')
+            .set('Cookie', validRefreshTokenCookie);
+
+          expect(res.status).toBe(200);
+          expectUser1WithClaims(res.body);
+          expect(res.body.exp).toBeGreaterThan(Date.now() / 1000);
+          const cookies = setCookieParser.parse(res.header['set-cookie']);
+          expect(cookies.map((cookie) => cookie.name)).toEqual([
+            'accessToken',
+            'refreshToken',
+          ]);
+        });
+      });
+      describe('and the user was deleted', () => {
+        beforeEach(async () => {
+          await conn.getRepository(User).softDelete({ id: 1 });
+        });
+        afterEach(async () => {
+          await conn.getRepository(User).restore({ id: 1 });
+        });
+
+        it('should return unauthorized, not a server error', async () => {
+          const res = await request(app.getHttpServer())
+            .get('/auth/me')
+            .set(
+              'Cookie',
+              `${expiredAccessTokenCookie}; ${validRefreshTokenCookie}`,
+            );
+
+          expect(res.status).toBe(401);
+          expect(res.body.message).toBe('No autorizado');
+          expect(res.header['set-cookie']).toBeUndefined();
+        });
+      });
       describe('and there is no refresh token', () => {
         it('should return unauthorized', async () => {
           const res = await request(app.getHttpServer())
