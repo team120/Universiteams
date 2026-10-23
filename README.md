@@ -52,6 +52,8 @@ Placeholder values are enough to run the app locally; sending emails (verificati
 
 Alternatively, `./create-env-file.sh ENV=dev KEY=VALUE ...` generates the file from arguments (see the script for the full list). Arguments end up in your shell history, so prefer copying the example for real secrets.
 
+The login cookies follow `SAME_SITE_POLICY` (`strict`, `lax` or `none`) and `SECURE_COOKIE` (`true` or `false`); the API refuses to start on any other value. In dev the frontend proxies the API through its own server (`http://localhost:3000/api`, see the [frontend README](https://github.com/team120/Universiteams-front#environment-variables)), so the cookies are first-party and dev uses `lax` + `false`. Safari drops `Secure` cookies on `http://localhost`. If your `docker.dev.env` predates this, set those two values and recreate the API container (`docker compose -p dev -f docker-compose.dev.yml up -d --force-recreate app`).
+
 > Docker Desktop (or another Docker Engine) must be running.
 
 ### Running the app
