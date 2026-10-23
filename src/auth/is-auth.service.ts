@@ -8,7 +8,10 @@ import { TokenService } from './token.service';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { RequestWithUser } from '../utils/request-with-user';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
-import { CurrentUserWithoutTokens } from './dtos/current-user.dto';
+import {
+  CurrentUserDto,
+  CurrentUserWithoutTokens,
+} from './dtos/current-user.dto';
 import { PinoLogger } from 'nestjs-pino';
 import { GeneralTokenDecoded } from './dtos/token';
 
@@ -24,22 +27,40 @@ export class IsAuthService {
     this.logger.setContext(IsAuthService.name);
   }
 
-  getCurrentUserDisplayInfo = (accessTokenCookie: string) => {
-    const accessToken: string | undefined = accessTokenCookie?.replace(
-      'Bearer ',
-      '',
+  // The current user and the claims of a valid access token. An expired one is renewed
+  // with the refresh token, like setCurrentUser does for every other authenticated route
+  async getCurrentUserClaims(
+    request: RequestWithUser,
+    response: Response,
+  ): Promise<GeneralTokenDecoded> {
+    if (!request.cookies) throw new Unauthorized('Cookie not provided');
+
+    const accessToken: string | undefined = request.cookies[
+      'accessToken'
+    ]?.replace('Bearer ', '');
+
+    const accessTokenVerificationResult = await this.verifyAccessToken(
+      accessToken,
     );
 
-    if (!accessToken) throw new Unauthorized('AccessToken cookie not provided');
+    if (accessTokenVerificationResult.isValid)
+      return accessTokenVerificationResult.tokenDecoded;
 
-    const accessTokenVerificationResult =
-      this.tokenService.checkAccessToken(accessToken);
+    const refreshToken: string | undefined = request.cookies[
+      'refreshToken'
+    ]?.replace('Bearer ', '');
 
-    if (!accessTokenVerificationResult.isValid)
-      throw new Unauthorized('Not valid access token');
+    const currentUser = await this.appendNewTokensIfRefreshTokenIsValid(
+      refreshToken,
+      request,
+      response,
+      accessTokenVerificationResult.tokenDecoded,
+    );
 
-    return accessTokenVerificationResult.decodedToken;
-  };
+    return this.tokenService.decodeToken(
+      currentUser.accessToken.replace('Bearer ', ''),
+    );
+  }
 
   async setCurrentUser(httpContext: HttpArgumentsHost) {
     const request: RequestWithUser = httpContext.getRequest();
@@ -97,7 +118,7 @@ export class IsAuthService {
     request: RequestWithUser,
     response: Response,
     accessTokenDecoded?: GeneralTokenDecoded,
-  ) {
+  ): Promise<CurrentUserDto> {
     if (!refreshToken) throw new Unauthorized('Refresh token not provided');
 
     const decodedRefreshToken = this.tokenService.decodeToken(refreshToken);
@@ -137,5 +158,7 @@ export class IsAuthService {
       CurrentUserWithoutTokens,
       currentUser,
     );
+
+    return currentUser;
   }
 }
