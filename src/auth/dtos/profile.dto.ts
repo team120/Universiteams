@@ -3,7 +3,7 @@ import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ExposeType } from '../../utils/decorators/expose-type.decorator';
 import { UserAffiliationShowDto } from '../../user-affiliation/dtos/user-affiliation.show.dto';
 import { InterestShowDto } from '../../interest/dtos/interest.show.dto';
-import { ResearchDepartmentInput } from 'src/research-department/dtos/department.input.dto';
+import { ResearchDepartmentInput } from '../../research-department/dtos/department.input.dto';
 
 @Exclude()
 export class ProfileInputDto {
