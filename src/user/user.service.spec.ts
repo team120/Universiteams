@@ -111,5 +111,35 @@ describe('UserService', () => {
         expect(user.enrollments).toHaveLength(0);
       });
     });
+
+    describe('when the user and the members of their projects have emails', () => {
+      it('should return no email', async () => {
+        const member = {
+          id: 2,
+          firstName: 'Camila',
+          email: 'user2@example.com',
+        };
+        userRepositoryMock.findOne.mockResolvedValue({
+          id: 8,
+          firstName: 'Ana',
+          email: 'user8@example.com',
+          enrollments: [
+            {
+              id: 1,
+              requestState: RequestState.Accepted,
+              project: { id: 1, enrollments: [{ id: 2, user: member }] },
+            },
+          ],
+        });
+
+        const user = await service.findOne(8);
+
+        expect(user).toHaveProperty('firstName', 'Ana');
+        expect(user).not.toHaveProperty('email');
+        const projectMember = user.enrollments[0].project.enrollments[0].user;
+        expect(projectMember).toHaveProperty('firstName', 'Camila');
+        expect(projectMember).not.toHaveProperty('email');
+      });
+    });
   });
 });

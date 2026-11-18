@@ -28,8 +28,12 @@ export class UserShowDto {
   systemRole?: UserSystemRole;
 }
 
+// What anyone may see of a user, logged in or not: everything but the email
+@Exclude()
+export class UserPublicDto extends OmitType(UserShowDto, ['email']) {}
+
 export class UsersResult {
-  users: UserShowDto[];
+  users: UserPublicDto[];
   usersCount: number;
 }
 export class UserSimpleShowDto extends OmitType(UserShowDto, [
