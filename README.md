@@ -74,6 +74,8 @@ Sessions live in two `HttpOnly` cookies set on login: `accessToken` (15 minutes)
 
 User emails are private. Public endpoints (`GET /projects`, `GET /projects/:id`, `GET /users`, `GET /users/:id`) return users and project members without `email`. The email is only returned to the user themselves (`GET /auth/me`, login), to a project's leaders and admins on its enrollment requests, and on invitations.
 
+`GET /projects` sorts before it paginates, so each page holds the next projects in order, with the project id breaking ties. Without `sortBy`, the newest projects come first (`creationDate` descending). With `sortBy` and no `order`, the order is ascending. `sortBy=facility` and `sortBy=researchDepartment` have no sort column yet and sort by creation date. `sortBy=requestEnrollmentCount` needs a session and puts the projects whose count the user can't see (not a current leader or admin) last.
+
 #### DB Admin
 
 [db.localhost](http://db.localhost) (pgAdmin; the dev login is set in `docker-compose.dev.yml`)
