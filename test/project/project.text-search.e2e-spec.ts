@@ -30,11 +30,14 @@ describe('Project Actions (e2e)', () => {
             expect(res.status).toBe(200);
             expect(res.body.projectCount).toBe(2);
             expect(res.body.projects).toHaveLength(2);
+            // Camila leads one of them and admins the other
             expect(
-              res.body.projects[1].enrollments.filter(
-                (e) => e.role === 'Admin',
-              )[0].user.firstName,
-            ).toEqual('Camila');
+              res.body.projects.map(
+                (p) =>
+                  p.enrollments.find((e) => e.user.firstName === 'Camila')
+                    ?.role,
+              ),
+            ).toEqual(expect.arrayContaining(['Leader', 'Admin']));
           });
       });
     });

@@ -34,8 +34,10 @@ const senderNameSelect =
   "NULLIF(COALESCE(sender.\"firstName\", '') || ' ' || COALESCE(sender.\"lastName\", ''), ' ')";
 // Only current admins and leaders see the request count: a kicked or
 // unenrolled admin keeps the role but is no longer a member
+const requestEnrollmentCountSelectFor = (enrollmentAlias: string) =>
+  `CASE WHEN ${enrollmentAlias}.role IN (:...requestCountRoles) AND ${enrollmentAlias}.requestState = :requestCountState THEN project.requestEnrollmentCount ELSE NULL END`;
 const requestEnrollmentCountSelect =
-  'CASE WHEN enrollment.role IN (:...requestCountRoles) AND enrollment.requestState = :requestCountState THEN project.requestEnrollmentCount ELSE NULL END';
+  requestEnrollmentCountSelectFor('enrollment');
 const requestEnrollmentCountParameters = {
   requestCountRoles: [ProjectRole.Leader, ProjectRole.Admin],
   requestCountState: RequestState.Accepted,
@@ -306,22 +308,43 @@ export class QueryCreator extends EntityQueryCreator<Project> {
     }
 
     const orderKey = 'orderKey';
-    const sortByProperty = this.sortBy.get(sortAttributes.sortBy);
-    const orderDirection = sortAttributes.order
-      ? sortAttributes.order
-      : AscendingDescendingOrder.ascending;
+    // With no sortBy, the newest projects come first
+    const sortBy = sortAttributes.sortBy ?? SortByProperty.creationDate;
+    const orderDirection =
+      sortAttributes.order ??
+      (sortAttributes.sortBy
+        ? AscendingDescendingOrder.ascending
+        : AscendingDescendingOrder.descending);
 
+    let sortExpression = this.sortBy.get(sortBy) ?? 'project.creationDate';
+    if (sortBy === SortByProperty.requestEnrollmentCount) {
+      // The count is only visible to the project's current leaders and admins
+      filteredProjectsSubquery
+        .leftJoin(
+          'project.enrollments',
+          'sortEnrollment',
+          'sortEnrollment.userId = :sortUserId',
+          { sortUserId: currentUser.id },
+        )
+        .setParameters(requestEnrollmentCountParameters);
+      sortExpression = `MAX(${requestEnrollmentCountSelectFor(
+        'sortEnrollment',
+      )})`;
+    }
+    const nullsLast =
+      sortBy === SortByProperty.requestEnrollmentCount ? ' NULLS LAST' : '';
+
+    // The sort decides which projects are on the page; the id keeps pages
+    // stable when the sorted values tie
     const subqueryProjectIds = filteredProjectsSubquery
+      .addSelect(
+        `row_number() over (
+          ORDER BY ${sortExpression} ${orderDirection}${nullsLast}, project.id ${orderDirection}
+        ) as ${orderKey}`,
+      )
+      .orderBy(orderKey)
       .offset(paginationAttributes.offset)
       .limit(paginationAttributes.limit);
-
-    if (sortAttributes.sortBy !== SortByProperty.requestEnrollmentCount) {
-      subqueryProjectIds.addSelect(
-        `row_number() over (${
-          sortByProperty ? `ORDER BY ${sortByProperty} ${orderDirection}` : ''
-        }) as ${orderKey}`,
-      );
-    }
 
     const finalPaginatedQuery = this.projectRepository
       .createQueryBuilder('project')
@@ -392,16 +415,6 @@ export class QueryCreator extends EntityQueryCreator<Project> {
         .addGroupBy('sender."lastName"')
         .setParameter('currentUserId', currentUser.id)
         .setParameters(requestEnrollmentCountParameters);
-
-      if (sortAttributes.sortBy === SortByProperty.requestEnrollmentCount) {
-        const nullsLast = 'NULLS LAST';
-
-        subqueryCurrentUserData.addSelect(
-          `row_number() over (
-              ORDER BY ${requestEnrollmentCountSelect} ${orderDirection} ${nullsLast}
-            ) as ${orderKey}`,
-        );
-      }
 
       finalPaginatedQuery
         .innerJoin(
