@@ -361,10 +361,11 @@ describe('Project Actions (e2e)', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.projects).toHaveLength(2);
                     expect(res.body.projectCount).toBe(2);
-                    expect(res.body.projects[0].name).toBe(
+                    // Newest first, the default order
+                    expect(res.body.projects[1].name).toBe(
                       'Diseño Ergonométrico de un Sistema Multisensorial y Multimedial, para Salas Universitarias de Inclusión Académica',
                     );
-                    expect(res.body.projects[0].endDate).toBe('2020-12-31');
+                    expect(res.body.projects[1].endDate).toBe('2020-12-31');
                   });
               });
             });
