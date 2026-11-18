@@ -11,6 +11,7 @@ import {
   UserSortByProperty,
 } from './dtos/user.find.dto';
 import { AscendingDescendingOrder } from '../utils/sorting';
+import { searchWords, toTsQuery } from '../utils/full-text-search';
 
 @Injectable()
 export class QueryCreator extends EntityQueryCreator<User> {
@@ -30,15 +31,14 @@ export class QueryCreator extends EntityQueryCreator<User> {
   ]);
 
   applyUserTextSearch(filters: UserFilters, query: SelectQueryBuilder<User>) {
-    if (!filters.generalSearch) return query;
+    const fullTextSearchConversion = toTsQuery(
+      searchWords(filters.generalSearch ?? ''),
+      { prefix: true },
+    );
+    if (!fullTextSearchConversion) return query;
     const searchQuery = this.usersRepository
       .createQueryBuilder('user')
       .leftJoin('user_search_index', 'u_index', 'u_index.id = user.id');
-
-    const fullTextSearchConversion = filters.generalSearch
-      .trim()
-      .replace(/\s/g, ':* & ')
-      .concat(':*');
 
     searchQuery.andWhere(
       `u_index.document_with_weights_user @@ to_tsquery('spanish'::regconfig, :generalSearch)`,

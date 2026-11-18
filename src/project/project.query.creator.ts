@@ -28,6 +28,7 @@ import { UniqueWordsService } from './unique-words.service';
 import { CurrentUserWithoutTokens } from '../auth/dtos/current-user.dto';
 import { EntityQueryCreator } from '../utils/query.creator';
 import { AscendingDescendingOrder } from '../utils/sorting';
+import { searchWords, toTsQuery } from '../utils/full-text-search';
 
 // Full name of the admin who invited the current user, or null
 const senderNameSelect =
@@ -70,11 +71,11 @@ export class QueryCreator extends EntityQueryCreator<Project> {
       'p_index.id = project.id',
     );
 
-    if (!filters.generalSearch) return query;
-
-    const fullTextSearchConversion = filters.generalSearch
-      .replace(/\s/g, ':* & ')
-      .concat(':*');
+    const fullTextSearchConversion = toTsQuery(
+      searchWords(filters.generalSearch ?? ''),
+      { prefix: true },
+    );
+    if (!fullTextSearchConversion) return query;
 
     searchQuery.where(
       `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, unaccent(:generalSearch))`,
@@ -90,7 +91,8 @@ export class QueryCreator extends EntityQueryCreator<Project> {
     filters: ProjectFilters,
     query: SelectQueryBuilder<Project>,
   ): Promise<[SelectQueryBuilder<Project>, string[]?]> {
-    if (!filters.generalSearch) return [query, undefined];
+    const words = searchWords(filters.generalSearch ?? '');
+    if (words.length === 0) return [query, undefined];
 
     const projectsCountNormalSearch = await query
       .getCount()
@@ -101,8 +103,16 @@ export class QueryCreator extends EntityQueryCreator<Project> {
     if (projectsCountNormalSearch !== 0) return [query, undefined];
 
     const matchingWords = await this.uniqueWordsService.getMatchingWords(
-      filters.generalSearch,
+      words.join(' '),
     );
+    // No similar word: the search stays empty
+    const fuzzySearchConversion = toTsQuery(
+      searchWords(matchingWords[0] ?? ''),
+      {
+        prefix: false,
+      },
+    );
+    if (!fuzzySearchConversion) return [query, undefined];
 
     const fuzzySearchQuery = this.projectRepository
       .createQueryBuilder('project')
@@ -110,7 +120,7 @@ export class QueryCreator extends EntityQueryCreator<Project> {
       .where(
         `p_index.document_with_weights @@ to_tsquery(project.language::regconfig, unaccent(:generalSearch))`,
         {
-          generalSearch: matchingWords[0].replace(/\s/g, ' & '),
+          generalSearch: fuzzySearchConversion,
         },
       );
 

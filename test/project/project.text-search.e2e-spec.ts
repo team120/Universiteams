@@ -21,6 +21,52 @@ describe('Project Actions (e2e)', () => {
   });
 
   describe('search projects by a general text search', () => {
+    describe('when the term matches no project and resembles no word', () => {
+      it('should return an empty list', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/projects')
+          .query({ generalSearch: 'zzzzqqq' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects).toEqual([]);
+        expect(res.body.projectCount).toBe(0);
+        expect(res.body).not.toHaveProperty('suggestedSearchTerms');
+      });
+    });
+
+    describe('when the term has extra spaces or symbols', () => {
+      it.each([
+        ' teams',
+        'teams ',
+        'teams  ',
+        'universi  teams',
+        'teams&',
+        'teams:',
+        '(teams)',
+        "teams'",
+        "o'teams",
+        '!!!',
+      ])(
+        'should search its words without failing (%p)',
+        async (generalSearch) => {
+          const res = await request(app.getHttpServer())
+            .get('/projects')
+            .query({ generalSearch });
+
+          expect(res.status).toBe(200);
+        },
+      );
+
+      it('should find the projects that match its words', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/projects')
+          .query({ generalSearch: ' teams& ' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects.map((p) => p.name)).toEqual(['Universiteams']);
+      });
+    });
+
     describe('when partially match some of their users', () => {
       it('should get the two matching projects', async () => {
         const generalSearchText = 'cam vila';

@@ -19,8 +19,7 @@ export class UniqueWordsService {
       .where('word_similarity(word, :term) > 0.75', {
         term: term,
       })
-      // to avoid sql injections, since typeorm doesn't support prepared statements in order by clauses
-      .orderBy(`word <-> format('%L', '${term}')`)
+      .orderBy('word <-> :term')
       .getOne()
       .then((stopWord) => stopWord?.word);
 
@@ -29,7 +28,7 @@ export class UniqueWordsService {
     return this.uniqueWordsRepo
       .createQueryBuilder()
       .where('word_similarity(word, :term) > 0', { term: term })
-      .orderBy(`word <-> format('%L', '${term}')`)
+      .orderBy('word <-> :term')
       .limit(5)
       .getMany()
       .then((uniqueTerms) => uniqueTerms.map((uniqueTerm) => uniqueTerm?.word));

@@ -128,6 +128,38 @@ describe('User Actions (e2e)', () => {
     });
   });
 
+  describe('search users by a general text search', () => {
+    it.each([
+      'aldo ',
+      ' juan',
+      'juan  rizzo',
+      'rizzo&',
+      'rizzo:',
+      "rizzo'",
+      '!!!',
+    ])(
+      'should search the words without failing (%p)',
+      async (generalSearch) => {
+        const res = await request(app.getHttpServer())
+          .get('/users')
+          .query({ generalSearch });
+
+        expect(res.status).toBe(200);
+      },
+    );
+
+    it('should find the users that match its words', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/users')
+        .query({ generalSearch: 'juan  rizzo&' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.users.map((u) => `${u.firstName} ${u.lastName}`)).toEqual(
+        ['Juan Rizzo'],
+      );
+    });
+  });
+
   describe('get users with pagination', () => {
     it('should return only five users when using limit', async () => {
       await request(app.getHttpServer())
