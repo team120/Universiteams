@@ -10,7 +10,7 @@ import {
 } from '../../src/enrollment/enrollment.entity';
 import { Project } from '../../src/project/project.entity';
 
-type ProjectInList = { id: number; creationDate: string };
+type ProjectInList = { id: number; name: string; creationDate: string };
 
 const pageSize = 3;
 
@@ -77,23 +77,39 @@ describe('Project list sorting and pagination (e2e)', () => {
     });
   });
 
-  describe.each(['name', 'creationDate'])('when sorting by %s', (sortBy) => {
-    it.each(['ASC', 'DESC'])(
-      'should page the projects in %s order across pages',
-      async (order) => {
-        const query = `sortBy=${sortBy}&order=${order}`;
+  describe.each(['name', 'creationDate'] as const)(
+    'when sorting by %s',
+    (sortBy) => {
+      it.each(['ASC', 'DESC'])(
+        'should page the projects in %s order across pages',
+        async (order) => {
+          const query = `sortBy=${sortBy}&order=${order}`;
 
-        expect(ids(await getAllPages(query))).toEqual(
-          ids(await getOnePage(query)),
-        );
-      },
-    );
-  });
+          const onePage = await getOnePage(query);
+          // The database compares names by byte order (C collation), like `<`
+          const direction = order === 'ASC' ? 1 : -1;
+          const compare = (a: ProjectInList, b: ProjectInList) => {
+            if (a[sortBy] < b[sortBy]) return -1;
+            if (a[sortBy] > b[sortBy]) return 1;
+            return a.id - b.id;
+          };
+          const expected = [...onePage].sort(
+            (a, b) => direction * compare(a, b),
+          );
+          expect(ids(onePage)).toEqual(ids(expected));
+          expect(ids(await getAllPages(query))).toEqual(ids(onePage));
+        },
+      );
+    },
+  );
 
   describe('when a leader sorts by requestEnrollmentCount', () => {
     const camilaId = 2;
+    // Distinct counts (ids are below 17) in an order unrelated to the ids
+    const requestCount = (projectId: number) => (projectId * 5) % 17;
     let enrolled: Enrollment[];
     let addedEnrollmentIds: number[];
+    let memberProjectId: number;
     let initialCounts: Pick<Project, 'id' | 'requestEnrollmentCount'>[];
     let cookie: string;
 
@@ -126,11 +142,26 @@ describe('Project list sorting and pagination (e2e)', () => {
       );
       addedEnrollmentIds = added.identifiers.map(({ id }) => id);
 
-      // Distinct counts in an order unrelated to the ids
+      // Except a plain member of the project with the most requests, who
+      // doesn't see its count
+      const listed = await request(app.getHttpServer()).get('/projects');
+      memberProjectId = (listed.body.projects as ProjectInList[]).reduce(
+        (top, project) =>
+          requestCount(project.id) > requestCount(top.id) ? project : top,
+      ).id;
+      const memberEnrollment = await conn
+        .getRepository(Enrollment)
+        .findOneOrFail({
+          where: { project: { id: memberProjectId }, user: { id: camilaId } },
+        });
+      await conn
+        .getRepository(Enrollment)
+        .update(memberEnrollment.id, { role: ProjectRole.Member });
+
       for (const { id } of initialCounts) {
         await conn
           .getRepository(Project)
-          .update(id, { requestEnrollmentCount: (id * 7) % 13 });
+          .update(id, { requestEnrollmentCount: requestCount(id) });
       }
 
       const login = await request(app.getHttpServer())
@@ -152,12 +183,13 @@ describe('Project list sorting and pagination (e2e)', () => {
     });
 
     it.each(['ASC', 'DESC'])(
-      'should page the projects in %s order across pages',
+      'should page the projects in %s order across pages, hidden counts last',
       async (order) => {
         const query = `sortBy=requestEnrollmentCount&order=${order}`;
 
         const onePage = await getOnePage(query, cookie);
-        const counts = onePage.map(({ id }) => (id * 7) % 13);
+        expect(onePage[onePage.length - 1].id).toBe(memberProjectId);
+        const counts = onePage.slice(0, -1).map(({ id }) => requestCount(id));
         const sortedCounts = [...counts].sort((a, b) =>
           order === 'ASC' ? a - b : b - a,
         );
