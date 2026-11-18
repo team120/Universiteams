@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm';
+import { DataSource, SelectQueryBuilder } from 'typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { QueryCreator } from './project.query.creator';
 import { Project } from './project.entity';
@@ -28,6 +28,82 @@ describe('QueryCreator', () => {
       { setContext: jest.fn(), debug: jest.fn() } as unknown as PinoLogger,
       { get: () => '2026-01-01' } as ICurrentDateService,
     );
+  });
+
+  describe('applyFuzzyTextSearch', () => {
+    const getMatchingWords = jest.fn();
+    let fuzzyQueryCreator: QueryCreator;
+
+    beforeEach(() => {
+      getMatchingWords.mockReset();
+      fuzzyQueryCreator = new QueryCreator(
+        dataSource.getRepository(Project),
+        { getMatchingWords } as unknown as UniqueWordsService,
+        { setContext: jest.fn(), debug: jest.fn() } as unknown as PinoLogger,
+        { get: () => '2026-01-01' } as ICurrentDateService,
+      );
+    });
+
+    // The normal search query, which found this many projects
+    const searchFinding = (projectCount: number) =>
+      ({
+        getCount: jest.fn().mockResolvedValue(projectCount),
+      } as unknown as SelectQueryBuilder<Project>);
+
+    it('should keep the search when it found projects', async () => {
+      const query = searchFinding(2);
+
+      const result = await fuzzyQueryCreator.applyFuzzyTextSearch(
+        { generalSearch: 'teams' },
+        query,
+      );
+
+      expect(result).toEqual([query, undefined]);
+      expect(getMatchingWords).not.toHaveBeenCalled();
+    });
+
+    it('should keep the search when the term has no words', async () => {
+      const query = searchFinding(0);
+
+      const result = await fuzzyQueryCreator.applyFuzzyTextSearch(
+        { generalSearch: '!!!' },
+        query,
+      );
+
+      expect(result).toEqual([query, undefined]);
+      expect(query.getCount).not.toHaveBeenCalled();
+    });
+
+    it.each([[[]], [['']]])(
+      'should keep the empty search, with no suggestions, when the similar words are %p',
+      async (matchingWords: string[]) => {
+        getMatchingWords.mockResolvedValue(matchingWords);
+        const query = searchFinding(0);
+
+        const result = await fuzzyQueryCreator.applyFuzzyTextSearch(
+          { generalSearch: 'zzzzqqq' },
+          query,
+        );
+
+        expect(result).toEqual([query, undefined]);
+      },
+    );
+
+    it('should search the first similar words, and suggest them all', async () => {
+      getMatchingWords.mockResolvedValue(['utn frro', 'utn fra']);
+
+      const [fuzzyQuery, suggestions] =
+        await fuzzyQueryCreator.applyFuzzyTextSearch(
+          { generalSearch: "utq' froo&" },
+          searchFinding(0),
+        );
+
+      expect(getMatchingWords).toHaveBeenCalledWith('utq froo');
+      expect(fuzzyQuery.getParameters()).toEqual({
+        generalSearch: 'utn & frro',
+      });
+      expect(suggestions).toEqual(['utn frro', 'utn fra']);
+    });
   });
 
   describe('applySortingAndPagination', () => {

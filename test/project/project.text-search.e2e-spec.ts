@@ -21,6 +21,85 @@ describe('Project Actions (e2e)', () => {
   });
 
   describe('search projects by a general text search', () => {
+    describe('when the term matches no project and resembles no word', () => {
+      it('should return an empty list', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/projects')
+          .query({ generalSearch: 'zzzzqqq' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects).toEqual([]);
+        expect(res.body.projectCount).toBe(0);
+        expect(res.body).not.toHaveProperty('suggestedSearchTerms');
+      });
+    });
+
+    describe('when the term is only stop words', () => {
+      it('should return an empty list with no suggestions', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/projects')
+          .query({ generalSearch: 'para' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects).toEqual([]);
+        expect(res.body.projectCount).toBe(0);
+        expect(res.body).not.toHaveProperty('suggestedSearchTerms');
+      });
+    });
+
+    describe('when the term has extra spaces or symbols', () => {
+      it.each([
+        ' teams',
+        'teams ',
+        'teams  ',
+        'universi  teams',
+        'teams&',
+        'teams:',
+        '(teams)',
+        "teams'",
+        "o'teams",
+      ])(
+        'should search its words without failing (%p)',
+        async (generalSearch) => {
+          const res = await request(app.getHttpServer())
+            .get('/projects')
+            .query({ generalSearch });
+
+          expect(res.status).toBe(200);
+        },
+      );
+
+      it('should search nothing when the term has no words', async () => {
+        const all = await request(app.getHttpServer()).get('/projects');
+        const res = await request(app.getHttpServer())
+          .get('/projects')
+          .query({ generalSearch: '!!!' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.projectCount).toBe(all.body.projectCount);
+        expect(res.body.projectCount).toBeGreaterThan(0);
+      });
+
+      it('should not run SQL sent in the term', async () => {
+        const start = Date.now();
+        const res = await request(app.getHttpServer()).get('/projects').query({
+          generalSearch: "'),(SELECT/**/1/**/FROM/**/pg_sleep(3))--'",
+        });
+
+        expect(res.status).toBe(200);
+        expect(Date.now() - start).toBeLessThan(2000);
+      });
+
+      it('should find the projects that match its words', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/projects')
+          .query({ generalSearch: ' teams& ' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects.map((p) => p.name)).toEqual(['Universiteams']);
+      });
+    });
+
     describe('when partially match some of their users', () => {
       it('should get the two matching projects', async () => {
         const generalSearchText = 'cam vila';

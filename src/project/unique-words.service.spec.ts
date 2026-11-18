@@ -171,6 +171,43 @@ describe('UniqueWordsService', () => {
       });
     });
   });
+  describe('when the term has a quote', () => {
+    it('should pass it as a parameter, never inside the SQL', async () => {
+      const term = "o'brien";
+      const stopWordsWhere = jest.fn();
+      const stopWordsOrderBy = jest.fn();
+      stopsWordsRepoMock.createQueryBuilder.mockReturnValue({
+        where: stopWordsWhere.mockReturnValue({
+          orderBy: stopWordsOrderBy.mockReturnValue({
+            getOne: jest.fn().mockResolvedValue(undefined),
+          }),
+        }),
+      });
+      const uniqueWordsWhere = jest.fn();
+      const uniqueWordsOrderBy = jest.fn();
+      uniqueWordsRepoMock.createQueryBuilder.mockReturnValue({
+        where: uniqueWordsWhere.mockReturnValue({
+          orderBy: uniqueWordsOrderBy.mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              getMany: jest.fn().mockResolvedValue([]),
+            }),
+          }),
+        }),
+      });
+
+      await service.getMatchingWords(term);
+
+      for (const where of [stopWordsWhere, uniqueWordsWhere]) {
+        expect(where).toHaveBeenCalledWith(expect.not.stringContaining(term), {
+          term,
+        });
+      }
+      for (const orderBy of [stopWordsOrderBy, uniqueWordsOrderBy]) {
+        expect(orderBy).toHaveBeenCalledWith('word <-> :term');
+      }
+    });
+  });
+
   describe('when the only search term is a matching stop word', () => {
     it('should return an array of a single empty string', async () => {
       redefineGetOneStopWordsResolvedValue({ word: 'de' });
