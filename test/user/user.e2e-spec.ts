@@ -129,15 +129,7 @@ describe('User Actions (e2e)', () => {
   });
 
   describe('search users by a general text search', () => {
-    it.each([
-      'aldo ',
-      ' juan',
-      'juan  rizzo',
-      'rizzo&',
-      'rizzo:',
-      "rizzo'",
-      '!!!',
-    ])(
+    it.each(['aldo ', ' juan', 'juan  rizzo', 'rizzo&', 'rizzo:', "rizzo'"])(
       'should search the words without failing (%p)',
       async (generalSearch) => {
         const res = await request(app.getHttpServer())
@@ -147,6 +139,17 @@ describe('User Actions (e2e)', () => {
         expect(res.status).toBe(200);
       },
     );
+
+    it('should search nothing when the term has no words', async () => {
+      const all = await request(app.getHttpServer()).get('/users');
+      const res = await request(app.getHttpServer())
+        .get('/users')
+        .query({ generalSearch: '!!!' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.usersCount).toBe(all.body.usersCount);
+      expect(res.body.usersCount).toBeGreaterThan(0);
+    });
 
     it('should find the users that match its words', async () => {
       const res = await request(app.getHttpServer())

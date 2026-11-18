@@ -1,7 +1,9 @@
-// The words of a search text. Spaces and symbols only separate words, so
-// characters with a meaning in tsquery (& | ! : ( ) ') never reach it.
+// The words of a search text: letters (with their accents, even when typed
+// as separate combining marks) and digits. Spaces and symbols only separate
+// words, so characters with a meaning in tsquery (& | ! : ( ) ') never reach
+// it.
 export const searchWords = (text: string): string[] =>
-  text.split(/[^\p{L}\p{N}]+/u).filter((word) => word.length > 0);
+  text.split(/[^\p{L}\p{M}\p{N}]+/u).filter((word) => word.length > 0);
 
 // A tsquery that matches documents with every word, each word as a prefix
 // when asked: ['juan', 'riz'] -> 'juan:* & riz:*'. Undefined with no words.

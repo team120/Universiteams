@@ -34,6 +34,19 @@ describe('Project Actions (e2e)', () => {
       });
     });
 
+    describe('when the term is only stop words', () => {
+      it('should return an empty list with no suggestions', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/projects')
+          .query({ generalSearch: 'para' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects).toEqual([]);
+        expect(res.body.projectCount).toBe(0);
+        expect(res.body).not.toHaveProperty('suggestedSearchTerms');
+      });
+    });
+
     describe('when the term has extra spaces or symbols', () => {
       it.each([
         ' teams',
@@ -45,7 +58,6 @@ describe('Project Actions (e2e)', () => {
         '(teams)',
         "teams'",
         "o'teams",
-        '!!!',
       ])(
         'should search its words without failing (%p)',
         async (generalSearch) => {
@@ -56,6 +68,27 @@ describe('Project Actions (e2e)', () => {
           expect(res.status).toBe(200);
         },
       );
+
+      it('should search nothing when the term has no words', async () => {
+        const all = await request(app.getHttpServer()).get('/projects');
+        const res = await request(app.getHttpServer())
+          .get('/projects')
+          .query({ generalSearch: '!!!' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.projectCount).toBe(all.body.projectCount);
+        expect(res.body.projectCount).toBeGreaterThan(0);
+      });
+
+      it('should not run SQL sent in the term', async () => {
+        const start = Date.now();
+        const res = await request(app.getHttpServer()).get('/projects').query({
+          generalSearch: "'),(SELECT/**/1/**/FROM/**/pg_sleep(3))--'",
+        });
+
+        expect(res.status).toBe(200);
+        expect(Date.now() - start).toBeLessThan(2000);
+      });
 
       it('should find the projects that match its words', async () => {
         const res = await request(app.getHttpServer())

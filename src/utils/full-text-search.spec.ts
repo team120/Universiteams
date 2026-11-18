@@ -9,6 +9,8 @@ describe('full-text search', () => {
       ["o'brien", ['o', 'brien']],
       ['rizzo & (juan | !camila):*', ['rizzo', 'juan', 'camila']],
       ['Ingeniería 2021', ['Ingeniería', '2021']],
+      // Accents typed as separate combining marks stay in the word
+      ['María'.normalize('NFD'), ['María'.normalize('NFD')]],
       ['', []],
       ['  ', []],
       ['&|!:()', []],
