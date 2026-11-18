@@ -76,6 +76,8 @@ User emails are private. Public endpoints (`GET /projects`, `GET /projects/:id`,
 
 `GET /projects` sorts before it paginates, so each page holds the next projects in order, with the project id breaking ties. Without `sortBy`, the newest projects come first (`creationDate` descending). With `sortBy` and no `order`, the order is ascending. `sortBy=facility` and `sortBy=researchDepartment` have no sort column yet and sort by creation date. `sortBy=requestEnrollmentCount` needs a session and puts the projects whose count the user can't see (not a current leader or admin) last.
 
+`generalSearch` on `GET /projects` and `GET /users` (at least 3 characters) searches the words of the term: letters, with their accents, and digits. Spaces and symbols only separate words (`o'brien` searches `o` and `brien`), and a term made only of symbols searches nothing, so the list comes back unfiltered. Every word must match, as a prefix. When a project search finds nothing, it retries with the most similar known words and returns them in `suggestedSearchTerms`. If no word is similar, or the term is only stop words (e.g. `para`), the list is empty and `suggestedSearchTerms` is left out.
+
 #### DB Admin
 
 [db.localhost](http://db.localhost) (pgAdmin; the dev login is set in `docker-compose.dev.yml`)
