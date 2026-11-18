@@ -9,3 +9,6 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    # Paused until the Phase 4 upgrades, which go one major version per PR.
+    # Dependabot alerts stay on.
+    open-pull-requests-limit: 0
