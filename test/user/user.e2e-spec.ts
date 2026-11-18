@@ -48,8 +48,26 @@ describe('User Actions (e2e)', () => {
           expect(res.body.users[0]).not.toHaveProperty('password');
         });
     });
+
+    it("should not expose the users' emails", async () => {
+      const res = await request(app.getHttpServer()).get('/users');
+
+      expect(res.status).toBe(200);
+      for (const user of res.body.users) {
+        expect(user).toHaveProperty('firstName');
+        expect(user).not.toHaveProperty('email');
+      }
+    });
   });
   describe('get one user', () => {
+    it("should not expose the user's email", async () => {
+      const res = await request(app.getHttpServer()).get(`/users/${userId}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('firstName');
+      expect(res.body).not.toHaveProperty('email');
+    });
+
     it.each(
       Object.values(RequestState).filter(
         (requestState) => requestState !== RequestState.Accepted,

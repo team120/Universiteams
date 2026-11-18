@@ -24,6 +24,41 @@ describe('Project Actions (e2e)', () => {
     await app.close();
   });
 
+  describe("Members' emails", () => {
+    type Member = { user: Record<string, unknown> };
+    const expectMembersWithoutEmail = (enrollments: Member[]) => {
+      expect(enrollments.length).toBeGreaterThan(0);
+      for (const enrollment of enrollments) {
+        expect(enrollment.user).toEqual(
+          expect.objectContaining({
+            id: expect.any(Number),
+            firstName: expect.any(String),
+            lastName: expect.any(String),
+          }),
+        );
+        expect(enrollment.user).not.toHaveProperty('email');
+      }
+    };
+
+    it('should not be exposed by the project list', async () => {
+      const res = await request(app.getHttpServer()).get('/projects');
+
+      expect(res.status).toBe(200);
+      expectMembersWithoutEmail(
+        res.body.projects.flatMap(
+          (project: { enrollments: Member[] }) => project.enrollments,
+        ),
+      );
+    });
+
+    it('should not be exposed by a single project', async () => {
+      const res = await request(app.getHttpServer()).get('/projects/1');
+
+      expect(res.status).toBe(200);
+      expectMembersWithoutEmail(res.body.enrollments);
+    });
+  });
+
   describe('Get one', () => {
     it('should return ID not found if it does not match any id on DB', async () => {
       const id = 100;

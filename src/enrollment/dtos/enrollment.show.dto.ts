@@ -1,6 +1,9 @@
 import { Exclude, Expose, Type } from 'class-transformer';
 import { ProjectInListDto } from '../../project/dtos/project.show.dto';
-import { UserShowDto, UserSimpleShowDto } from '../../user/dtos/user.show.dto';
+import {
+  UserPublicDto,
+  UserSimpleShowDto,
+} from '../../user/dtos/user.show.dto';
 import { ProjectRole } from '../enrollment.entity';
 import { OmitType } from '@nestjs/swagger';
 
@@ -11,8 +14,8 @@ export class EnrollmentShowDto {
   @Expose()
   role: ProjectRole;
   @Expose()
-  @Type(() => UserShowDto)
-  user: UserShowDto;
+  @Type(() => UserPublicDto)
+  user: UserPublicDto;
   @Expose()
   @Type(() => ProjectInListDto)
   project: ProjectInListDto;

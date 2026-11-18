@@ -72,6 +72,8 @@ $ make dev
 
 Sessions live in two `HttpOnly` cookies set on login: `accessToken` (15 minutes) and `refreshToken` (7 days). When the access token has expired or its cookie is gone, `GET /auth/me` and every authenticated route renew the session with a valid refresh token and send fresh cookies in the response. Logging out revokes the refresh token.
 
+User emails are private. Public endpoints (`GET /projects`, `GET /projects/:id`, `GET /users`, `GET /users/:id`) return users and project members without `email`. The email is only returned to the user themselves (`GET /auth/me`, login), to a project's leaders and admins on its enrollment requests, and on invitations.
+
 #### DB Admin
 
 [db.localhost](http://db.localhost) (pgAdmin; the dev login is set in `docker-compose.dev.yml`)

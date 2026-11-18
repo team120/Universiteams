@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
 import { EntityMapperService } from '../utils/serialization/entity-mapper.service';
 import { Repository } from 'typeorm';
-import { UserShowDto, UsersResult } from './dtos/user.show.dto';
+import { UserPublicDto, UserShowDto, UsersResult } from './dtos/user.show.dto';
 import { User, UserSystemRole } from './user.entity';
 import {
   PaginationAttributes,
@@ -83,12 +83,12 @@ export class UserService {
     });
 
     return {
-      users: this.entityMapper.mapArray(UserShowDto, users),
+      users: this.entityMapper.mapArray(UserPublicDto, users),
       usersCount: usersCount,
     };
   }
 
-  async findOne(userId: number): Promise<UserShowDto> {
+  async findOne(userId: number): Promise<UserPublicDto> {
     this.logger.debug('Find a user by id and its relations');
     const user = await this.userRepository
       .findOne({
@@ -117,7 +117,7 @@ export class UserService {
         enrollment.requestState === RequestState.Accepted &&
         Boolean(enrollment.project),
     );
-    return this.entityMapper.mapValue(UserShowDto, user);
+    return this.entityMapper.mapValue(UserPublicDto, user);
   }
 
   async promoteToAdmin(userId: number): Promise<UserShowDto> {
