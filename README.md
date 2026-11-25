@@ -151,6 +151,10 @@ make format
 make format-check
 ```
 
+## Dependencies
+
+Dependabot version-update PRs are paused (`open-pull-requests-limit: 0` in `.github/dependabot.yml`) until the planned dependency upgrades, which go one major version per PR. To turn them back on, remove that line. Dependabot alerts are a repository setting and are not affected.
+
 ## Technologies used
 
 ### Frontend
