@@ -56,7 +56,11 @@ export class AuthController {
   }
 
   @UseGuards(IsAuthGuard)
+  @ApiOkResponse({
+    description: 'Returns current user data and clears the token cookies',
+  })
   @Post('logout')
+  @HttpCode(200)
   async logout(@Req() request: RequestWithUser, @Res() response: Response) {
     return this.authService.logout(request.currentUser, response);
   }
