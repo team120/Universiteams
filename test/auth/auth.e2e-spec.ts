@@ -171,6 +171,22 @@ describe('auth', () => {
     });
   });
 
+  describe('logout', () => {
+    it('should answer 200 OK and clear the token cookies', async () => {
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: 'user1@example.com', password: 'Password_1' });
+      expect(loginRes.status).toBe(200);
+
+      const res = await request(app.getHttpServer())
+        .post('/auth/logout')
+        .set('Cookie', loginRes.header['set-cookie']);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ id: 1, email: 'user1@example.com' });
+    });
+  });
+
   describe('me', () => {
     const login = async () => {
       const res = await request(app.getHttpServer())
