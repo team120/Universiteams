@@ -184,6 +184,9 @@ describe('auth', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({ id: 1, email: 'user1@example.com' });
+      const cookies = setCookieParser.parse(res.header['set-cookie']);
+      expect(cookies.find((c) => c.name === 'accessToken')?.value).toBe('');
+      expect(cookies.find((c) => c.name === 'refreshToken')?.value).toBe('');
     });
   });
 
