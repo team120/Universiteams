@@ -687,7 +687,7 @@ describe('auth', () => {
           .send({ verificationToken: verificationTokenInUrl });
 
         expect(res.status).toBe(401);
-        expect(res.body.message).toBe('Usuario no encontrado');
+        expect(res.body.message).toBe('No autorizado');
 
         const user = await conn.getRepository(User).findOne({
           where: { id: notVerifiedUser.id },
