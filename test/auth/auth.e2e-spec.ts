@@ -665,6 +665,37 @@ describe('auth', () => {
           .update(notVerifiedUser.id, { isEmailVerified: false });
       });
     });
+    describe('when the user was deleted after logging in (the access token is still valid)', () => {
+      beforeEach(async () => {
+        await conn.getRepository(User).softDelete({ id: notVerifiedUser.id });
+      });
+      afterEach(async () => {
+        await conn.getRepository(User).restore({ id: notVerifiedUser.id });
+      });
+
+      it('should return unauthorized, not a server error', async () => {
+        const verificationEmailTokenService = app.get(
+          VerificationMessagesService,
+        );
+        const verificationTokenInUrl = await verificationEmailTokenService
+          .generateVerifyEmailUrl(notVerifiedUser)
+          .then((url) => url.split('token=')[1]);
+
+        const res = await request(app.getHttpServer())
+          .post('/auth/verify-email')
+          .set('Cookie', `${accessTokenCookie}; ${refreshTokenCookie}`)
+          .send({ verificationToken: verificationTokenInUrl });
+
+        expect(res.status).toBe(401);
+        expect(res.body.message).toBe('No autorizado');
+
+        const user = await conn.getRepository(User).findOne({
+          where: { id: notVerifiedUser.id },
+          withDeleted: true,
+        });
+        expect(user.isEmailVerified).toBe(false);
+      });
+    });
     describe('when an invalid email verification token is provided', () => {
       describe("since it isn't a jwt string", () => {
         it('should return BadRequest (verificationToken must be a jwt string)', async () => {

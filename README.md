@@ -70,7 +70,7 @@ $ make dev
 
 [api.localhost](http://api.localhost) (Swagger docs at [api.localhost/docs](http://api.localhost/docs))
 
-Sessions live in two `HttpOnly` cookies set on login: `accessToken` (15 minutes) and `refreshToken` (7 days). When the access token has expired or its cookie is gone, `GET /auth/me` and every authenticated route renew the session with a valid refresh token and send fresh cookies in the response. Logging out revokes the refresh token.
+Sessions live in two `HttpOnly` cookies set on login: `accessToken` (15 minutes) and `refreshToken` (7 days). When the access token has expired or its cookie is gone, `GET /auth/me` and every authenticated route renew the session with a valid refresh token and send fresh cookies in the response. Logging out revokes the refresh token. If the user was deleted while their access token is still valid, `GET /auth/profile`, `PUT /auth/profile` and `POST /auth/verify-email` answer `401` (`No autorizado`).
 
 User emails are private. Public endpoints (`GET /projects`, `GET /projects/:id`, `GET /users`, `GET /users/:id`) return users and project members without `email`. The email is only returned to the user themselves (`GET /auth/me`, login), to a project's leaders and admins on its enrollment requests, and on invitations.
 

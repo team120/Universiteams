@@ -103,6 +103,8 @@ export class AuthService {
         throw new DbException(e.message, e.stack);
       });
 
+    if (!user) throw new Unauthorized('Usuario no encontrado');
+
     await this.verificationMessageService.checkVerificationEmailToken(
       verifyDto.verificationToken,
       user,
