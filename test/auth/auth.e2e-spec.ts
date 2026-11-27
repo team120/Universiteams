@@ -190,6 +190,8 @@ describe('auth', () => {
         expect(cookie?.value).toBe('');
         expect(cookie?.path).toBe('/');
         expect(cookie?.httpOnly).toBe(true);
+        expect(cookie?.sameSite).toBe('None');
+        expect(cookie?.secure).toBe(true);
         expect(cookie?.expires?.getTime()).toBeLessThanOrEqual(Date.now());
       }
     });
