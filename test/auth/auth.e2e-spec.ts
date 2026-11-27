@@ -172,7 +172,7 @@ describe('auth', () => {
   });
 
   describe('logout', () => {
-    it('should answer 200 OK and clear the token cookies', async () => {
+    it('should answer 200 OK and delete the token cookies', async () => {
       const loginRes = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'user1@example.com', password: 'Password_1' });
@@ -185,8 +185,15 @@ describe('auth', () => {
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({ id: 1, email: 'user1@example.com' });
       const cookies = setCookieParser.parse(res.header['set-cookie']);
-      expect(cookies.find((c) => c.name === 'accessToken')?.value).toBe('');
-      expect(cookies.find((c) => c.name === 'refreshToken')?.value).toBe('');
+      for (const name of ['accessToken', 'refreshToken']) {
+        const cookie = cookies.find((c) => c.name === name);
+        expect(cookie?.value).toBe('');
+        expect(cookie?.path).toBe('/');
+        expect(cookie?.httpOnly).toBe(true);
+        expect(cookie?.sameSite).toBe('None');
+        expect(cookie?.secure).toBe(true);
+        expect(cookie?.expires?.getTime()).toBeLessThanOrEqual(Date.now());
+      }
     });
   });
 

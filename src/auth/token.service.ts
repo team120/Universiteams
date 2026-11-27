@@ -155,4 +155,15 @@ export class TokenService {
       secure: this.cookieSettings.secure,
     });
   }
+
+  clearTokenCookies(response: Response) {
+    // Browsers only delete a cookie when the attributes match how it was set
+    const options = {
+      httpOnly: true,
+      sameSite: this.cookieSettings.sameSite,
+      secure: this.cookieSettings.secure,
+    };
+    response.clearCookie('accessToken', options);
+    response.clearCookie('refreshToken', options);
+  }
 }

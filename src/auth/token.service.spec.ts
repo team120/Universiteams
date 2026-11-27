@@ -178,6 +178,53 @@ describe('Token service cookies', () => {
     });
   });
 
+  describe('clearTokenCookies', () => {
+    describe('when SECURE_COOKIE is "false" and SAME_SITE_POLICY is "lax"', () => {
+      it('should clear both cookies without Secure and with SameSite=lax', () => {
+        const service = createService({
+          [SecretsVaultKeys.SAME_SITE_POLICY]: 'lax',
+          [SecretsVaultKeys.SECURE_COOKIE]: 'false',
+        });
+        const response = { clearCookie: jest.fn() } as unknown as Response;
+
+        service.clearTokenCookies(response);
+
+        const options = { httpOnly: true, sameSite: 'lax', secure: false };
+        expect(response.clearCookie).toHaveBeenCalledTimes(2);
+        expect(response.clearCookie).toHaveBeenCalledWith(
+          'accessToken',
+          options,
+        );
+        expect(response.clearCookie).toHaveBeenCalledWith(
+          'refreshToken',
+          options,
+        );
+      });
+    });
+    describe('when SECURE_COOKIE is "true" and SAME_SITE_POLICY is "none"', () => {
+      it('should clear both cookies with the attributes they were set with', () => {
+        const service = createService({
+          [SecretsVaultKeys.SAME_SITE_POLICY]: 'none',
+          [SecretsVaultKeys.SECURE_COOKIE]: 'true',
+        });
+        const response = { clearCookie: jest.fn() } as unknown as Response;
+
+        service.clearTokenCookies(response);
+
+        const options = { httpOnly: true, sameSite: 'none', secure: true };
+        expect(response.clearCookie).toHaveBeenCalledTimes(2);
+        expect(response.clearCookie).toHaveBeenCalledWith(
+          'accessToken',
+          options,
+        );
+        expect(response.clearCookie).toHaveBeenCalledWith(
+          'refreshToken',
+          options,
+        );
+      });
+    });
+  });
+
   describe('constructor', () => {
     describe('when the cookie settings are invalid', () => {
       it('should throw, so the app fails at startup', () => {

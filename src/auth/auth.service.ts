@@ -305,8 +305,7 @@ export class AuthService {
     // Remove refreshUserSecret from user in db and then cookies from client side
     user.refreshUserSecret = uuid();
     await this.userRepo.save(user);
-    response.cookie('accessToken', '', {});
-    response.cookie('refreshToken', '', {});
+    this.tokenService.clearTokenCookies(response);
     return response.json(
       this.entityMapper.mapValue(CurrentUserWithoutTokens, currentUser),
     );
